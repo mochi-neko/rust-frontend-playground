@@ -1,6 +1,7 @@
 mod logging;
+mod signup;
 
-use dioxus::prelude::{Element, Scope, use_state, rsx, dioxus_elements};
+use dioxus::prelude::{Element, Scope, rsx, dioxus_elements, use_ref, use_state};
 
 fn main() -> anyhow::Result<()> {
     logging::initialize()?;
@@ -13,17 +14,27 @@ fn main() -> anyhow::Result<()> {
 fn app(cx: Scope) -> Element {
     let mail_address = use_state(&cx, || String::new());
     let password = use_state(&cx, || String::new());
+    let signup = use_state(&cx, || signup::SignupInfo {
+        mail_address: String::new(),
+        password: String::new(),
+    });
 
     cx.render(rsx! {
         h1 { "SignUp" }
 
+        label { "e-mail: " }
+
         input {
-            r#type: "text",
+            r#type: "email",
             oninput: move |event| {
-                log::info!("Input mail_address: {}", event.value);
+                log::info!("Input e-mail address: {}", event.value);
                 mail_address.with_mut(|address| *address = event.value.clone())
             },
         }
+
+        br {}
+
+        label { "password: " }
 
         input {
             r#type: "password",
@@ -33,18 +44,20 @@ fn app(cx: Scope) -> Element {
             },
         }
 
+        br {}
+
         button {
             onclick: move |_| {
                 log::info!("Register mail_address: {}, password: {}", mail_address.get(), password.get().replace(|_| true, "*"));
-                register(mail_address.get(), password.get()).unwrap()
+                signup.set(signup::SignupInfo {
+                    mail_address: mail_address.get().clone(),
+                    password: password.get().clone(),
+                });
+
+                signup::register(signup.get()).unwrap()
             },
             "Register",
         }
     })
 }
 
-fn register(
-    _mail_address: &String,
-    _password: &String) -> anyhow::Result<()> {
-    Ok(())
-}
