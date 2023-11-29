@@ -14,7 +14,8 @@ struct ExchangeRefreshTokenRequestBodyPayload {
 /// Response payload for the `token` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
 #[derive(Debug, Deserialize)]
-struct ExchangeRefreshTokenResponsePayload {
+#[allow(dead_code)]
+pub(crate) struct ExchangeRefreshTokenResponsePayload {
     #[serde(rename = "access_token")]
     access_token: String,
     #[serde(rename = "expires_in")]
@@ -87,7 +88,8 @@ struct SignUpWithEmailAndPasswordRequestBodyPayload {
 /// Response payload for the `signUp` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 #[derive(Debug, Deserialize)]
-pub struct SignUpWithEmailAndPasswordResponsePayload {
+#[allow(dead_code)]
+pub(crate) struct SignUpWithEmailAndPasswordResponsePayload {
     #[serde(rename = "idToken")]
     id_token: String,
     #[serde(rename = "email")]
@@ -155,7 +157,8 @@ struct SignInWithEmailAndPasswordRequestBodyPayload {
 /// Response payload for the `signInWithEmailAndPassword` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 #[derive(Debug, Deserialize)]
-pub struct SignInWithEmailAndPasswordResponsePayload {
+#[allow(dead_code)]
+pub(crate) struct SignInWithEmailAndPasswordResponsePayload {
     #[serde(rename = "idToken")]
     id_token: String,
     #[serde(rename = "email")]
