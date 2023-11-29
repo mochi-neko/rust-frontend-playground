@@ -1,7 +1,11 @@
+mod firebase;
+mod generated;
 mod logging;
-mod signup;
+mod sign_up;
 
-use dioxus::prelude::{Element, Scope, rsx, dioxus_elements, use_ref, use_state};
+use dioxus::prelude::{
+    dioxus_elements, rsx, use_future, use_state, Element, Scope,
+};
 
 fn main() -> anyhow::Result<()> {
     logging::initialize()?;
@@ -12,11 +16,23 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn app(cx: Scope) -> Element {
-    let mail_address = use_state(&cx, || String::new());
-    let password = use_state(&cx, || String::new());
-    let signup = use_state(&cx, || signup::SignupInfo {
-        mail_address: String::new(),
-        password: String::new(),
+    let mail_address = use_state(cx, String::new);
+    let password = use_state(cx, String::new);
+    let log_in = use_future(cx, (), |_| {
+        let mail_address = mail_address.get().clone();
+        let password = password.get().clone();
+
+        async move {
+            let info = sign_up::SignUpInfo {
+                mail_address,
+                password,
+            };
+
+            log::info!("Sign up: {:?}", info);
+            sign_up::sign_up(&info)
+                .await
+                .unwrap_or_default();
+        }
     });
 
     cx.render(rsx! {
@@ -47,17 +63,8 @@ fn app(cx: Scope) -> Element {
         br {}
 
         button {
-            onclick: move |_| {
-                log::info!("Register mail_address: {}, password: {}", mail_address.get(), password.get().replace(|_| true, "*"));
-                signup.set(signup::SignupInfo {
-                    mail_address: mail_address.get().clone(),
-                    password: password.get().clone(),
-                });
-
-                signup::register(signup.get()).unwrap()
-            },
+            onclick: move |_| log_in.restart(),
             "Register",
         }
     })
 }
-

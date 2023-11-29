@@ -21,6 +21,7 @@ dist/
 
 # Environment variables
 .env
+src/generated/dotenv.rs
 
 # for Rust Rover
 .idea
