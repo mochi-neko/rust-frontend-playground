@@ -17,7 +17,7 @@ fn main() -> anyhow::Result<()> {
     for (key, value) in envs {
         let key = key.to_uppercase();
         let line = format!(
-            "pub(crate) const {}: &str = \"{}\";\n",
+            "#[allow(dead_code)] pub(crate) const {}: &str = \"{}\";\n",
             key, value,
         );
         file.write_all(line.as_bytes())?;
