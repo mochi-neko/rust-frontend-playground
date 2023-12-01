@@ -71,7 +71,8 @@ fn app(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![password];
                     move |event: String| {
-                        log::info!("Input password: {}", event);
+                        // NOTE: Hide password
+                        // log::info!("Input password: {}", event);
                         password.set(event)
                     }
                 }
