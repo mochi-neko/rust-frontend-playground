@@ -3,9 +3,19 @@ mod generated;
 mod logging;
 mod sign_up;
 
-use dioxus::prelude::{
-    dioxus_elements, rsx, use_future, use_state, Element, Scope,
+use std::any::type_name;
+
+use dioxus::{
+    core::Event,
+    hooks::to_owned,
+    html::{label, FormData, FormEvent},
+    prelude::{
+        dioxus_elements, fc_to_builder, rsx, use_future, use_state, Element,
+        Scope,
+    },
 };
+use material_dioxus::{MatButton, MatTextField, MatTheme};
+use serde::de::value;
 
 fn main() -> anyhow::Result<()> {
     logging::initialize()?;
@@ -36,35 +46,64 @@ fn app(cx: Scope) -> Element {
     });
 
     cx.render(rsx! {
+        MatTheme {}
+
         h1 { "SignUp" }
 
-        label { "e-mail: " }
-
-        input {
-            r#type: "email",
-            oninput: move |event| {
-                log::info!("Input e-mail address: {}", event.value);
-                mail_address.with_mut(|address| *address = event.value.clone())
-            },
+        div {
+            MatTextField {
+                label: "e-mail",
+                value: mail_address.get(),
+                _oninput: {
+                    to_owned![mail_address];
+                    move |event :String| {
+                        log::info!("Input e-mail address: {}", event);
+                        mail_address.set(event)
+                    }
+                }
+            }
         }
 
-        br {}
-
-        label { "password: " }
-
-        input {
-            r#type: "password",
-            oninput: move |event| {
-                log::info!("Input password: {}", event.value.clone().replace(|_| true, "*"));
-                password.with_mut(|password| *password = event.value.clone())
-            },
+        div {
+            MatTextField {
+                label: "password",
+                value: password_field(password.get().clone()),
+                _oninput: {
+                    to_owned![password];
+                    move |event: String| {
+                        log::info!("Input password: {}", event);
+                        password.set(event)
+                    }
+                }
+            }
         }
 
-        br {}
-
-        button {
-            onclick: move |_| log_in.restart(),
-            "Register",
+        div {
+            span {
+                onclick: move |_| {
+                    log::info!("Sign up");
+                    log_in.restart();
+                },
+                MatButton{
+                    label: "Sign Up",
+                }
+            }
         }
     })
+}
+
+fn password_field(password: String) -> String {
+    let count = password.chars().count();
+
+    password
+        .chars()
+        .enumerate()
+        .map(|(index, character)| {
+            if index != count - 1 {
+                '*'
+            } else {
+                character
+            }
+        })
+        .collect::<String>()
 }
