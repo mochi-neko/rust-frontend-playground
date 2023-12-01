@@ -3,19 +3,14 @@ mod generated;
 mod logging;
 mod sign_up;
 
-use std::any::type_name;
-
 use dioxus::{
-    core::Event,
     hooks::to_owned,
-    html::{label, FormData, FormEvent},
     prelude::{
         dioxus_elements, fc_to_builder, rsx, use_future, use_state, Element,
         Scope,
     },
 };
 use material_dioxus::{MatButton, MatTextField, MatTheme};
-use serde::de::value;
 
 fn main() -> anyhow::Result<()> {
     logging::initialize()?;
