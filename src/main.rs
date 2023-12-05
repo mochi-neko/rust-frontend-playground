@@ -2,15 +2,17 @@ mod firebase;
 mod generated;
 mod logging;
 mod sign_up;
+mod style;
 
 use dioxus::{
     hooks::to_owned,
+    html::GlobalAttributes,
     prelude::{
         dioxus_elements, fc_to_builder, rsx, use_future, use_state, Element,
         Scope,
     },
 };
-use material_dioxus::{MatButton, MatTextField, MatTheme};
+use material_dioxus::{theming::Colors, MatButton, MatTextField, MatTheme};
 
 fn main() -> anyhow::Result<()> {
     logging::initialize()?;
@@ -41,7 +43,19 @@ fn app(cx: Scope) -> Element {
     });
 
     cx.render(rsx! {
-        MatTheme {}
+        style {
+            // NOTE: Failed to load style.css then use inline style
+            dangerous_inner_html: crate::style::STYLE_CSS,
+        }
+
+        MatTheme {
+            theme: Colors {
+                ..Colors::DEFAULT_LIGHT
+            },
+            dark_theme: Some(Colors {
+                ..Colors::DEFAULT_DARK
+            }),
+        }
 
         h1 { "SignUp" }
 
@@ -82,6 +96,7 @@ fn app(cx: Scope) -> Element {
                 },
                 MatButton{
                     label: "Sign Up",
+                    outlined: true,
                 }
             }
         }
