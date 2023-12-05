@@ -1,12 +1,11 @@
 use dioxus::{
     hooks::{to_owned, UseState},
-    html::GlobalAttributes,
     prelude::{
         dioxus_elements, fc_to_builder, inline_props, render, use_future,
         use_state, Element, Props, Scope,
     },
 };
-use material_dioxus::{MatButton, MatTextField, MatTheme};
+use material_dioxus::{MatButton, MatTextField};
 
 use crate::auth::sign_up::{sign_up, SignUpInfo};
 
@@ -34,13 +33,6 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
     });
 
     render! {
-        style {
-            // NOTE: Failed to load style.css then use inline style
-            dangerous_inner_html: crate::style::STYLE_CSS,
-        }
-
-        MatTheme { }
-
         h1 { "Sign up" }
 
         div {
