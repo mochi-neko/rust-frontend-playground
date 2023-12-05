@@ -5,8 +5,10 @@ use dioxus::{
         use_state, Element, Props, Scope,
     },
 };
+use dioxus_router::components::Link;
 use material_dioxus::{MatButton, MatTextField};
 
+use super::route::Route;
 use crate::auth::sign_up::{sign_up, SignUpInfo};
 
 #[allow(non_snake_case)]
@@ -15,7 +17,7 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
-    let log_in = use_future(cx, (), |_| {
+    let sign_up = use_future(cx, (), |_| {
         let email = email.get().clone();
         let password = password.get().clone();
 
@@ -47,9 +49,9 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                     }
                 }
             }
+        }
 
-            br {}
-
+        div {
             MatTextField {
                 label: "Password",
                 value: password_field(password.get().clone()),
@@ -62,9 +64,9 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                     }
                 }
             }
+        }
 
-            br {}
-
+        div {
             MatTextField {
                 label: "Confirm password",
                 value: password_field(confirm_password.get().clone()),
@@ -84,7 +86,7 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                 onclick: move |_| {
                     if can_sign_up(email, password, confirm_password) {
                         log::info!("Sign up");
-                        log_in.restart();
+                        sign_up.restart();
                     }
                 },
                 MatButton{
@@ -92,6 +94,23 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                     outlined: true,
                     disabled: !can_sign_up(email, password, confirm_password),
                 }
+            }
+        }
+
+        br {}
+
+        div {
+            label {
+                "If you already have an account, please "
+            }
+
+            Link {
+                to: Route::SignIn {},
+                "sign in",
+            }
+
+            label {
+                "."
             }
         }
     }

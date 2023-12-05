@@ -16,9 +16,9 @@ pub(crate) fn Home(cx: Scope) -> Element {
                 to: Route::SignUp {},
                 "Sign up",
             }
+        }
 
-            br {}
-
+        div {
             Link {
                 to: Route::SignIn {},
                 "Sign in",
