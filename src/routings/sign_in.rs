@@ -1,5 +1,5 @@
 use dioxus::{
-    hooks::{to_owned, UseState},
+    hooks::{to_owned, use_shared_state, UseState},
     prelude::{
         dioxus_elements, fc_to_builder, inline_props, render, use_future,
         use_state, Element, Props, Scope,
@@ -9,11 +9,15 @@ use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{MatButton, MatTextField};
 
 use super::route::Route;
-use crate::auth::sign_in::{sign_in, SignInInfo};
+use crate::auth::{
+    auth_context::AuthContext,
+    sign_in::{sign_in, SignInInfo},
+};
 
 #[allow(non_snake_case)]
 #[inline_props]
 pub(crate) fn SignIn(cx: Scope) -> Element {
+    let auth_context = use_shared_state::<Option<AuthContext>>(cx).unwrap();
     let navigation = use_navigator(cx);
 
     let email = use_state(cx, String::new);
@@ -22,6 +26,7 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
         let email = email.get().clone();
         let password = password.get().clone();
         let navigation = navigation.clone();
+        let auth_context = auth_context.clone();
 
         async move {
             let info = SignInInfo {
@@ -31,14 +36,20 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
 
             log::info!("Sign in: {:?}", info);
             let result = sign_in(&info).await;
-            if result.is_ok() {
-                log::info!("Sign in success");
-                navigation.push(Route::Dashboard {});
-            } else {
-                log::info!(
-                    "Sign in failed: {:?}",
-                    result.err().unwrap()
-                );
+            match result {
+                | Ok(context) => {
+                    log::info!("Sign in success");
+
+                    // NOTE: Update auth context
+                    let mut auth_context_ref = auth_context.write();
+                    *auth_context_ref = Some(context);
+
+                    // NOTE: Navigate to dashboard
+                    navigation.push(Route::Dashboard {});
+                },
+                | Err(error) => {
+                    log::info!("Sign in failed: {:?}", error);
+                },
             }
         }
     });

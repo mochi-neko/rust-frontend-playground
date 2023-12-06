@@ -126,15 +126,15 @@ struct SignUpWithEmailAndPasswordRequestBodyPayload {
 #[allow(dead_code)]
 pub(crate) struct SignUpWithEmailAndPasswordResponsePayload {
     #[serde(rename = "idToken")]
-    id_token: String,
+    pub(crate) id_token: String,
     #[serde(rename = "email")]
-    email: String,
+    pub(crate) email: String,
     #[serde(rename = "refreshToken")]
-    refresh_token: String,
+    pub(crate) refresh_token: String,
     #[serde(rename = "expiresIn")]
-    expires_in: String,
+    pub(crate) expires_in: String,
     #[serde(rename = "localId")]
-    local_id: String,
+    pub(crate) local_id: String,
 }
 
 /// Signs up a user with the given email address and password.
@@ -232,17 +232,17 @@ struct SignInWithEmailAndPasswordRequestBodyPayload {
 #[allow(dead_code)]
 pub(crate) struct SignInWithEmailAndPasswordResponsePayload {
     #[serde(rename = "idToken")]
-    id_token: String,
+    pub(crate) id_token: String,
     #[serde(rename = "email")]
-    email: String,
+    pub(crate) email: String,
     #[serde(rename = "refreshToken")]
-    refresh_token: String,
+    pub(crate) refresh_token: String,
     #[serde(rename = "expiresIn")]
-    expires_in: String,
+    pub(crate) expires_in: String,
     #[serde(rename = "localId")]
-    local_id: String,
+    pub(crate) local_id: String,
     #[serde(rename = "registered")]
-    registered: bool,
+    pub(crate) registered: bool,
 }
 
 /// Signs in a user with the given email address and password.
