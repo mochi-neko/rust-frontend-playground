@@ -1,3 +1,4 @@
+pub(crate) mod dashboard;
 pub(crate) mod home;
 pub(crate) mod not_found;
 pub(crate) mod route;

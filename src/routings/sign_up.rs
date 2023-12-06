@@ -5,7 +5,7 @@ use dioxus::{
         use_state, Element, Props, Scope,
     },
 };
-use dioxus_router::components::Link;
+use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{MatButton, MatTextField};
 
 use super::route::Route;
@@ -14,23 +14,34 @@ use crate::auth::sign_up::{sign_up, SignUpInfo};
 #[allow(non_snake_case)]
 #[inline_props]
 pub(crate) fn SignUp(cx: Scope) -> Element {
+    let navigation = use_navigator(cx);
+
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
+
     let sign_up = use_future(cx, (), |_| {
         let email = email.get().clone();
         let password = password.get().clone();
+        let navigation = navigation.clone();
 
         async move {
             let info = SignUpInfo {
-                mail_address: email,
+                email,
                 password,
             };
 
             log::info!("Sign up: {:?}", info);
-            sign_up(&info)
-                .await
-                .unwrap_or_default();
+            let result = sign_up(&info).await;
+            if result.is_ok() {
+                log::info!("Sign up success");
+                navigation.push(Route::Dashboard {});
+            } else {
+                log::info!(
+                    "Sign up failed: {:?}",
+                    result.err().unwrap()
+                );
+            }
         }
     });
 
@@ -54,7 +65,7 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
         div {
             MatTextField {
                 label: "Password",
-                value: password_field(password.get().clone()),
+                value: password.get().clone().replace(|_| true, "*"),
                 _oninput: {
                     to_owned![password];
                     move |event: String| {
@@ -69,7 +80,7 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
         div {
             MatTextField {
                 label: "Confirm password",
-                value: password_field(confirm_password.get().clone()),
+                value: confirm_password.get().clone().replace(|_| true, "*"),
                 _oninput: {
                     to_owned![confirm_password];
                     move |event: String| {
@@ -114,22 +125,6 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
             }
         }
     }
-}
-
-fn password_field(password: String) -> String {
-    let count = password.chars().count();
-
-    password
-        .chars()
-        .enumerate()
-        .map(|(index, character)| {
-            if index != count - 1 {
-                '*'
-            } else {
-                character
-            }
-        })
-        .collect::<String>()
 }
 
 fn can_sign_up(
