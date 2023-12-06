@@ -19,9 +19,9 @@ use crate::auth::{
 pub(crate) fn SignIn(cx: Scope) -> Element {
     let auth_context = use_shared_state::<Option<AuthContext>>(cx).unwrap();
     let navigation = use_navigator(cx);
-
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
+
     let sign_in = use_future(cx, (), |_| {
         let email = email.get().clone();
         let password = password.get().clone();
@@ -29,6 +29,10 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
         let auth_context = auth_context.clone();
 
         async move {
+            if email.is_empty() || password.is_empty() {
+                return;
+            }
+
             let info = SignInInfo {
                 email,
                 password,

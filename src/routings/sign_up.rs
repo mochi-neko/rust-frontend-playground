@@ -31,6 +31,10 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
         let auth_context = auth_context.clone();
 
         async move {
+            if email.is_empty() || password.is_empty() {
+                return;
+            }
+
             let info = SignUpInfo {
                 email,
                 password,
