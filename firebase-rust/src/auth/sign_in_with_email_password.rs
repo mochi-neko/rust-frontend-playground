@@ -1,6 +1,8 @@
+/// Implements the sign in API of Firebase Auth.
+/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 use serde::{Deserialize, Serialize};
 
-use super::auth_result::{ApiErrorResponse, FirebaseError, FirebaseResult};
+use super::result::{ApiErrorResponse, FirebaseError, Result};
 
 /// Request body payload for the `signInWithEmailAndPassword` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
@@ -38,7 +40,7 @@ pub async fn sign_in_with_email_password(
     api_key: &String,
     email: String,
     password: String,
-) -> FirebaseResult<SignInWithEmailPasswordResponsePayload> {
+) -> Result<SignInWithEmailPasswordResponsePayload> {
     let url = format!(
         "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={}",
         api_key
@@ -59,7 +61,7 @@ pub async fn sign_in_with_email_password(
         .await
         .map_err(|error| {
             log::error!(
-                "Failed to send request to sign in: {:?}",
+                "[Firebase] Failed to send request to sign in: {:?}",
                 error
             );
             FirebaseError::HttpError(error)
@@ -71,7 +73,7 @@ pub async fn sign_in_with_email_password(
             .await
             .map_err(|error| {
                 log::error!(
-                    "Failed to deserialize response to sign in: {:?}",
+                    "[Firebase] Failed to deserialize response to sign in: {:?}",
                     error
                 );
                 FirebaseError::JsonError(error)
@@ -85,14 +87,14 @@ pub async fn sign_in_with_email_password(
             .await
             .map_err(|error| {
                 log::error!(
-                    "Failed to deserialize error response to sign in: {:?}",
+                    "[Firebase] Failed to deserialize error response to sign in: {:?}",
                     error
                 );
                 FirebaseError::JsonError(error)
             })?;
 
         log::error!(
-            "Failed to sign in with bad status code ({}): {:?}",
+            "[Firebase] Failed to sign in with bad status code ({}): {:?}",
             status_code,
             error_response
         );

@@ -1,6 +1,8 @@
+/// Implements the sign up API of Firebase Auth.
+/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 use serde::{Deserialize, Serialize};
 
-use super::auth_result::{ApiErrorResponse, FirebaseError, FirebaseResult};
+use super::result::{ApiErrorResponse, FirebaseError, Result};
 
 /// Request body payload for the `signUp` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
@@ -36,7 +38,7 @@ pub async fn sign_up_with_email_password(
     api_key: &String,
     email: String,
     password: String,
-) -> FirebaseResult<SignUpWithEmailPasswordResponsePayload> {
+) -> Result<SignUpWithEmailPasswordResponsePayload> {
     let url = format!(
         "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={}",
         api_key
@@ -57,7 +59,7 @@ pub async fn sign_up_with_email_password(
         .await
         .map_err(|error| {
             log::error!(
-                "Failed to send request to sign up: {:?}",
+                "[Firebase] Failed to send request to sign up: {:?}",
                 error
             );
             FirebaseError::HttpError(error)
@@ -69,7 +71,7 @@ pub async fn sign_up_with_email_password(
             .await
             .map_err(|error| {
                 log::error!(
-                    "Failed to deserialize response to sign up: {:?}",
+                    "[Firebase] Failed to deserialize response to sign up: {:?}",
                     error
                 );
                 FirebaseError::JsonError(error)
@@ -83,14 +85,14 @@ pub async fn sign_up_with_email_password(
             .await
             .map_err(|error| {
                 log::error!(
-                    "Failed to deserialize error response to sign up: {:?}",
+                    "[Firebase] Failed to deserialize error response to sign up: {:?}",
                     error
                 );
                 FirebaseError::JsonError(error)
             })?;
 
         log::error!(
-            "Failed to sign up with bad status code ({}): {:?}",
+            "[Firebase] Failed to sign up with bad status code ({}): {:?}",
             status_code,
             error_response
         );

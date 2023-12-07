@@ -1,6 +1,7 @@
+/// Implements the exchange refresh token API of the Firebase Auth.
 use serde::{Deserialize, Serialize};
 
-use super::auth_result::{ApiErrorResponse, FirebaseError, FirebaseResult};
+use super::result::{ApiErrorResponse, FirebaseError, Result};
 
 /// Request body payload for the `token` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
@@ -37,7 +38,7 @@ pub struct ExchangeRefreshTokenResponsePayload {
 pub async fn exchange_refresh_token(
     api_key: &String,
     refresh_token: String,
-) -> FirebaseResult<ExchangeRefreshTokenResponsePayload> {
+) -> Result<ExchangeRefreshTokenResponsePayload> {
     let url = format!(
         "https://securetoken.googleapis.com/v1/token?key={}",
         api_key
@@ -57,7 +58,7 @@ pub async fn exchange_refresh_token(
         .await
         .map_err(|error| {
             log::error!(
-                "Failed to send request to exchange refresh token: {:?}",
+                "[Firebase] Failed to send request to exchange refresh token: {:?}",
                 error
             );
             FirebaseError::HttpError(error)
@@ -69,7 +70,7 @@ pub async fn exchange_refresh_token(
             .await
             .map_err(|error| {
                 log::error!(
-                    "Failed to deserialize response to exchange refresh token: {:?}",
+                    "[Firebase] Failed to deserialize response to exchange refresh token: {:?}",
                     error
                 );
                 FirebaseError::JsonError(error)
@@ -83,14 +84,14 @@ pub async fn exchange_refresh_token(
             .await
             .map_err(|error| {
                 log::error!(
-                    "Failed to deserialize error response to exchange refresh token: {:?}",
+                    "[Firebase] Failed to deserialize error response to exchange refresh token: {:?}",
                     error
                 );
                 FirebaseError::JsonError(error)
             })?;
 
         log::error!(
-            "Failed to exchange refresh token with bad status code ({}): {:?}",
+            "[Firebase] Failed to exchange refresh token with bad status code ({}): {:?}",
             status_code,
             error_response
         );

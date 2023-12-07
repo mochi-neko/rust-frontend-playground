@@ -1,9 +1,10 @@
+/// A result type for the Firebase Auth API.
 use serde::Deserialize;
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
-/// Result type for the Firebase API.
-pub type FirebaseResult<T> = Result<T, FirebaseError>;
+/// Result type for the Firebase Auth API.
+pub type Result<T> = std::result::Result<T, FirebaseError>;
 
 /// Error type for the Firebase API.
 #[derive(Debug, Error)]
