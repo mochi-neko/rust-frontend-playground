@@ -3,14 +3,20 @@ use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
 /// Result type for the Firebase API.
-pub(crate) type FirebaseResult<T> = Result<T, FirebaseError>;
+pub type FirebaseResult<T> = Result<T, FirebaseError>;
 
 /// Error type for the Firebase API.
 #[derive(Debug, Error)]
-pub(crate) enum FirebaseError {
+pub enum FirebaseError {
     /// API error.
     #[error("Firebase API error: {0}")]
     ApiError(ApiErrorResponse),
+    /// HTTP error.
+    #[error("HTTP error: {0}")]
+    HttpError(reqwest::Error),
+    /// JSON error.
+    #[error("JSON error: {0}")]
+    JsonError(reqwest::Error),
     /// Other error.
     #[error("Other error: {0}")]
     Other(String),
@@ -19,10 +25,9 @@ pub(crate) enum FirebaseError {
 /// Error response payload for the auth endpoints.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-error-response).
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub(crate) struct ApiErrorResponse {
+pub struct ApiErrorResponse {
     #[serde(rename = "error")]
-    pub(crate) error: Error,
+    pub error: Error,
 }
 
 impl Display for ApiErrorResponse {
@@ -37,25 +42,23 @@ impl Display for ApiErrorResponse {
 /// Error response payload for the auth endpoints.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-error-response).
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub(crate) struct Error {
+pub struct Error {
     #[serde(rename = "errors")]
-    pub(crate) errors: Vec<ErrorElement>,
+    pub errors: Vec<ErrorElement>,
     #[serde(rename = "code")]
-    pub(crate) code: i64,
+    pub code: i64,
     #[serde(rename = "message")]
-    pub(crate) message: String,
+    pub message: String,
 }
 
 /// Error response payload for the auth endpoints.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-error-response).
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub(crate) struct ErrorElement {
+pub struct ErrorElement {
     #[serde(rename = "domain")]
-    pub(crate) domain: String,
+    pub domain: String,
     #[serde(rename = "reason")]
-    pub(crate) reason: String,
+    pub reason: String,
     #[serde(rename = "message")]
-    pub(crate) message: String,
+    pub message: String,
 }

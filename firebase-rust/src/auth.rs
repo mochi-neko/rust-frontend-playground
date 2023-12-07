@@ -15,27 +15,26 @@ struct ExchangeRefreshTokenRequestBodyPayload {
 /// Response payload for the `token` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
 #[derive(Deserialize)]
-#[allow(dead_code)]
-pub(crate) struct ExchangeRefreshTokenResponsePayload {
+pub struct ExchangeRefreshTokenResponsePayload {
     #[serde(rename = "access_token")]
-    access_token: String,
+    pub access_token: String,
     #[serde(rename = "expires_in")]
-    expires_in: String,
+    pub expires_in: String,
     #[serde(rename = "token_type")]
-    token_type: String,
+    pub token_type: String,
     #[serde(rename = "refresh_token")]
-    refresh_token: String,
+    pub refresh_token: String,
     #[serde(rename = "id_token")]
-    id_token: String,
+    pub id_token: String,
     #[serde(rename = "user_id")]
-    user_id: String,
+    pub user_id: String,
     #[serde(rename = "project_id")]
-    project_id: String,
+    pub project_id: String,
 }
 
 /// Exchanges a refresh token for an access token and an ID token.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
-pub(crate) async fn exchange_refresh_token(
+pub async fn exchange_refresh_token(
     api_key: &String,
     refresh_token: String,
 ) -> FirebaseResult<ExchangeRefreshTokenResponsePayload> {
@@ -61,10 +60,7 @@ pub(crate) async fn exchange_refresh_token(
                 "Failed to send request to exchange refresh token: {:?}",
                 error
             );
-            FirebaseError::Other(format!(
-                "Failed to send request to exchange refresh token: {:?}",
-                error
-            ))
+            FirebaseError::HttpError(error)
         })?;
 
     if response.status().is_success() {
@@ -76,10 +72,7 @@ pub(crate) async fn exchange_refresh_token(
                     "Failed to deserialize response to exchange refresh token: {:?}",
                     error
                 );
-                FirebaseError::Other(format!(
-                    "Failed to deserialize response to exchange refresh token: {:?}",
-                    error
-                ))
+                FirebaseError::JsonError(error)
             })?;
 
         Ok(response_payload)
@@ -93,10 +86,7 @@ pub(crate) async fn exchange_refresh_token(
                     "Failed to deserialize error response to exchange refresh token: {:?}",
                     error
                 );
-                FirebaseError::Other(format!(
-                    "Failed to deserialize error response to exchange refresh token: {:?}",
-                    error
-                ))
+                FirebaseError::JsonError(error)
             })?;
 
         log::error!(
@@ -122,24 +112,23 @@ struct SignUpWithEmailAndPasswordRequestBodyPayload {
 
 /// Response payload for the `signUp` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub(crate) struct SignUpWithEmailAndPasswordResponsePayload {
+#[derive(Deserialize)]
+pub struct SignUpWithEmailAndPasswordResponsePayload {
     #[serde(rename = "idToken")]
-    pub(crate) id_token: String,
+    pub id_token: String,
     #[serde(rename = "email")]
-    pub(crate) email: String,
+    pub email: String,
     #[serde(rename = "refreshToken")]
-    pub(crate) refresh_token: String,
+    pub refresh_token: String,
     #[serde(rename = "expiresIn")]
-    pub(crate) expires_in: String,
+    pub expires_in: String,
     #[serde(rename = "localId")]
-    pub(crate) local_id: String,
+    pub local_id: String,
 }
 
 /// Signs up a user with the given email address and password.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
-pub(crate) async fn sign_up_with_email_and_password(
+pub async fn sign_up_with_email_and_password(
     api_key: &String,
     email: String,
     password: String,
@@ -167,10 +156,7 @@ pub(crate) async fn sign_up_with_email_and_password(
                 "Failed to send request to sign up: {:?}",
                 error
             );
-            FirebaseError::Other(format!(
-                "Failed to send request to sign up: {:?}",
-                error
-            ))
+            FirebaseError::HttpError(error)
         })?;
 
     if response.status().is_success() {
@@ -182,10 +168,7 @@ pub(crate) async fn sign_up_with_email_and_password(
                     "Failed to deserialize response to sign up: {:?}",
                     error
                 );
-                FirebaseError::Other(format!(
-                    "Failed to deserialize response to sign up: {:?}",
-                    error
-                ))
+                FirebaseError::JsonError(error)
             })?;
 
         Ok(response_payload)
@@ -199,10 +182,7 @@ pub(crate) async fn sign_up_with_email_and_password(
                     "Failed to deserialize error response to sign up: {:?}",
                     error
                 );
-                FirebaseError::Other(format!(
-                    "Failed to deserialize error response to sign up: {:?}",
-                    error
-                ))
+                FirebaseError::JsonError(error)
             })?;
 
         log::error!(
@@ -228,26 +208,25 @@ struct SignInWithEmailAndPasswordRequestBodyPayload {
 
 /// Response payload for the `signInWithEmailAndPassword` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub(crate) struct SignInWithEmailAndPasswordResponsePayload {
+#[derive(Deserialize)]
+pub struct SignInWithEmailAndPasswordResponsePayload {
     #[serde(rename = "idToken")]
-    pub(crate) id_token: String,
+    pub id_token: String,
     #[serde(rename = "email")]
-    pub(crate) email: String,
+    pub email: String,
     #[serde(rename = "refreshToken")]
-    pub(crate) refresh_token: String,
+    pub refresh_token: String,
     #[serde(rename = "expiresIn")]
-    pub(crate) expires_in: String,
+    pub expires_in: String,
     #[serde(rename = "localId")]
-    pub(crate) local_id: String,
+    pub local_id: String,
     #[serde(rename = "registered")]
-    pub(crate) registered: bool,
+    pub registered: bool,
 }
 
 /// Signs in a user with the given email address and password.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
-pub(crate) async fn sign_in_with_email_and_password(
+pub async fn sign_in_with_email_and_password(
     api_key: &String,
     email: String,
     password: String,
@@ -275,10 +254,7 @@ pub(crate) async fn sign_in_with_email_and_password(
                 "Failed to send request to sign in: {:?}",
                 error
             );
-            FirebaseError::Other(format!(
-                "Failed to send request to sign in: {:?}",
-                error
-            ))
+            FirebaseError::HttpError(error)
         })?;
 
     if response.status().is_success() {
@@ -290,10 +266,7 @@ pub(crate) async fn sign_in_with_email_and_password(
                     "Failed to deserialize response to sign in: {:?}",
                     error
                 );
-                FirebaseError::Other(format!(
-                    "Failed to deserialize response to sign in: {:?}",
-                    error
-                ))
+                FirebaseError::JsonError(error)
             })?;
 
         Ok(response_payload)
@@ -307,10 +280,7 @@ pub(crate) async fn sign_in_with_email_and_password(
                     "Failed to deserialize error response to sign in: {:?}",
                     error
                 );
-                FirebaseError::Other(format!(
-                    "Failed to deserialize error response to sign in: {:?}",
-                    error
-                ))
+                FirebaseError::JsonError(error)
             })?;
 
         log::error!(

@@ -1,5 +1,4 @@
 mod auth;
-mod firebase;
 mod generated;
 mod logging;
 mod routings;

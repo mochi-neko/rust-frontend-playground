@@ -1,6 +1,7 @@
-use crate::{firebase::auth, generated::dotenv};
+use firebase_rust::auth;
 
 use super::auth_context::AuthContext;
+use crate::generated::dotenv;
 
 #[derive(Debug)]
 pub(crate) struct SignUpInfo {

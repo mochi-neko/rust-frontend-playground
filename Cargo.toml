@@ -17,10 +17,7 @@ dioxus-router = "0.4.1"
 dioxus-web = "0.4.0"
 log = "0.4.20"
 material-dioxus = { version = "0.0.3-dev", features = ["full"] }
-reqwest = { version = "0.11.22", features = ["json"] }
-serde = { version = "1.0.193", features = ["derive"] }
-serde_json = "1.0.108"
-thiserror = "1.0.50"
+firebase-rust = { path = "firebase-rust" }
 
 [build-dependencies]
 anyhow = "1.0.75"
