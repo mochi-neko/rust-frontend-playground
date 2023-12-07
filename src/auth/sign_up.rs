@@ -1,4 +1,4 @@
-use firebase_rust::auth;
+use firebase_rust::auth::sign_up_with_email_password::sign_up_with_email_password;
 
 use super::auth_context::AuthContext;
 use crate::generated::dotenv;
@@ -10,7 +10,7 @@ pub(crate) struct SignUpInfo {
 }
 
 pub(crate) async fn sign_up(info: &SignUpInfo) -> anyhow::Result<AuthContext> {
-    let response = auth::sign_up_with_email_and_password(
+    let response = sign_up_with_email_password(
         &dotenv::FIREBASE_API_KEY.to_string(),
         info.email.clone(),
         info.password.clone(),
