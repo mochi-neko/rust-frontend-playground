@@ -32,6 +32,56 @@ pub struct SignUpWithEmailPasswordResponsePayload {
     pub local_id: String,
 }
 
+/// Common error codes for sign up API.
+/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
+pub enum CommonErrorCode {
+    /// There is no user record corresponding to this identifier. The user may have been deleted.
+    EmailNotFound,
+    /// The password is invalid or the user does not have a password.
+    InvalidPassword,
+    /// The user account has been disabled by an administrator.
+    UserDisabled,
+}
+
+impl CommonErrorCode {
+    /// Error code as string.
+    pub fn code(&self) -> &str {
+        match self {
+            | CommonErrorCode::EmailNotFound => "EMAIL_NOT_FOUND",
+            | CommonErrorCode::InvalidPassword => "INVALID_PASSWORD",
+            | CommonErrorCode::UserDisabled => "USER_DISABLED",
+        }
+    }
+
+    /// Error message.
+    pub fn message(&self) -> &str {
+        match self {
+            | CommonErrorCode::EmailNotFound => {
+                "There is no user record corresponding to this identifier. The user may have been deleted."
+            },
+            | CommonErrorCode::InvalidPassword => {
+                "The password is invalid or the user does not have a password."
+            },
+            | CommonErrorCode::UserDisabled => {
+                "The user account has been disabled by an administrator."
+            },
+        }
+    }
+}
+
+impl TryFrom<String> for CommonErrorCode {
+    type Error = ();
+
+    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
+        match value.as_str() {
+            | "EMAIL_NOT_FOUND" => Ok(CommonErrorCode::EmailNotFound),
+            | "INVALID_PASSWORD" => Ok(CommonErrorCode::InvalidPassword),
+            | "USER_DISABLED" => Ok(CommonErrorCode::UserDisabled),
+            | _ => Err(()),
+        }
+    }
+}
+
 /// Signs up a user with the given email address and password.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 pub async fn sign_up_with_email_password(

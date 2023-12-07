@@ -34,6 +34,56 @@ pub struct SignInWithEmailPasswordResponsePayload {
     pub registered: bool,
 }
 
+/// Common error codes for sign in API.
+/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
+pub enum CommonErrorCode {
+    /// The email address is already in use by another account.
+    EmailExists,
+    /// Password sign-in is disabled for this project.
+    OperationNotAllowed,
+    /// We have blocked all requests from this device due to unusual activity. Try again later.
+    TooManyAttemptsTryLater,
+}
+
+impl CommonErrorCode {
+    /// Error code as string.
+    pub fn code(&self) -> &str {
+        match self {
+            | CommonErrorCode::EmailExists => "EMAIL_EXISTS",
+            | CommonErrorCode::OperationNotAllowed => "OPERATION_NOT_ALLOWED",
+            | CommonErrorCode::TooManyAttemptsTryLater => {
+                "TOO_MANY_ATTEMPTS_TRY_LATER"
+            },
+        }
+    }
+
+    /// Error message.
+    pub fn message(&self) -> &str {
+        match self {
+            CommonErrorCode::EmailExists => "The email address is already in use by another account.",
+            CommonErrorCode::OperationNotAllowed => "Password sign-in is disabled for this project.",
+            CommonErrorCode::TooManyAttemptsTryLater => "We have blocked all requests from this device due to unusual activity. Try again later.",
+        }
+    }
+}
+
+impl TryFrom<String> for CommonErrorCode {
+    type Error = ();
+
+    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
+        match value.as_str() {
+            | "EMAIL_EXISTS" => Ok(CommonErrorCode::EmailExists),
+            | "OPERATION_NOT_ALLOWED" => {
+                Ok(CommonErrorCode::OperationNotAllowed)
+            },
+            | "TOO_MANY_ATTEMPTS_TRY_LATER" => {
+                Ok(CommonErrorCode::TooManyAttemptsTryLater)
+            },
+            | _ => Err(()),
+        }
+    }
+}
+
 /// Signs in a user with the given email address and password.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 pub async fn sign_in_with_email_password(

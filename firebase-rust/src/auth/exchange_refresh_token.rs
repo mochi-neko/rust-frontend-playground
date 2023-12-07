@@ -33,6 +33,79 @@ pub struct ExchangeRefreshTokenResponsePayload {
     pub project_id: String,
 }
 
+/// Common error codes for exchange refresh token API.
+/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
+pub enum CommonErrorCode {
+    /// The user's credential is no longer valid. The user must sign in again.
+    TokenExpired,
+    /// The user account has been disabled by an administrator.
+    UserDisabled,
+    /// The user corresponding to the refresh token was not found. It is likely the user was deleted.
+    UserNotFound,
+    /// Invalid API key provided.
+    InvalidApiKey,
+    /// An invalid refresh token is provided.
+    InvalidRefreshToken,
+    /// Invalid JSON payload received, unknown field "refresh_tokens".
+    InvalidJsonPayload,
+    /// The grant type specified is invalid.
+    InvalidGrantType,
+    /// No refresh token provided.
+    MissingRefreshToken,
+}
+
+impl CommonErrorCode {
+    /// Error code as string.
+    pub fn code(&self) -> &str {
+        match self {
+            | CommonErrorCode::TokenExpired => "TOKEN_EXPIRED",
+            | CommonErrorCode::UserDisabled => "USER_DISABLED",
+            | CommonErrorCode::UserNotFound => "USER_NOT_FOUND",
+            | CommonErrorCode::InvalidApiKey => "INVALID_API_KEY",
+            | CommonErrorCode::InvalidRefreshToken => "INVALID_REFRESH_TOKEN",
+            | CommonErrorCode::InvalidJsonPayload => "INVALID_JSON_PAYLOAD",
+            | CommonErrorCode::InvalidGrantType => "INVALID_GRANT_TYPE",
+            | CommonErrorCode::MissingRefreshToken => "MISSING_REFRESH_TOKEN",
+        }
+    }
+
+    /// Error message.
+    pub fn message(&self) -> &str {
+        match self {
+            CommonErrorCode::TokenExpired => "The user's credential is no longer valid. The user must sign in again.",
+            CommonErrorCode::UserDisabled => "The user account has been disabled by an administrator.",
+            CommonErrorCode::UserNotFound => "The user corresponding to the refresh token was not found. It is likely the user was deleted.",
+            CommonErrorCode::InvalidApiKey => "Invalid API key provided.",
+            CommonErrorCode::InvalidRefreshToken => "An invalid refresh token is provided.",
+            CommonErrorCode::InvalidJsonPayload => "Invalid JSON payload received, unknown field \"refresh_tokens\".",
+            CommonErrorCode::InvalidGrantType => "The grant type specified is invalid.",
+            CommonErrorCode::MissingRefreshToken => "No refresh token provided.",
+        }
+    }
+}
+
+impl TryFrom<String> for CommonErrorCode {
+    type Error = ();
+
+    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
+        match value.as_str() {
+            | "TOKEN_EXPIRED" => Ok(CommonErrorCode::TokenExpired),
+            | "USER_DISABLED" => Ok(CommonErrorCode::UserDisabled),
+            | "USER_NOT_FOUND" => Ok(CommonErrorCode::UserNotFound),
+            | "INVALID_API_KEY" => Ok(CommonErrorCode::InvalidApiKey),
+            | "INVALID_REFRESH_TOKEN" => {
+                Ok(CommonErrorCode::InvalidRefreshToken)
+            },
+            | "INVALID_JSON_PAYLOAD" => Ok(CommonErrorCode::InvalidJsonPayload),
+            | "INVALID_GRANT_TYPE" => Ok(CommonErrorCode::InvalidGrantType),
+            | "MISSING_REFRESH_TOKEN" => {
+                Ok(CommonErrorCode::MissingRefreshToken)
+            },
+            | _ => Err(()),
+        }
+    }
+}
+
 /// Exchanges a refresh token for an access token and an ID token.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
 pub async fn exchange_refresh_token(
