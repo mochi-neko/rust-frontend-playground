@@ -2,7 +2,7 @@
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-password-reset-code)
 use serde::{Deserialize, Serialize};
 
-use super::result::{ApiErrorResponse, FirebaseError, Result};
+use super::{client, result::Result};
 
 /// Request body payload for the `resetPassword` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-password-reset-code).
@@ -86,37 +86,24 @@ impl TryFrom<&str> for CommonErrorCode {
 
 /// Verifies the password reset code sent to the user's email for resetting the password.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-password-reset-code).
+///
+/// ## Arguments
+/// * `api_key` - Your Firebase project's API key.
+/// * `request` - Request body payload for the `resetPassword` endpoint.
+///
+/// ## Returns
+/// The result of the response payload for the `resetPassword` endpoint.
 pub async fn verify_password_reset_code(
     api_key: &String,
     request: VerifyPasswordResetCodeRequestBodyPayload,
 ) -> Result<VerifyPasswordResetCodeResponsePayload> {
-    let url = format!(
-        "https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key={}",
-        api_key
-    );
-
-    let client = reqwest::Client::new();
-
-    let response = client
-        .post(url)
-        .json(&request)
-        .send()
-        .await
-        .map_err(|error| FirebaseError::HttpError(error))?;
-
-    if response.status().is_success() {
-        let response_payload = response
-            .json::<VerifyPasswordResetCodeResponsePayload>()
-            .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
-
-        Ok(response_payload)
-    } else {
-        let error_response = response
-            .json::<ApiErrorResponse>()
-            .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
-
-        Err(FirebaseError::ApiError(error_response))
-    }
+    client::send_post::<
+        VerifyPasswordResetCodeRequestBodyPayload,
+        VerifyPasswordResetCodeResponsePayload,
+    >(
+        "accounts:resetPassword",
+        api_key,
+        request,
+    )
+    .await
 }

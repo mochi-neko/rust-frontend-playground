@@ -2,7 +2,7 @@
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 use serde::{Deserialize, Serialize};
 
-use super::result::{ApiErrorResponse, FirebaseError, Result};
+use super::{client, result::Result};
 
 /// Request body payload for the `signInWithEmailAndPassword` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
@@ -109,37 +109,24 @@ impl TryFrom<String> for CommonErrorCode {
 
 /// Signs in a user with the given email address and password.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
+///
+/// ## Arguments
+/// * `api_key` - Your Firebase project's API key.
+/// * `request` - Request body payload for the `signInWithEmailAndPassword` endpoint.
+///
+/// ## Returns
+/// The result with the response payload for the `signInWithEmailAndPassword` endpoint.
 pub async fn sign_in_with_email_password(
     api_key: &String,
     request: SignInWithEmailPasswordRequestBodyPayload,
 ) -> Result<SignInWithEmailPasswordResponsePayload> {
-    let url = format!(
-        "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={}",
-        api_key
-    );
-
-    let client = reqwest::Client::new();
-
-    let response = client
-        .post(url)
-        .json(&request)
-        .send()
-        .await
-        .map_err(|error| FirebaseError::HttpError(error))?;
-
-    if response.status().is_success() {
-        let response_payload = response
-            .json::<SignInWithEmailPasswordResponsePayload>()
-            .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
-
-        Ok(response_payload)
-    } else {
-        let error_response = response
-            .json::<ApiErrorResponse>()
-            .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
-
-        Err(FirebaseError::ApiError(error_response))
-    }
+    client::send_post::<
+        SignInWithEmailPasswordRequestBodyPayload,
+        SignInWithEmailPasswordResponsePayload,
+    >(
+        "accounts:signInWithPassword",
+        api_key,
+        request,
+    )
+    .await
 }

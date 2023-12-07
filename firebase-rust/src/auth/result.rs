@@ -18,6 +18,9 @@ pub enum FirebaseError {
     /// JSON error.
     #[error("JSON error: {0}")]
     JsonError(reqwest::Error),
+    /// Validation error.
+    #[error("Validation error: {0}")]
+    ValidationError(String),
     /// Other error.
     #[error("Other error: {0}")]
     Other(String),

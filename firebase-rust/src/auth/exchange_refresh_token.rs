@@ -1,7 +1,7 @@
 /// Implements the exchange refresh token API of the Firebase Auth.
 use serde::{Deserialize, Serialize};
 
-use super::result::{ApiErrorResponse, FirebaseError, Result};
+use super::{client, result::Result};
 
 /// Request body payload for the `token` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
@@ -124,37 +124,20 @@ impl TryFrom<String> for CommonErrorCode {
 
 /// Exchanges a refresh token for an access token and an ID token.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
+///
+/// ## Arguments
+/// * `api_key` - Your Firebase project's API key.
+/// * `request` - Request body payload for the `token` endpoint.
+///
+/// ## Returns
+/// The result with the response payload for the `token` endpoint.
 pub async fn exchange_refresh_token(
     api_key: &String,
     request: ExchangeRefreshTokenRequestBodyPayload,
 ) -> Result<ExchangeRefreshTokenResponsePayload> {
-    let url = format!(
-        "https://securetoken.googleapis.com/v1/token?key={}",
-        api_key
-    );
-
-    let client = reqwest::Client::new();
-
-    let response = client
-        .post(url)
-        .json(&request)
-        .send()
-        .await
-        .map_err(|error| FirebaseError::HttpError(error))?;
-
-    if response.status().is_success() {
-        let response_payload = response
-            .json::<ExchangeRefreshTokenResponsePayload>()
-            .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
-
-        Ok(response_payload)
-    } else {
-        let error_response = response
-            .json::<ApiErrorResponse>()
-            .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
-
-        Err(FirebaseError::ApiError(error_response))
-    }
+    client::send_post::<
+        ExchangeRefreshTokenRequestBodyPayload,
+        ExchangeRefreshTokenResponsePayload,
+    >("token", api_key, request)
+    .await
 }

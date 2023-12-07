@@ -2,7 +2,7 @@
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email)
 use serde::{Deserialize, Serialize};
 
-use super::result::{ApiErrorResponse, FirebaseError, Result};
+use super::{client, result::Result};
 
 /// Request body payload for the `sendOobCode` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
@@ -73,37 +73,20 @@ impl TryFrom<&str> for CommonErrorCode {
 
 /// Sends a password reset email to the given email address.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
+///
+/// ## Arguments
+/// * `api_key` - Your Firebase project's API key.
+/// * `request` - Request body payload for the `sendOobCode` endpoint.
+///
+/// ## Returns
+/// The result with the response payload for the `sendOobCode` endpoint.
 pub async fn send_password_reset_email(
     api_key: &String,
     request: SendPasswordResetEmailRequestBodyPayload,
 ) -> Result<SendPasswordResetEmailResponsePayload> {
-    let url = format!(
-        "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={}",
-        api_key
-    );
-
-    let client = reqwest::Client::new();
-
-    let response = client
-        .post(url)
-        .json(&request)
-        .send()
-        .await
-        .map_err(|error| FirebaseError::HttpError(error))?;
-
-    if response.status().is_success() {
-        let response_payload = response
-            .json::<SendPasswordResetEmailResponsePayload>()
-            .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
-
-        Ok(response_payload)
-    } else {
-        let error_response = response
-            .json::<ApiErrorResponse>()
-            .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
-
-        Err(FirebaseError::ApiError(error_response))
-    }
+    client::send_post::<
+        SendPasswordResetEmailRequestBodyPayload,
+        SendPasswordResetEmailResponsePayload,
+    >("accounts:sendOobCode", api_key, request)
+    .await
 }

@@ -2,7 +2,7 @@
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 use serde::{Deserialize, Serialize};
 
-use super::result::{ApiErrorResponse, FirebaseError, Result};
+use super::{client, result::Result};
 
 /// Request body payload for the `signUp` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
@@ -106,37 +106,20 @@ impl TryFrom<String> for CommonErrorCode {
 
 /// Signs up a user with the given email address and password.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
+///
+/// ## Arguments
+/// * `api_key` - Your Firebase project's API key.
+/// * `request` - Request body payload for the `signUp` endpoint.
+///
+/// ## Returns
+/// Response payload for the `signUp` endpoint.
 pub async fn sign_up_with_email_password(
     api_key: &String,
     request: SignUpWithEmailPasswordRequestBodyPayload,
 ) -> Result<SignUpWithEmailPasswordResponsePayload> {
-    let url = format!(
-        "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={}",
-        api_key
-    );
-
-    let client = reqwest::Client::new();
-
-    let response = client
-        .post(url)
-        .json(&request)
-        .send()
-        .await
-        .map_err(|error| FirebaseError::HttpError(error))?;
-
-    if response.status().is_success() {
-        let response_payload = response
-            .json::<SignUpWithEmailPasswordResponsePayload>()
-            .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
-
-        Ok(response_payload)
-    } else {
-        let error_response = response
-            .json::<ApiErrorResponse>()
-            .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
-
-        Err(FirebaseError::ApiError(error_response))
-    }
+    client::send_post::<
+        SignUpWithEmailPasswordRequestBodyPayload,
+        SignUpWithEmailPasswordResponsePayload,
+    >("accounts:signUp", api_key, request)
+    .await
 }
