@@ -140,45 +140,21 @@ pub async fn exchange_refresh_token(
         .json(&request)
         .send()
         .await
-        .map_err(|error| {
-            log::error!(
-                "[Firebase] Failed to send request to exchange refresh token: {:?}",
-                error
-            );
-            FirebaseError::HttpError(error)
-        })?;
+        .map_err(|error| FirebaseError::HttpError(error))?;
 
     if response.status().is_success() {
         let response_payload = response
             .json::<ExchangeRefreshTokenResponsePayload>()
             .await
-            .map_err(|error| {
-                log::error!(
-                    "[Firebase] Failed to deserialize response to exchange refresh token: {:?}",
-                    error
-                );
-                FirebaseError::JsonError(error)
-            })?;
+            .map_err(|error| FirebaseError::JsonError(error))?;
 
         Ok(response_payload)
     } else {
-        let status_code = response.status();
         let error_response = response
             .json::<ApiErrorResponse>()
             .await
-            .map_err(|error| {
-                log::error!(
-                    "[Firebase] Failed to deserialize error response to exchange refresh token: {:?}",
-                    error
-                );
-                FirebaseError::JsonError(error)
-            })?;
+            .map_err(|error| FirebaseError::JsonError(error))?;
 
-        log::error!(
-            "[Firebase] Failed to exchange refresh token with bad status code ({}): {:?}",
-            status_code,
-            error_response
-        );
         Err(FirebaseError::ApiError(error_response))
     }
 }

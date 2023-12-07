@@ -122,45 +122,21 @@ pub async fn sign_up_with_email_password(
         .json(&request)
         .send()
         .await
-        .map_err(|error| {
-            log::error!(
-                "[Firebase] Failed to send request to sign up: {:?}",
-                error
-            );
-            FirebaseError::HttpError(error)
-        })?;
+        .map_err(|error| FirebaseError::HttpError(error))?;
 
     if response.status().is_success() {
         let response_payload = response
             .json::<SignUpWithEmailPasswordResponsePayload>()
             .await
-            .map_err(|error| {
-                log::error!(
-                    "[Firebase] Failed to deserialize response to sign up: {:?}",
-                    error
-                );
-                FirebaseError::JsonError(error)
-            })?;
+            .map_err(|error| FirebaseError::JsonError(error))?;
 
         Ok(response_payload)
     } else {
-        let status_code = response.status();
         let error_response = response
             .json::<ApiErrorResponse>()
             .await
-            .map_err(|error| {
-                log::error!(
-                    "[Firebase] Failed to deserialize error response to sign up: {:?}",
-                    error
-                );
-                FirebaseError::JsonError(error)
-            })?;
+            .map_err(|error| FirebaseError::JsonError(error))?;
 
-        log::error!(
-            "[Firebase] Failed to sign up with bad status code ({}): {:?}",
-            status_code,
-            error_response
-        );
         Err(FirebaseError::ApiError(error_response))
     }
 }

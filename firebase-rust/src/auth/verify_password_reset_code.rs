@@ -102,45 +102,21 @@ pub async fn verify_password_reset_code(
         .json(&request)
         .send()
         .await
-        .map_err(|error| {
-            log::error!(
-                "[Firebase] Failed to send request to verify password reset code: {:?}",
-                error
-            );
-            FirebaseError::HttpError(error)
-        })?;
+        .map_err(|error| FirebaseError::HttpError(error))?;
 
     if response.status().is_success() {
         let response_payload = response
             .json::<VerifyPasswordResetCodeResponsePayload>()
             .await
-            .map_err(|error| {
-                log::error!(
-                    "[Firebase] Failed to deserialize response to verify password reset code: {:?}",
-                    error
-                );
-                FirebaseError::JsonError(error)
-            })?;
+            .map_err(|error| FirebaseError::JsonError(error))?;
 
         Ok(response_payload)
     } else {
-        let status_code = response.status();
         let error_response = response
             .json::<ApiErrorResponse>()
             .await
-            .map_err(|error| {
-                log::error!(
-                    "[Firebase] Failed to deserialize error response to verify password reset code: {:?}",
-                    error
-                );
-                FirebaseError::JsonError(error)
-            })?;
+            .map_err(|error| FirebaseError::JsonError(error))?;
 
-        log::error!(
-            "[Firebase] Failed to verify password reset code with bad status code ({}): {:?}",
-            status_code,
-            error_response
-        );
         Err(FirebaseError::ApiError(error_response))
     }
 }
