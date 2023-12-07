@@ -6,29 +6,45 @@ use super::result::{ApiErrorResponse, FirebaseError, Result};
 /// Request body payload for the `token` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
 #[derive(Serialize)]
-struct ExchangeRefreshTokenRequestBodyPayload {
+pub struct ExchangeRefreshTokenRequestBodyPayload {
+    /// The refresh token's grant type, always "refresh_token".
     #[serde(rename = "grant_type")]
     grant_type: String,
+    /// A Firebase Auth refresh token.
     #[serde(rename = "refresh_token")]
     refresh_token: String,
+}
+
+impl ExchangeRefreshTokenRequestBodyPayload {
+    /// Creates a new request body payload for the `token` endpoint.
+    pub fn new(refresh_token: String) -> Self {
+        Self {
+            grant_type: "refresh_token".to_string(),
+            refresh_token,
+        }
+    }
 }
 
 /// Response payload for the `token` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
 #[derive(Deserialize)]
 pub struct ExchangeRefreshTokenResponsePayload {
-    #[serde(rename = "access_token")]
-    pub access_token: String,
+    /// The number of seconds in which the ID token expires.
     #[serde(rename = "expires_in")]
     pub expires_in: String,
+    /// The type of the refresh token, always "Bearer".
     #[serde(rename = "token_type")]
     pub token_type: String,
+    /// The Firebase Auth refresh token provided in the request or a new refresh token.
     #[serde(rename = "refresh_token")]
     pub refresh_token: String,
+    /// A Firebase Auth ID token.
     #[serde(rename = "id_token")]
     pub id_token: String,
+    /// The uid corresponding to the provided ID token.
     #[serde(rename = "user_id")]
     pub user_id: String,
+    /// Your Firebase project ID.
     #[serde(rename = "project_id")]
     pub project_id: String,
 }
@@ -110,23 +126,18 @@ impl TryFrom<String> for CommonErrorCode {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
 pub async fn exchange_refresh_token(
     api_key: &String,
-    refresh_token: String,
+    request: ExchangeRefreshTokenRequestBodyPayload,
 ) -> Result<ExchangeRefreshTokenResponsePayload> {
     let url = format!(
         "https://securetoken.googleapis.com/v1/token?key={}",
         api_key
     );
 
-    let request_payload = ExchangeRefreshTokenRequestBodyPayload {
-        grant_type: "refresh_token".to_string(),
-        refresh_token,
-    };
-
     let client = reqwest::Client::new();
 
     let response = client
         .post(url)
-        .json(&request_payload)
+        .json(&request)
         .send()
         .await
         .map_err(|error| {

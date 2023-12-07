@@ -7,27 +7,49 @@ use super::result::{ApiErrorResponse, FirebaseError, Result};
 /// Request body payload for the `signUp` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 #[derive(Serialize)]
-struct SignUpWithEmailPasswordRequestBodyPayload {
+pub struct SignUpWithEmailPasswordRequestBodyPayload {
+    /// The email for the user to create.
     #[serde(rename = "email")]
     email: String,
+    /// The password for the user to create.
     #[serde(rename = "password")]
     password: String,
+    /// Whether or not to return an ID and refresh token. Should always be true.
     #[serde(rename = "returnSecureToken")]
     return_secure_token: bool,
+}
+
+impl SignUpWithEmailPasswordRequestBodyPayload {
+    /// Creates a new request body payload for the `signUp` endpoint.
+    pub fn new(
+        email: String,
+        password: String,
+    ) -> Self {
+        Self {
+            email,
+            password,
+            return_secure_token: true,
+        }
+    }
 }
 
 /// Response payload for the `signUp` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 #[derive(Deserialize)]
 pub struct SignUpWithEmailPasswordResponsePayload {
+    /// A Firebase Auth ID token for the newly created user.
     #[serde(rename = "idToken")]
     pub id_token: String,
+    /// The email for the newly created user.
     #[serde(rename = "email")]
     pub email: String,
+    /// A Firebase Auth refresh token for the newly created user.
     #[serde(rename = "refreshToken")]
     pub refresh_token: String,
+    /// The number of seconds in which the ID token expires.
     #[serde(rename = "expiresIn")]
     pub expires_in: String,
+    /// The uid of the newly created user.
     #[serde(rename = "localId")]
     pub local_id: String,
 }
@@ -86,25 +108,18 @@ impl TryFrom<String> for CommonErrorCode {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 pub async fn sign_up_with_email_password(
     api_key: &String,
-    email: String,
-    password: String,
+    request: SignUpWithEmailPasswordRequestBodyPayload,
 ) -> Result<SignUpWithEmailPasswordResponsePayload> {
     let url = format!(
         "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={}",
         api_key
     );
 
-    let request_payload = SignUpWithEmailPasswordRequestBodyPayload {
-        email,
-        password,
-        return_secure_token: true,
-    };
-
     let client = reqwest::Client::new();
 
     let response = client
         .post(url)
-        .json(&request_payload)
+        .json(&request)
         .send()
         .await
         .map_err(|error| {

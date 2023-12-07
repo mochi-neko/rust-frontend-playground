@@ -7,29 +7,52 @@ use super::result::{ApiErrorResponse, FirebaseError, Result};
 /// Request body payload for the `signInWithEmailAndPassword` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 #[derive(Serialize)]
-struct SignInWithEmailPasswordRequestBodyPayload {
+pub struct SignInWithEmailPasswordRequestBodyPayload {
+    /// The email the user is sign in with.
     #[serde(rename = "email")]
     email: String,
+    /// The password for the account.
     #[serde(rename = "password")]
     password: String,
+    /// Whether or not to return an ID and refresh token. Should always be true.
     #[serde(rename = "returnSecureToken")]
     return_secure_token: bool,
+}
+
+impl SignInWithEmailPasswordRequestBodyPayload {
+    /// Creates a new request body payload for the `signInWithEmailAndPassword` endpoint.
+    pub fn new(
+        email: String,
+        password: String,
+    ) -> Self {
+        Self {
+            email,
+            password,
+            return_secure_token: true,
+        }
+    }
 }
 
 /// Response payload for the `signInWithEmailAndPassword` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 #[derive(Deserialize)]
 pub struct SignInWithEmailPasswordResponsePayload {
+    /// A Firebase Auth ID token for the authenticated user.
     #[serde(rename = "idToken")]
     pub id_token: String,
+    /// The email for the authenticated user.
     #[serde(rename = "email")]
     pub email: String,
+    /// A Firebase Auth refresh token for the authenticated user.
     #[serde(rename = "refreshToken")]
     pub refresh_token: String,
+    /// The number of seconds in which the ID token expires.
     #[serde(rename = "expiresIn")]
     pub expires_in: String,
+    /// The uid of the authenticated user.
     #[serde(rename = "localId")]
     pub local_id: String,
+    /// Whether the email is for an existing account.
     #[serde(rename = "registered")]
     pub registered: bool,
 }
@@ -88,25 +111,18 @@ impl TryFrom<String> for CommonErrorCode {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 pub async fn sign_in_with_email_password(
     api_key: &String,
-    email: String,
-    password: String,
+    request: SignInWithEmailPasswordRequestBodyPayload,
 ) -> Result<SignInWithEmailPasswordResponsePayload> {
     let url = format!(
         "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={}",
         api_key
     );
 
-    let request_payload = SignInWithEmailPasswordRequestBodyPayload {
-        email,
-        password,
-        return_secure_token: true,
-    };
-
     let client = reqwest::Client::new();
 
     let response = client
         .post(url)
-        .json(&request_payload)
+        .json(&request)
         .send()
         .await
         .map_err(|error| {

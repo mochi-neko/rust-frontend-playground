@@ -7,17 +7,30 @@ use super::result::{ApiErrorResponse, FirebaseError, Result};
 /// Request body payload for the `sendOobCode` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
 #[derive(Serialize)]
-struct SendPasswordResetEmailRequestBodyPayload {
+pub struct SendPasswordResetEmailRequestBodyPayload {
+    /// The kind of OOB code to return. Should be "PASSWORD_RESET" for password reset.
     #[serde(rename = "requestType")]
     request_type: String,
+    /// User's email address.
     #[serde(rename = "email")]
     email: String,
+}
+
+impl SendPasswordResetEmailRequestBodyPayload {
+    /// Creates a new request body payload for the `sendOobCode` endpoint.
+    pub fn new(email: String) -> Self {
+        Self {
+            request_type: "PASSWORD_RESET".to_string(),
+            email,
+        }
+    }
 }
 
 /// Response payload for the `sendOobCode` endpoint.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
 #[derive(Deserialize)]
 pub struct SendPasswordResetEmailResponsePayload {
+    /// User's email address.
     #[serde(rename = "email")]
     pub email: String,
 }
@@ -62,23 +75,18 @@ impl TryFrom<&str> for CommonErrorCode {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
 pub async fn send_password_reset_email(
     api_key: &String,
-    email: String,
+    request: SendPasswordResetEmailRequestBodyPayload,
 ) -> Result<SendPasswordResetEmailResponsePayload> {
     let url = format!(
         "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={}",
         api_key
     );
 
-    let request_payload = SendPasswordResetEmailRequestBodyPayload {
-        request_type: "PASSWORD_RESET".to_string(),
-        email,
-    };
-
     let client = reqwest::Client::new();
 
     let response = client
         .post(url)
-        .json(&request_payload)
+        .json(&request)
         .send()
         .await
         .map_err(|error| {
