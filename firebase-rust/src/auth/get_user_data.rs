@@ -33,7 +33,7 @@ pub struct GetUserDataResponsePayload {
 
 /// User information.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
-#[derive(Deserialize)]
+#[derive(Deserialize, PartialEq)]
 pub struct User {
     /// The uid of the current user.
     #[serde(rename = "localId")]
@@ -64,7 +64,7 @@ pub struct User {
     pub valid_since: String,
     /// Whether the account is disabled or not.
     #[serde(rename = "disabled")]
-    pub disabled: bool,
+    pub disabled: Option<bool>,
     /// The timestamp, in milliseconds, that the account last logged in at.
     #[serde(rename = "lastLoginAt")]
     pub last_login_at: String,
@@ -73,12 +73,12 @@ pub struct User {
     pub created_at: String,
     /// Whether the account is authenticated by the developer.
     #[serde(rename = "customAuth")]
-    pub custom_auth: bool,
+    pub custom_auth: Option<bool>,
 }
 
 /// Provider user information.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
-#[derive(Deserialize)]
+#[derive(Deserialize, PartialEq)]
 pub struct ProviderUserInfo {
     /// The provider identifier.
     #[serde(rename = "providerId")]

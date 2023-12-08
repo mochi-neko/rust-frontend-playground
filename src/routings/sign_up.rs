@@ -40,7 +40,7 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                 password,
             };
 
-            log::info!("Sign up: {:?}", info);
+            log::info!("Sign up: {:?}", info.email);
             let result = sign_up(&info).await;
             match result {
                 | Ok(context) => {
@@ -152,4 +152,5 @@ fn can_sign_up(
         && !confirm_password
             .get()
             .is_empty()
+        && password.get() == confirm_password.get()
 }

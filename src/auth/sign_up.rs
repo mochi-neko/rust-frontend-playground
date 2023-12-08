@@ -5,7 +5,6 @@ use firebase_rust::auth::sign_up_with_email_password::{
 use super::auth_context::AuthContext;
 use crate::generated::dotenv;
 
-#[derive(Debug)]
 pub(crate) struct SignUpInfo {
     pub(crate) email: String,
     pub(crate) password: String,

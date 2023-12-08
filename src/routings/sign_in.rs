@@ -38,7 +38,7 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
                 password,
             };
 
-            log::info!("Sign in: {:?}", info);
+            log::info!("Sign in: {:?}", info.email);
             let result = sign_in(&info).await;
             match result {
                 | Ok(context) => {
