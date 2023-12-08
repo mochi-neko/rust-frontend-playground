@@ -185,6 +185,11 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                         }
 
                         div {
+                            "Valid since: "
+                            span { user.valid_since.clone() }
+                        }
+
+                        div {
                             "Disabled: "
                             span { user.disabled.unwrap_or(false).to_string() }
                         }
@@ -197,6 +202,11 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                         div {
                             "Created at: "
                             span { user.created_at.clone() }
+                        }
+
+                        div {
+                            "Custom auth: "
+                            span { user.custom_auth.unwrap_or(false).to_string() }
                         }
                     }
                 }
