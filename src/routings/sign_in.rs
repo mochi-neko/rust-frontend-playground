@@ -52,7 +52,7 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
                     navigation.push(Route::Dashboard {});
                 },
                 | Err(error) => {
-                    log::info!("Sign in failed: {:?}", error);
+                    log::error!("Sign in failed: {:?}", error);
                 },
             }
         }
@@ -116,6 +116,21 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
             Link {
                 to: Route::SignUp {},
                 "sign up",
+            }
+
+            label {
+                "."
+            }
+        }
+
+        div {
+            label {
+                "If you forgot your password, please "
+            }
+
+            Link {
+                to: Route::ResetPassword {},
+                "reset password",
             }
 
             label {

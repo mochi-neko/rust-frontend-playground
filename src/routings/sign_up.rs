@@ -54,7 +54,7 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                     navigation.push(Route::Dashboard {});
                 },
                 | Err(error) => {
-                    log::info!("Sign up failed: {:?}", error);
+                    log::error!("Sign up failed: {:?}", error);
                 },
             }
         }

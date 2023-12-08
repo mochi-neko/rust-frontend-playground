@@ -2,8 +2,8 @@ use dioxus::prelude::{fc_to_builder, render};
 use dioxus_router::prelude::{Routable, ToRouteSegments};
 
 use super::{
-    dashboard::Dashboard, home::Home, not_found::NotFound, sign_in::SignIn,
-    sign_up::SignUp,
+    dashboard::Dashboard, home::Home, not_found::NotFound,
+    reset_password::ResetPassword, sign_in::SignIn, sign_up::SignUp,
 };
 
 #[rustfmt::skip]
@@ -15,6 +15,8 @@ pub(crate) enum Route {
     SignUp {},
     #[route("/signin")]
     SignIn {},
+    #[route("/reset_password")]
+    ResetPassword {},
     #[route("/dashboard")]
     Dashboard {},
 
