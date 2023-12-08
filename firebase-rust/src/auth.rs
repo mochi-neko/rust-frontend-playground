@@ -1,6 +1,7 @@
 pub(crate) mod client;
 pub mod confirm_password_reset;
 pub mod exchange_refresh_token;
+pub mod get_user_data;
 pub mod result;
 pub mod send_email_verification;
 pub mod send_password_reset_email;
