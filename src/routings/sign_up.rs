@@ -1,8 +1,8 @@
 use dioxus::{
     hooks::{to_owned, use_shared_state, UseState},
     prelude::{
-        dioxus_elements, fc_to_builder, inline_props, render, use_future,
-        use_state, Element, Props, Scope,
+        dioxus_elements, fc_to_builder, inline_props, render, use_state,
+        Element, Props, Scope,
     },
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
@@ -24,41 +24,43 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
 
-    let sign_up = use_future(cx, (), |_| {
-        let email = email.get().clone();
-        let password = password.get().clone();
-        let navigation = navigation.clone();
-        let auth_context = auth_context.clone();
+    let sign_up = move |_| {
+        cx.spawn({
+            let email = email.get().clone();
+            let password = password.get().clone();
+            let navigation = navigation.clone();
+            let auth_context = auth_context.clone();
 
-        async move {
-            if email.is_empty() || password.is_empty() {
-                return;
+            async move {
+                if email.is_empty() || password.is_empty() {
+                    return;
+                }
+
+                let info = SignUpInfo {
+                    email,
+                    password,
+                };
+
+                log::info!("Sign up: {:?}", info.email);
+                let result = sign_up(&info).await;
+                match result {
+                    | Ok(context) => {
+                        log::info!("Sign up success");
+
+                        // NOTE: Update auth context
+                        let mut auth_context_ref = auth_context.write();
+                        *auth_context_ref = Some(context);
+
+                        // NOTE: Navigate to dashboard
+                        navigation.push(Route::Dashboard {});
+                    },
+                    | Err(error) => {
+                        log::error!("Sign up failed: {:?}", error);
+                    },
+                }
             }
-
-            let info = SignUpInfo {
-                email,
-                password,
-            };
-
-            log::info!("Sign up: {:?}", info.email);
-            let result = sign_up(&info).await;
-            match result {
-                | Ok(context) => {
-                    log::info!("Sign up success");
-
-                    // NOTE: Update auth context
-                    let mut auth_context_ref = auth_context.write();
-                    *auth_context_ref = Some(context);
-
-                    // NOTE: Navigate to dashboard
-                    navigation.push(Route::Dashboard {});
-                },
-                | Err(error) => {
-                    log::error!("Sign up failed: {:?}", error);
-                },
-            }
-        }
-    });
+        })
+    };
 
     render! {
         h1 { "Sign up" }
@@ -109,13 +111,8 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: move |_| {
-                    if can_sign_up(email, password, confirm_password) {
-                        log::info!("Sign up");
-                        sign_up.restart();
-                    }
-                },
-                MatButton{
+                onclick: sign_up,
+                MatButton {
                     label: "Sign Up",
                     outlined: true,
                     disabled: !can_sign_up(email, password, confirm_password),

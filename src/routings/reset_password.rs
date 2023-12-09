@@ -15,35 +15,37 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
     let email = use_state(cx, String::new);
     let error_message = use_state::<Option<String>>(cx, || None);
 
-    let send_password_reset_email = use_future(cx, (), |_| {
-        let email = email.get().clone();
-        let navigation = navigation.clone();
-        let error_message = error_message.clone();
+    let send_password_reset_email = move |_| {
+        cx.spawn({
+            let email = email.get().clone();
+            let navigation = navigation.clone();
+            let error_message = error_message.clone();
 
-        async move {
-            if email.is_empty() {
-                error_message.set(None);
-                return;
-            }
-
-            log::info!("Send password reset email: {:?}", email);
-            let result = send_reset_password_email(email).await;
-            match result {
-                | Ok(_) => {
-                    log::info!("Send password reset email success");
+            async move {
+                if email.is_empty() {
                     error_message.set(None);
-                    navigation.push(Route::SignIn {});
-                },
-                | Err(error) => {
-                    log::error!(
-                        "Send password reset email failed: {:?}",
-                        error
-                    );
-                    error_message.set(Some(error.to_string()));
-                },
+                    return;
+                }
+
+                log::info!("Send password reset email: {:?}", email);
+                let result = send_reset_password_email(email).await;
+                match result {
+                    | Ok(_) => {
+                        log::info!("Send password reset email success");
+                        error_message.set(None);
+                        navigation.push(Route::SignIn {});
+                    },
+                    | Err(error) => {
+                        log::error!(
+                            "Send password reset email failed: {:?}",
+                            error
+                        );
+                        error_message.set(Some(error.to_string()));
+                    },
+                }
             }
-        }
-    });
+        })
+    };
 
     render! {
         h1 { "Reset password" }
@@ -64,13 +66,8 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: move |_| {
-                    if !email.get().is_empty() {
-                        log::info!("Send password reset email to {}", email.get());
-                        send_password_reset_email.restart();
-                    }
-                },
-                MatButton{
+                onclick: send_password_reset_email,
+                MatButton {
                     label: "Send password reset email",
                     outlined: true,
                     disabled: email.get().is_empty(),

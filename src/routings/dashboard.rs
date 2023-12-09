@@ -12,6 +12,7 @@ use material_dioxus::button::MatButton;
 use crate::{
     auth::{
         auth_context::AuthContext,
+        delete_account::delete_account,
         get_user_data::{get_user_data, GetUserDataInfo},
     },
     routings::route::Route,
@@ -25,6 +26,22 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
 
     let user_info =
         use_state::<Option<GetUserDataResponsePayload>>(cx, || None);
+
+    let sign_out = move |_| {
+        if auth_context.read().is_none() {
+            return;
+        }
+
+        log::info!("Sign out");
+
+        // NOTE: Reset auth context
+        let mut context = auth_context.write();
+        *context = None;
+
+        // NOTE: Navigate to home
+        navigation.push(Route::Home {});
+    };
+
     let get_user_data = use_future(cx, (), |_| {
         let auth_context = auth_context.clone();
         let user_info = user_info.clone();
@@ -57,7 +74,39 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
         }
     });
 
+    let delete_account = move |_| {
+        cx.spawn({
+            let auth_context = auth_context.clone();
+            let navigation = navigation.clone();
+
+            async move {
+                if auth_context.read().is_none() {
+                    return;
+                }
+                let id_token = auth_context
+                    .read()
+                    .as_ref()
+                    .unwrap()
+                    .id_token
+                    .clone();
+
+                log::info!("Delete account");
+                let result = delete_account(id_token).await;
+                match result {
+                    | Ok(_) => {
+                        log::info!("Delete account success");
+                        navigation.push(Route::Home {});
+                    },
+                    | Err(error) => {
+                        log::error!("Delete account failed: {:?}", error);
+                    },
+                }
+            }
+        })
+    };
+
     if auth_context.read().is_none() {
+        // NOTE: Redirect to home
         navigation.push(Route::Home {});
     }
 
@@ -66,21 +115,7 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: move |_| {
-                    if auth_context.read().is_none()
-                    {
-                        return;
-                    }
-
-                    log::info!("Sign out");
-
-                    // NOTE: Reset auth context
-                    let mut context = auth_context.write();
-                    *context = None;
-
-                    // NOTE: Navigate to home
-                    navigation.push(Route::Home {});
-                },
+                onclick: sign_out,
                 MatButton {
                     label: "Sign out",
                     outlined: true,
@@ -97,6 +132,16 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                 },
                 MatButton{
                     label: "Update user data",
+                    outlined: true,
+                }
+            }
+        }
+
+        div {
+            span {
+                onclick: delete_account,
+                MatButton {
+                    label: "Delete account",
                     outlined: true,
                 }
             }
