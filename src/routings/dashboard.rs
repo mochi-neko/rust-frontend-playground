@@ -14,6 +14,7 @@ use crate::{
         auth_context::AuthContext,
         delete_account::delete_account,
         get_user_data::{get_user_data, GetUserDataInfo},
+        send_email_verification::send_email_verification,
     },
     routings::route::Route,
 };
@@ -26,6 +27,37 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
 
     let user_info =
         use_state::<Option<GetUserDataResponsePayload>>(cx, || None);
+
+    let send_email_verification = move |_| {
+        cx.spawn({
+            let auth_context = auth_context.clone();
+            async move {
+                if auth_context.read().is_none() {
+                    return;
+                }
+                let id_token = auth_context
+                    .read()
+                    .as_ref()
+                    .unwrap()
+                    .id_token
+                    .clone();
+
+                log::info!("Send email verification");
+                let result = send_email_verification(id_token).await;
+                match result {
+                    | Ok(_) => {
+                        log::info!("Send email verification success");
+                    },
+                    | Err(error) => {
+                        log::error!(
+                            "Send email verification failed: {:?}",
+                            error
+                        );
+                    },
+                }
+            }
+        })
+    };
 
     let sign_out = move |_| {
         if auth_context.read().is_none() {
@@ -107,6 +139,7 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
 
     if auth_context.read().is_none() {
         // NOTE: Redirect to home
+        log::info!("Redirect to home");
         navigation.push(Route::Home {});
     }
 
@@ -115,11 +148,15 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: sign_out,
+                onclick: send_email_verification,
                 MatButton {
-                    label: "Sign out",
+                    label: "Send email verification",
                     outlined: true,
-                    disabled: auth_context.read().is_none(),
+                    disabled: user_info.get().as_ref().is_some_and(|user_info| {
+                        user_info.users.get(0).is_some_and(|user| {
+                            user.email_verified
+                        })
+                    }),
                 }
             }
         }
@@ -130,18 +167,8 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                     log::info!("Update user data");
                     get_user_data.restart();
                 },
-                MatButton{
-                    label: "Update user data",
-                    outlined: true,
-                }
-            }
-        }
-
-        div {
-            span {
-                onclick: delete_account,
                 MatButton {
-                    label: "Delete account",
+                    label: "Update user data",
                     outlined: true,
                 }
             }
@@ -261,6 +288,29 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                     div {
                         "User not found"
                     }
+                }
+            }
+        }
+
+        br {}
+
+        div {
+            span {
+                onclick: sign_out,
+                MatButton {
+                    label: "Sign out",
+                    outlined: true,
+                    disabled: auth_context.read().is_none(),
+                }
+            }
+        }
+
+        div {
+            span {
+                onclick: delete_account,
+                MatButton {
+                    label: "Delete account",
+                    outlined: true,
                 }
             }
         }

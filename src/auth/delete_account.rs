@@ -9,7 +9,7 @@ pub(crate) async fn delete_account(id_token: String) -> anyhow::Result<()> {
     )
     .await
     .map_err(|error| {
-        log::error!("Sign in failed: {:?}", error);
+        log::error!("Delete account failed: {:?}", error);
         error
     })?;
 
