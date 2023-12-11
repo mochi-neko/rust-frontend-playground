@@ -1,8 +1,11 @@
+pub mod change_email;
+pub mod change_password;
 pub(crate) mod client;
 pub mod confirm_password_reset;
 pub mod delete_account;
 pub mod exchange_refresh_token;
 pub mod get_user_data;
+pub mod provider_user_info;
 pub mod result;
 pub mod send_email_verification;
 pub mod send_password_reset_email;

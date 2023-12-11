@@ -5,3 +5,4 @@ pub(crate) mod send_email_verification;
 pub(crate) mod send_reset_password_email;
 pub(crate) mod sign_in;
 pub(crate) mod sign_up;
+pub(crate) mod update_user_info;

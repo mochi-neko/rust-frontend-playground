@@ -1,5 +1,5 @@
 use dioxus::{
-    hooks::use_state,
+    hooks::{to_owned, use_state},
     prelude::{
         dioxus_elements, fc_to_builder, inline_props, render, use_future,
         use_shared_state, Element, Props, Scope,
@@ -7,7 +7,7 @@ use dioxus::{
 };
 use dioxus_router::hooks::use_navigator;
 use firebase_rust::auth::get_user_data::GetUserDataResponsePayload;
-use material_dioxus::button::MatButton;
+use material_dioxus::{button::MatButton, text_inputs::MatTextField};
 
 use crate::{
     auth::{
@@ -15,6 +15,7 @@ use crate::{
         delete_account::delete_account,
         get_user_data::{get_user_data, GetUserDataInfo},
         send_email_verification::send_email_verification,
+        update_user_info::{change_email, change_password},
     },
     routings::route::Route,
 };
@@ -28,51 +29,9 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
     let user_info =
         use_state::<Option<GetUserDataResponsePayload>>(cx, || None);
 
-    let send_email_verification = move |_| {
-        cx.spawn({
-            let auth_context = auth_context.clone();
-            async move {
-                if auth_context.read().is_none() {
-                    return;
-                }
-                let id_token = auth_context
-                    .read()
-                    .as_ref()
-                    .unwrap()
-                    .id_token
-                    .clone();
-
-                log::info!("Send email verification");
-                let result = send_email_verification(id_token).await;
-                match result {
-                    | Ok(_) => {
-                        log::info!("Send email verification success");
-                    },
-                    | Err(error) => {
-                        log::error!(
-                            "Send email verification failed: {:?}",
-                            error
-                        );
-                    },
-                }
-            }
-        })
-    };
-
-    let sign_out = move |_| {
-        if auth_context.read().is_none() {
-            return;
-        }
-
-        log::info!("Sign out");
-
-        // NOTE: Reset auth context
-        let mut context = auth_context.write();
-        *context = None;
-
-        // NOTE: Navigate to home
-        navigation.push(Route::Home {});
-    };
+    let email = use_state(cx, String::new);
+    let password = use_state(cx, String::new);
+    let confirm_password = use_state(cx, String::new);
 
     let get_user_data = use_future(cx, (), |_| {
         let auth_context = auth_context.clone();
@@ -105,6 +64,122 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
             }
         }
     });
+
+    let send_email_verification = move |_| {
+        cx.spawn({
+            let auth_context = auth_context.clone();
+            async move {
+                if auth_context.read().is_none() {
+                    return;
+                }
+                let id_token = auth_context
+                    .read()
+                    .as_ref()
+                    .unwrap()
+                    .id_token
+                    .clone();
+
+                log::info!("Send email verification");
+                let result = send_email_verification(id_token).await;
+                match result {
+                    | Ok(_) => {
+                        log::info!("Send email verification success");
+                    },
+                    | Err(error) => {
+                        log::error!(
+                            "Send email verification failed: {:?}",
+                            error
+                        );
+                    },
+                }
+            }
+        })
+    };
+
+    let change_email = move |_| {
+        cx.spawn({
+            let auth_context = auth_context.clone();
+            let email = email.get().clone();
+            async move {
+                if auth_context.read().is_none() {
+                    return;
+                }
+                let id_token = auth_context
+                    .read()
+                    .as_ref()
+                    .unwrap()
+                    .id_token
+                    .clone();
+
+                log::info!("Change email");
+                let result = change_email(id_token, email).await;
+                match result {
+                    | Ok(response) => {
+                        log::info!("Change email success");
+                        // NOTE: Update auth context
+                        let mut auth_context_ref = auth_context.write();
+                        *auth_context_ref = Some(AuthContext {
+                            id_token: response.id_token.clone(),
+                            refresh_token: response.refresh_token.clone(),
+                        });
+                    },
+                    | Err(error) => {
+                        log::error!("Change email failed: {:?}", error);
+                    },
+                }
+            }
+        })
+    };
+
+    let change_password = move |_| {
+        cx.spawn({
+            let auth_context = auth_context.clone();
+            let password = password.get().clone();
+            async move {
+                if auth_context.read().is_none() {
+                    return;
+                }
+                let id_token = auth_context
+                    .read()
+                    .as_ref()
+                    .unwrap()
+                    .id_token
+                    .clone();
+
+                log::info!("Change password");
+                let result = change_password(id_token, password).await;
+                match result {
+                    | Ok(response) => {
+                        log::info!("Change password success");
+                        // NOTE: Update auth context
+                        let mut auth_context_ref = auth_context.write();
+                        *auth_context_ref = Some(AuthContext {
+                            id_token: response.id_token.clone(),
+                            refresh_token: response.refresh_token.clone(),
+                        });
+                    },
+                    | Err(error) => {
+                        log::error!("Change password failed: {:?}", error);
+                    },
+                }
+            }
+        })
+    };
+
+    let sign_out = move |_| {
+        if auth_context.read().is_none() {
+            return;
+        }
+
+        log::info!("Sign out");
+
+        // NOTE: Reset auth context
+        let mut context = auth_context.write();
+        *context = None;
+
+        // NOTE: Navigate to home
+        navigation.push(Route::Home {});
+    };
 
     let delete_account = move |_| {
         cx.spawn({
@@ -288,6 +363,78 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                     div {
                         "User not found"
                     }
+                }
+            }
+        }
+
+        br {}
+
+        h2 { "Update user info" }
+
+        div {
+            MatTextField {
+                label: "E-mail",
+                value: email.get(),
+                _oninput: {
+                    to_owned![email];
+                    move |event :String| {
+                        log::info!("Input e-mail address: {}", event);
+                        email.set(event)
+                    }
+                }
+            }
+        }
+
+        div
+        {
+            span {
+                onclick: change_email,
+                MatButton {
+                    label: "Change e-mail",
+                    outlined: true,
+                    disabled: email.get().is_empty(),
+                }
+            }
+        }
+
+        div {
+            MatTextField {
+                label: "Password",
+                value: password.get().clone().replace(|_| true, "*"),
+                _oninput: {
+                    to_owned![password];
+                    move |event: String| {
+                        // NOTE: Hide password
+                        // log::info!("Input password: {}", event);
+                        password.set(event)
+                    }
+                }
+            }
+        }
+
+        div {
+            MatTextField {
+                label: "Confirm password",
+                value: confirm_password.get().clone().replace(|_| true, "*"),
+                _oninput: {
+                    to_owned![confirm_password];
+                    move |event: String| {
+                        // NOTE: Hide password
+                        // log::info!("Input confirm_password: {}", event);
+                        confirm_password.set(event)
+                    }
+                }
+            }
+        }
+
+        div {
+            span {
+                onclick: change_password,
+                MatButton {
+                    label: "Change password",
+                    outlined: true,
+                    disabled: password.get().is_empty()
+                        || confirm_password.get().is_empty(),
                 }
             }
         }
