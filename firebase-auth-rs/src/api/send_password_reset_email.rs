@@ -2,9 +2,9 @@
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email)
 use serde::{Deserialize, Serialize};
 
-use super::{client, result::Result};
+use crate::{client, result::Result};
 
-/// Request body payload for the `sendOobCode` endpoint.
+/// Request body payload for the send password reset email API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
 #[derive(Serialize)]
 pub struct SendPasswordResetEmailRequestBodyPayload {
@@ -17,7 +17,7 @@ pub struct SendPasswordResetEmailRequestBodyPayload {
 }
 
 impl SendPasswordResetEmailRequestBodyPayload {
-    /// Creates a new request body payload for the `sendOobCode` endpoint.
+    /// Creates a new request body payload for the send password reset email API.
     pub fn new(email: String) -> Self {
         Self {
             request_type: "PASSWORD_RESET".to_string(),
@@ -26,7 +26,7 @@ impl SendPasswordResetEmailRequestBodyPayload {
     }
 }
 
-/// Response payload for the `sendOobCode` endpoint.
+/// Response payload for the send password reset email API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
 #[derive(Deserialize)]
 pub struct SendPasswordResetEmailResponsePayload {
@@ -35,58 +35,29 @@ pub struct SendPasswordResetEmailResponsePayload {
     pub email: String,
 }
 
-/// Common error codes for send password reset email API.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
-pub enum CommonErrorCode {
-    /// There is no user record corresponding to this identifier. The user may have been deleted.
-    EmailNotFound,
-}
-
-impl CommonErrorCode {
-    /// Error code as string.
-    pub fn code(&self) -> &str {
-        match self {
-            | CommonErrorCode::EmailNotFound => "EMAIL_NOT_FOUND",
-        }
-    }
-
-    /// Error message.
-    pub fn message(&self) -> &str {
-        match self {
-            | CommonErrorCode::EmailNotFound => {
-                "There is no user record corresponding to this identifier. The user may have been deleted."
-            },
-        }
-    }
-}
-
-impl TryFrom<&str> for CommonErrorCode {
-    type Error = ();
-
-    fn try_from(value: &str) -> std::result::Result<Self, Self::Error> {
-        match value {
-            | "EMAIL_NOT_FOUND" => Ok(CommonErrorCode::EmailNotFound),
-            | _ => Err(()),
-        }
-    }
-}
-
 /// Sends a password reset email to the given email address.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
 ///
 /// ## Arguments
+/// * `client` - HTTP client.
 /// * `api_key` - Your Firebase project's API key.
-/// * `request` - Request body payload for the `sendOobCode` endpoint.
+/// * `request_payload` - Request body payload.
 ///
 /// ## Returns
-/// The result with the response payload for the `sendOobCode` endpoint.
+/// Result with a response payload.
 pub async fn send_password_reset_email(
+    client: &reqwest::Client,
     api_key: &String,
     request: SendPasswordResetEmailRequestBodyPayload,
 ) -> Result<SendPasswordResetEmailResponsePayload> {
     client::send_post::<
         SendPasswordResetEmailRequestBodyPayload,
         SendPasswordResetEmailResponsePayload,
-    >("accounts:sendOobCode", api_key, request)
+    >(
+        client,
+        "accounts:sendOobCode",
+        api_key,
+        request,
+    )
     .await
 }

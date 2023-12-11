@@ -15,6 +15,7 @@ use super::result::{ApiErrorResponse, FirebaseError, Result};
 /// ## Returns
 /// The result with the response payload of the API.
 pub(crate) async fn send_post<T, U>(
+    client: &reqwest::Client,
     endpoint: &str,
     api_key: &String,
     request_payload: T,
@@ -27,8 +28,6 @@ where
         "https://identitytoolkit.googleapis.com/v1/{}?key={}",
         endpoint, api_key
     );
-
-    let client = reqwest::Client::new();
 
     let response = client
         .post(&url)

@@ -1,10 +1,10 @@
-/// Implements the sign up API of Firebase Auth.
+/// Implements the sign up with email password API of Firebase Auth.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 use serde::{Deserialize, Serialize};
 
-use super::{client, result::Result};
+use crate::{client, result::Result};
 
-/// Request body payload for the `signUp` endpoint.
+/// Request body payload for the sign up with email password API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 #[derive(Serialize)]
 pub struct SignUpWithEmailPasswordRequestBodyPayload {
@@ -20,7 +20,7 @@ pub struct SignUpWithEmailPasswordRequestBodyPayload {
 }
 
 impl SignUpWithEmailPasswordRequestBodyPayload {
-    /// Creates a new request body payload for the `signUp` endpoint.
+    /// Creates a new request body payload for the sign up with email password API.
     pub fn new(
         email: String,
         password: String,
@@ -33,7 +33,7 @@ impl SignUpWithEmailPasswordRequestBodyPayload {
     }
 }
 
-/// Response payload for the `signUp` endpoint.
+/// Response payload for the sign up with email password API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 #[derive(Deserialize)]
 pub struct SignUpWithEmailPasswordResponsePayload {
@@ -54,72 +54,29 @@ pub struct SignUpWithEmailPasswordResponsePayload {
     pub local_id: String,
 }
 
-/// Common error codes for sign up API.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
-pub enum CommonErrorCode {
-    /// There is no user record corresponding to this identifier. The user may have been deleted.
-    EmailNotFound,
-    /// The password is invalid or the user does not have a password.
-    InvalidPassword,
-    /// The user account has been disabled by an administrator.
-    UserDisabled,
-}
-
-impl CommonErrorCode {
-    /// Error code as string.
-    pub fn code(&self) -> &str {
-        match self {
-            | CommonErrorCode::EmailNotFound => "EMAIL_NOT_FOUND",
-            | CommonErrorCode::InvalidPassword => "INVALID_PASSWORD",
-            | CommonErrorCode::UserDisabled => "USER_DISABLED",
-        }
-    }
-
-    /// Error message.
-    pub fn message(&self) -> &str {
-        match self {
-            | CommonErrorCode::EmailNotFound => {
-                "There is no user record corresponding to this identifier. The user may have been deleted."
-            },
-            | CommonErrorCode::InvalidPassword => {
-                "The password is invalid or the user does not have a password."
-            },
-            | CommonErrorCode::UserDisabled => {
-                "The user account has been disabled by an administrator."
-            },
-        }
-    }
-}
-
-impl TryFrom<String> for CommonErrorCode {
-    type Error = ();
-
-    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
-        match value.as_str() {
-            | "EMAIL_NOT_FOUND" => Ok(CommonErrorCode::EmailNotFound),
-            | "INVALID_PASSWORD" => Ok(CommonErrorCode::InvalidPassword),
-            | "USER_DISABLED" => Ok(CommonErrorCode::UserDisabled),
-            | _ => Err(()),
-        }
-    }
-}
-
 /// Signs up a user with the given email address and password.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 ///
 /// ## Arguments
+/// * `client` - HTTP client.
 /// * `api_key` - Your Firebase project's API key.
-/// * `request` - Request body payload for the `signUp` endpoint.
+/// * `request_payload` - Request body payload.
 ///
 /// ## Returns
-/// Response payload for the `signUp` endpoint.
+/// Result with a response payload.
 pub async fn sign_up_with_email_password(
+    client: &reqwest::Client,
     api_key: &String,
     request: SignUpWithEmailPasswordRequestBodyPayload,
 ) -> Result<SignUpWithEmailPasswordResponsePayload> {
     client::send_post::<
         SignUpWithEmailPasswordRequestBodyPayload,
         SignUpWithEmailPasswordResponsePayload,
-    >("accounts:signUp", api_key, request)
+    >(
+        client,
+        "accounts:signUp",
+        api_key,
+        request,
+    )
     .await
 }

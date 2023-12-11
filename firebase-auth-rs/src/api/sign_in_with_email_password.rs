@@ -1,10 +1,10 @@
-/// Implements the sign in API of Firebase Auth.
+/// Implements the sign in with email password API of Firebase Auth.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 use serde::{Deserialize, Serialize};
 
-use super::{client, result::Result};
+use crate::{client, result::Result};
 
-/// Request body payload for the `signInWithEmailAndPassword` endpoint.
+/// Request body payload for the sign in with email password API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 #[derive(Serialize)]
 pub struct SignInWithEmailPasswordRequestBodyPayload {
@@ -20,7 +20,7 @@ pub struct SignInWithEmailPasswordRequestBodyPayload {
 }
 
 impl SignInWithEmailPasswordRequestBodyPayload {
-    /// Creates a new request body payload for the `signInWithEmailAndPassword` endpoint.
+    /// Creates a new request body payload for the sign in with email password API.
     pub fn new(
         email: String,
         password: String,
@@ -33,7 +33,7 @@ impl SignInWithEmailPasswordRequestBodyPayload {
     }
 }
 
-/// Response payload for the `signInWithEmailAndPassword` endpoint.
+/// Response payload for the sign in with email password API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 #[derive(Deserialize)]
 pub struct SignInWithEmailPasswordResponsePayload {
@@ -57,66 +57,18 @@ pub struct SignInWithEmailPasswordResponsePayload {
     pub registered: bool,
 }
 
-/// Common error codes for sign in API.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
-pub enum CommonErrorCode {
-    /// The email address is already in use by another account.
-    EmailExists,
-    /// Password sign-in is disabled for this project.
-    OperationNotAllowed,
-    /// We have blocked all requests from this device due to unusual activity. Try again later.
-    TooManyAttemptsTryLater,
-}
-
-impl CommonErrorCode {
-    /// Error code as string.
-    pub fn code(&self) -> &str {
-        match self {
-            | CommonErrorCode::EmailExists => "EMAIL_EXISTS",
-            | CommonErrorCode::OperationNotAllowed => "OPERATION_NOT_ALLOWED",
-            | CommonErrorCode::TooManyAttemptsTryLater => {
-                "TOO_MANY_ATTEMPTS_TRY_LATER"
-            },
-        }
-    }
-
-    /// Error message.
-    pub fn message(&self) -> &str {
-        match self {
-            CommonErrorCode::EmailExists => "The email address is already in use by another account.",
-            CommonErrorCode::OperationNotAllowed => "Password sign-in is disabled for this project.",
-            CommonErrorCode::TooManyAttemptsTryLater => "We have blocked all requests from this device due to unusual activity. Try again later.",
-        }
-    }
-}
-
-impl TryFrom<String> for CommonErrorCode {
-    type Error = ();
-
-    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
-        match value.as_str() {
-            | "EMAIL_EXISTS" => Ok(CommonErrorCode::EmailExists),
-            | "OPERATION_NOT_ALLOWED" => {
-                Ok(CommonErrorCode::OperationNotAllowed)
-            },
-            | "TOO_MANY_ATTEMPTS_TRY_LATER" => {
-                Ok(CommonErrorCode::TooManyAttemptsTryLater)
-            },
-            | _ => Err(()),
-        }
-    }
-}
-
 /// Signs in a user with the given email address and password.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 ///
 /// ## Arguments
+/// * `client` - HTTP client.
 /// * `api_key` - Your Firebase project's API key.
-/// * `request` - Request body payload for the `signInWithEmailAndPassword` endpoint.
+/// * `request_payload` - Request body payload.
 ///
 /// ## Returns
-/// The result with the response payload for the `signInWithEmailAndPassword` endpoint.
+/// Result with a response payload.
 pub async fn sign_in_with_email_password(
+    client: &reqwest::Client,
     api_key: &String,
     request: SignInWithEmailPasswordRequestBodyPayload,
 ) -> Result<SignInWithEmailPasswordResponsePayload> {
@@ -124,6 +76,7 @@ pub async fn sign_in_with_email_password(
         SignInWithEmailPasswordRequestBodyPayload,
         SignInWithEmailPasswordResponsePayload,
     >(
+        client,
         "accounts:signInWithPassword",
         api_key,
         request,

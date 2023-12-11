@@ -2,9 +2,9 @@
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info)
 use serde::{Deserialize, Serialize};
 
-use super::{client, result::Result};
+use crate::{client, result::Result};
 
-/// Request body payload for the `getAccountInfo` endpoint.
+/// Request body payload for the get user data API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
 #[derive(Serialize)]
 pub struct GetUserDataRequestBodyPayload {
@@ -14,7 +14,7 @@ pub struct GetUserDataRequestBodyPayload {
 }
 
 impl GetUserDataRequestBodyPayload {
-    /// Creates a new request body payload for the `getAccountInfo` endpoint.
+    /// Creates a new request body payload for the get user data API.
     pub fn new(id_token: String) -> Self {
         Self {
             id_token,
@@ -22,7 +22,7 @@ impl GetUserDataRequestBodyPayload {
     }
 }
 
-/// Response payload for the `getAccountInfo` endpoint.
+/// Response payload for the get user data API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
 #[derive(Deserialize)]
 pub struct GetUserDataResponsePayload {
@@ -107,18 +107,20 @@ pub struct ProviderUserInfo {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
 ///
 /// ## Arguments
-/// * `api_key` - The API key of the Firebase project.
-/// * `request` - The request body payload for the `getAccountInfo` endpoint.
+/// * `client` - HTTP client.
+/// * `api_key` - Your Firebase project's API key.
+/// * `request_payload` - Request body payload.
 ///
 /// ## Returns
-/// The response payload for the `getAccountInfo` endpoint.
+/// Result with a response payload.
 pub async fn get_user_data(
+    client: &reqwest::Client,
     api_key: &String,
-    request: GetUserDataRequestBodyPayload,
+    request_payload: GetUserDataRequestBodyPayload,
 ) -> Result<GetUserDataResponsePayload> {
     client::send_post::<
         GetUserDataRequestBodyPayload,
         GetUserDataResponsePayload,
-    >("accounts:lookup", api_key, request)
+    >(client, "accounts:lookup", api_key, request_payload)
     .await
 }

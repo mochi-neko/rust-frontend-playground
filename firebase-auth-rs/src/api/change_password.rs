@@ -1,50 +1,52 @@
-/// Implements change email API of Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
+/// Implements the change password API of the Firebase Auth.
+/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-password).
 use serde::{Deserialize, Serialize};
 
-use super::{client, provider_user_info::ProviderUserInfo, result::Result};
+use crate::{
+    client, data::provider_user_info::ProviderUserInfo, result::Result,
+};
 
-/// Request body payload for the `setAccountInfo` endpoint.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
+/// Request body payload for the change password API.
+/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-password).
 #[derive(Serialize)]
-pub struct ChangeEmailRequestBodyPayload {
+pub struct ChangePasswordRequestBodyPayload {
     /// A Firebase Auth ID token for the user.
     #[serde(rename = "idToken")]
     id_token: String,
-    /// The user's new email.
-    #[serde(rename = "email")]
-    email: String,
+    /// The user's new password.
+    #[serde(rename = "password")]
+    password: String,
     /// Whether or not to return an ID and refresh token.
     #[serde(rename = "returnSecureToken")]
     return_secure_token: bool,
 }
 
-impl ChangeEmailRequestBodyPayload {
+impl ChangePasswordRequestBodyPayload {
     /// Creates a new request body payload for the `setAccountInfo` endpoint.
     pub fn new(
         id_token: String,
-        email: String,
+        password: String,
         return_secure_token: bool,
     ) -> Self {
         Self {
             id_token,
-            email,
+            password,
             return_secure_token,
         }
     }
 }
 
 /// Response payload for the `setAccountInfo` endpoint.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
+/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-password).
 #[derive(Deserialize)]
-pub struct ChangeEmailResponsePayload {
+pub struct ChangePasswordResponsePayload {
     /// The uid of the current user.
     #[serde(rename = "localId")]
     pub local_id: String,
     /// User's email address.
     #[serde(rename = "email")]
     pub email: String,
-    /// Hash version of the password.
+    /// Hash version of password.
     #[serde(rename = "passwordHash")]
     pub password_hash: String,
     /// List of all linked provider objects which contain "providerId" and "federatedId".
@@ -58,29 +60,32 @@ pub struct ChangeEmailResponsePayload {
     pub refresh_token: Option<String>,
     /// The number of seconds in which the ID token expires.
     #[serde(rename = "expiresIn")]
-    pub expires_in: Option<String>,
+    pub expires_in: String,
 }
 
-/// Changes the email address associated with the user account.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
+/// Changes the password associated with the user account.
+/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-password).
 ///
 /// ## Arguments
+/// * `client` - HTTP client.
 /// * `api_key` - Your Firebase project's API key.
-/// * `request` - Request body payload.
+/// * `request_payload` - Request body payload.
 ///
 /// ## Returns
-/// The result with the response payload of the `setAccountInfo` endpoint.
-pub async fn change_email(
+/// Result with a response payload.
+pub async fn change_password(
+    client: &reqwest::Client,
     api_key: &String,
-    request: ChangeEmailRequestBodyPayload,
-) -> Result<ChangeEmailResponsePayload> {
+    request_payload: ChangePasswordRequestBodyPayload,
+) -> Result<ChangePasswordResponsePayload> {
     client::send_post::<
-        ChangeEmailRequestBodyPayload,
-        ChangeEmailResponsePayload,
+        ChangePasswordRequestBodyPayload,
+        ChangePasswordResponsePayload,
     >(
+        client,
         "accounts:update",
         api_key,
-        request,
+        request_payload,
     )
     .await
 }
