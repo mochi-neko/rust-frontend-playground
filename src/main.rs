@@ -1,4 +1,6 @@
+mod application_context;
 mod auth;
+mod auth_context;
 mod generated;
 mod logging;
 mod routings;
@@ -14,7 +16,7 @@ use dioxus::{
 use dioxus_router::prelude::Router;
 use material_dioxus::MatTheme;
 
-use crate::auth::auth_context::AuthContext;
+use crate::application_context::ApplicationContext;
 
 fn main() -> anyhow::Result<()> {
     logging::initialize()?;
@@ -25,7 +27,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn app(cx: Scope) -> Element {
-    use_shared_state_provider::<Option<AuthContext>>(cx, || None);
+    use_shared_state_provider::<ApplicationContext>(cx, Default::default);
 
     render! {
         // NOTE: Failed to load style.css then use inline style

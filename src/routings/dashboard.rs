@@ -1,246 +1,37 @@
-use dioxus::{
-    hooks::{to_owned, use_state},
-    prelude::{
-        dioxus_elements, fc_to_builder, inline_props, render, use_future,
-        use_shared_state, Element, Props, Scope,
-    },
+use dioxus::prelude::{
+    dioxus_elements, fc_to_builder, inline_props, render, to_owned, use_future,
+    use_shared_state, use_state, Element, Props, Scope,
 };
 use dioxus_router::hooks::use_navigator;
-use firebase_rust::auth::get_user_data::GetUserDataResponsePayload;
+use firebase_auth_rs::api::get_user_data::GetUserDataResponsePayload;
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
 
-use crate::{
-    auth::{
-        auth_context::AuthContext,
-        delete_account::delete_account,
-        get_user_data::{get_user_data, GetUserDataInfo},
-        send_email_verification::send_email_verification,
-        update_user_info::{change_email, change_password},
-    },
-    routings::route::Route,
-};
+use crate::application_context::ApplicationContext;
+use crate::routings::route::Route;
 
 #[allow(non_snake_case)]
 #[inline_props]
 pub(crate) fn Dashboard(cx: Scope) -> Element {
-    let auth_context = use_shared_state::<Option<AuthContext>>(cx).unwrap();
-    let navigation = use_navigator(cx);
-
-    let user_info =
-        use_state::<Option<GetUserDataResponsePayload>>(cx, || None);
-
+    // Setup hooks
+    let context = use_shared_state::<ApplicationContext>(cx).unwrap();
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
 
-    let get_user_data = use_future(cx, (), |_| {
-        let auth_context = auth_context.clone();
-        let user_info = user_info.clone();
-
-        async move {
-            if auth_context.read().is_none() {
-                return;
-            }
-            let auth_context = auth_context.read();
-            let info: GetUserDataInfo = GetUserDataInfo {
-                id_token: auth_context
-                    .as_ref()
-                    .unwrap()
-                    .id_token
-                    .clone(),
-            };
-
-            log::info!("Get user data");
-            let result = get_user_data(&info).await;
-            match result {
-                | Ok(data) => {
-                    log::info!("Get user data success");
-                    user_info.set(Some(data));
-                },
-                | Err(error) => {
-                    log::error!("Get user data failed: {:?}", error);
-                    user_info.set(None);
-                },
-            }
-        }
+    let fetch_user_data = use_future(cx, (), move |_| {
+        get_user_data(context.read().clone())
     });
 
-    let send_email_verification = move |_| {
-        cx.spawn({
-            let auth_context = auth_context.clone();
-            async move {
-                if auth_context.read().is_none() {
-                    return;
-                }
-                let id_token = auth_context
-                    .read()
-                    .as_ref()
-                    .unwrap()
-                    .id_token
-                    .clone();
-
-                log::info!("Send email verification");
-                let result = send_email_verification(id_token).await;
-                match result {
-                    | Ok(_) => {
-                        log::info!("Send email verification success");
-                    },
-                    | Err(error) => {
-                        log::error!(
-                            "Send email verification failed: {:?}",
-                            error
-                        );
-                    },
-                }
-            }
-        })
-    };
-
-    let change_email = move |_| {
-        cx.spawn({
-            let auth_context = auth_context.clone();
-            let email = email.get().clone();
-            async move {
-                if auth_context.read().is_none() {
-                    return;
-                }
-                let id_token = auth_context
-                    .read()
-                    .as_ref()
-                    .unwrap()
-                    .id_token
-                    .clone();
-
-                log::info!("Change email");
-                let result = change_email(id_token, email).await;
-                match result {
-                    | Ok(response) => {
-                        log::info!("Change email success");
-                        // NOTE: Update auth context
-                        let mut auth_context_ref = auth_context.write();
-                        *auth_context_ref = Some(AuthContext {
-                            id_token: response.id_token.clone(),
-                            refresh_token: response.refresh_token.clone(),
-                        });
-                    },
-                    | Err(error) => {
-                        log::error!("Change email failed: {:?}", error);
-                    },
-                }
-            }
-        })
-    };
-
-    let change_password = move |_| {
-        cx.spawn({
-            let auth_context = auth_context.clone();
-            let password = password.get().clone();
-            async move {
-                if auth_context.read().is_none() {
-                    return;
-                }
-                let id_token = auth_context
-                    .read()
-                    .as_ref()
-                    .unwrap()
-                    .id_token
-                    .clone();
-
-                log::info!("Change password");
-                let result = change_password(id_token, password).await;
-                match result {
-                    | Ok(response) => {
-                        log::info!("Change password success");
-                        // NOTE: Update auth context
-                        let mut auth_context_ref = auth_context.write();
-                        *auth_context_ref = Some(AuthContext {
-                            id_token: response.id_token.clone(),
-                            refresh_token: response.refresh_token.clone(),
-                        });
-                    },
-                    | Err(error) => {
-                        log::error!("Change password failed: {:?}", error);
-                    },
-                }
-            }
-        })
-    };
-
-    let sign_out = move |_| {
-        if auth_context.read().is_none() {
-            return;
-        }
-
-        log::info!("Sign out");
-
-        // NOTE: Reset auth context
-        let mut context = auth_context.write();
-        *context = None;
-
-        // NOTE: Navigate to home
-        navigation.push(Route::Home {});
-    };
-
-    let delete_account = move |_| {
-        cx.spawn({
-            let auth_context = auth_context.clone();
-            let navigation = navigation.clone();
-
-            async move {
-                if auth_context.read().is_none() {
-                    return;
-                }
-                let id_token = auth_context
-                    .read()
-                    .as_ref()
-                    .unwrap()
-                    .id_token
-                    .clone();
-
-                log::info!("Delete account");
-                let result = delete_account(id_token).await;
-                match result {
-                    | Ok(_) => {
-                        log::info!("Delete account success");
-                        navigation.push(Route::Home {});
-                    },
-                    | Err(error) => {
-                        log::error!("Delete account failed: {:?}", error);
-                    },
-                }
-            }
-        })
-    };
-
-    if auth_context.read().is_none() {
-        // NOTE: Redirect to home
-        log::info!("Redirect to home");
-        navigation.push(Route::Home {});
-    }
+    redirect_to_home(cx);
 
     render! {
         h1 { "Dashboard" }
 
         div {
             span {
-                onclick: send_email_verification,
-                MatButton {
-                    label: "Send email verification",
-                    outlined: true,
-                    disabled: user_info.get().as_ref().is_some_and(|user_info| {
-                        user_info.users.get(0).is_some_and(|user| {
-                            user.email_verified
-                        })
-                    }),
-                }
-            }
-        }
-
-        div {
-            span {
                 onclick: move |_| {
                     log::info!("Update user data");
-                    get_user_data.restart();
+                    fetch_user_data.restart();
                 },
                 MatButton {
                     label: "Update user data",
@@ -249,120 +40,147 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
             }
         }
 
-        if let Some(user_info) = user_info.get().as_ref() {
-            if let Some(user) = user_info.users.get(0) {
+        match fetch_user_data.value() {
+            | Some(Err(error)) => {
                 render! {
                     div {
-                        h2 { "User info" }
-
-                        div {
-                            "Local ID: "
-                            span { user.local_id.clone() }
-                        }
-
-                        div {
-                            "E-mail: "
-                            span { user.email.clone() }
-                        }
-
-                        div {
-                            "E-mail verified: "
-                            span { user.email_verified.to_string() }
-                        }
-
-                        div {
-                            "Display name: "
-                            span { user.display_name.clone() }
-                        }
-
-                        // TODO: provider user info
-                        div {
-                            "Provider user info: "
-                            for provider_user_info in user.provider_user_info.iter() {
-                                div {
-                                    "- Provider ID: "
-                                    span { provider_user_info.provider_id.clone() }
-                                }
-
-                                div {
-                                    "- Display name: "
-                                    span { provider_user_info.display_name.clone() }
-                                }
-
-                                div {
-                                    "- Photo URL: "
-                                    span { provider_user_info.photo_url.clone() }
-                                }
-
-                                div {
-                                    "- Federated ID: "
-                                    span { provider_user_info.federated_id.clone() }
-                                }
-
-                                div {
-                                    "- Email: "
-                                    span { provider_user_info.email.clone() }
-                                }
-
-                                div {
-                                    "- Raw ID: "
-                                    span { provider_user_info.raw_id.clone() }
-                                }
-
-                                div {
-                                    "- Screen name: "
-                                    span { provider_user_info.screen_name.clone() }
-                                }
-                            }
-                        }
-
-                        div {
-                            "Photo URL: "
-                            span { user.photo_url.clone() }
-                        }
-
-                        div {
-                            "Password hash: "
-                            span { "XXXX" }
-                        }
-
-                        div {
-                            "Password updated at: "
-                            span { user.password_updated_at.to_string() }
-                        }
-
-                        div {
-                            "Valid since: "
-                            span { user.valid_since.clone() }
-                        }
-
-                        div {
-                            "Disabled: "
-                            span { user.disabled.unwrap_or(false).to_string() }
-                        }
-
-                        div {
-                            "Last login at: "
-                            span { user.last_login_at.clone() }
-                        }
-
-                        div {
-                            "Created at: "
-                            span { user.created_at.clone() }
-                        }
-
-                        div {
-                            "Custom auth: "
-                            span { user.custom_auth.unwrap_or(false).to_string() }
-                        }
+                        "Failed to get user data: "
+                        error.to_string()
                     }
                 }
-            }
-            else {
+            },
+            | None => {
                 render! {
                     div {
-                        "User not found"
+                        "Loading user data..."
                     }
+                }
+            },
+            | Some(Ok(user_data)) => {
+                match user_data.users.get(0) {
+                    | None => {
+                        render! {
+                            div {
+                                "User not found"
+                            }
+                        }
+                    },
+                    | Some(user) => {
+                        render! {
+                            div {
+                                span {
+                                    onclick: |_| send_email_verification(cx),
+                                    MatButton {
+                                        label: "Send email verification",
+                                        outlined: true,
+                                        disabled: user.email_verified,
+                                    }
+                                }
+                            }
+
+                            h2 { "User info" }
+
+                            div {
+                                "Local ID: "
+                                span { user.local_id.clone() }
+                            }
+
+                            div {
+                                "E-mail: "
+                                span { user.email.clone() }
+                            }
+
+                            div {
+                                "E-mail verified: "
+                                span { user.email_verified.to_string() }
+                            }
+
+                            div {
+                                "Display name: "
+                                span { user.display_name.clone() }
+                            }
+
+                            div {
+                                "Provider user info: "
+                                for provider_user_info in user.provider_user_info.iter() {
+                                    div {
+                                        "- Provider ID: "
+                                        span { provider_user_info.provider_id.clone() }
+                                    }
+
+                                    div {
+                                        "- Display name: "
+                                        span { provider_user_info.display_name.clone() }
+                                    }
+
+                                    div {
+                                        "- Photo URL: "
+                                        span { provider_user_info.photo_url.clone() }
+                                    }
+
+                                    div {
+                                        "- Federated ID: "
+                                        span { provider_user_info.federated_id.clone() }
+                                    }
+
+                                    div {
+                                        "- Email: "
+                                        span { provider_user_info.email.clone() }
+                                    }
+
+                                    div {
+                                        "- Raw ID: "
+                                        span { provider_user_info.raw_id.clone() }
+                                    }
+
+                                    div {
+                                        "- Screen name: "
+                                        span { provider_user_info.screen_name.clone() }
+                                    }
+                                }
+                            }
+
+                            div {
+                                "Photo URL: "
+                                span { user.photo_url.clone() }
+                            }
+
+                            div {
+                                "Password hash: "
+                                span { "XXXX" }
+                            }
+
+                            div {
+                                "Password updated at: "
+                                span { user.password_updated_at.to_string() }
+                            }
+
+                            div {
+                                "Valid since: "
+                                span { user.valid_since.clone() }
+                            }
+
+                            div {
+                                "Disabled: "
+                                span { user.disabled.unwrap_or(false).to_string() }
+                            }
+
+                            div {
+                                "Last login at: "
+                                span { user.last_login_at.clone() }
+                            }
+
+                            div {
+                                "Created at: "
+                                span { user.created_at.clone() }
+                            }
+
+                            div {
+                                "Custom auth: "
+                                span { user.custom_auth.unwrap_or(false).to_string() }
+                            }
+                        }
+                    },
                 }
             }
         }
@@ -388,7 +206,7 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
         div
         {
             span {
-                onclick: change_email,
+                onclick: |_| change_email(cx, email.get().clone()),
                 MatButton {
                     label: "Change e-mail",
                     outlined: true,
@@ -429,7 +247,7 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: change_password,
+                onclick: |_| change_password(cx, password.get().clone()),
                 MatButton {
                     label: "Change password",
                     outlined: true,
@@ -443,18 +261,17 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: sign_out,
+                onclick: |_| sign_out(cx),
                 MatButton {
                     label: "Sign out",
                     outlined: true,
-                    disabled: auth_context.read().is_none(),
                 }
             }
         }
 
         div {
             span {
-                onclick: delete_account,
+                onclick: |_| delete_account(cx),
                 MatButton {
                     label: "Delete account",
                     outlined: true,
@@ -462,4 +279,190 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
             }
         }
     }
+}
+
+async fn get_user_data(
+    context: ApplicationContext
+) -> anyhow::Result<GetUserDataResponsePayload> {
+    if let Some(auth_context) = &context.auth {
+        log::info!("Get user data");
+        match crate::auth::get_user_data(&context.client, auth_context).await {
+            | Ok(data) => {
+                log::info!("Get user data success");
+                Ok(data)
+            },
+            | Err(error) => {
+                log::error!("Get user data failed: {:?}", error);
+                Err(error)
+            },
+        }
+    } else {
+        log::error!("Get user data failed: Auth context not found");
+        Err(anyhow::anyhow!(
+            "Auth context not found"
+        ))
+    }
+}
+
+fn redirect_to_home(cx: &dioxus::prelude::Scoped<'_, DashboardProps>) {
+    // Setup hooks
+    let context = use_shared_state::<ApplicationContext>(cx)
+        .unwrap()
+        .clone();
+    let navigation = use_navigator(cx).clone();
+
+    if context.read().auth.is_none() {
+        // NOTE: Redirect to home
+        log::info!("Redirect to home");
+        navigation.push(Route::Home {});
+    }
+}
+
+fn send_email_verification(cx: &dioxus::prelude::Scoped<'_, DashboardProps>) {
+    // Setup hooks
+    let context = use_shared_state::<ApplicationContext>(cx)
+        .unwrap()
+        .clone();
+
+    cx.spawn({
+        async move {
+            let context = context.read();
+            if let Some(auth_context) = &context.auth {
+                log::info!("Send email verification");
+                match crate::auth::send_email_verification(
+                    &context.client,
+                    auth_context,
+                )
+                .await
+                {
+                    | Ok(_) => {
+                        log::info!("Send email verification success");
+                    },
+                    | Err(error) => {
+                        log::error!(
+                            "Send email verification failed: {:?}",
+                            error
+                        );
+                    },
+                }
+            }
+        }
+    })
+}
+
+fn change_email(
+    cx: &dioxus::prelude::Scoped<'_, DashboardProps>,
+    email: String,
+) {
+    // Setup hooks
+    let context = use_shared_state::<ApplicationContext>(cx)
+        .unwrap()
+        .clone();
+
+    cx.spawn({
+        async move {
+            let context = context.read();
+            if let Some(auth_context) = &context.auth {
+                log::info!("Change email");
+                match crate::auth::change_email(
+                    &context.client,
+                    auth_context,
+                    email,
+                )
+                .await
+                {
+                    | Ok(_) => {
+                        log::info!("Change email success");
+                    },
+                    | Err(error) => {
+                        log::error!("Change email failed: {:?}", error);
+                    },
+                }
+            }
+        }
+    })
+}
+
+fn change_password(
+    cx: &dioxus::prelude::Scoped<'_, DashboardProps>,
+    password: String,
+) {
+    // Setup hooks
+    let context = use_shared_state::<ApplicationContext>(cx)
+        .unwrap()
+        .clone();
+
+    cx.spawn({
+        async move {
+            let context = context.read();
+            if let Some(auth_context) = &context.auth {
+                log::info!("Change password");
+                match crate::auth::change_password(
+                    &context.client,
+                    auth_context,
+                    password,
+                )
+                .await
+                {
+                    | Ok(_) => {
+                        log::info!("Change password success");
+                    },
+                    | Err(error) => {
+                        log::error!("Change password failed: {:?}", error);
+                    },
+                }
+            }
+        }
+    })
+}
+
+fn sign_out(cx: &dioxus::prelude::Scoped<'_, DashboardProps>) {
+    // Setup hooks
+    let context: dioxus::prelude::UseSharedState<ApplicationContext> =
+        use_shared_state::<ApplicationContext>(cx)
+            .unwrap()
+            .clone();
+    let navigation = use_navigator(cx).clone();
+
+    let mut context = context.write();
+    if context.auth.is_some() {
+        log::info!("Sign out");
+
+        // NOTE: Reset auth context
+        context.auth = None;
+
+        // NOTE: Navigate to home
+        navigation.push(Route::Home {});
+    };
+}
+
+fn delete_account(cx: &dioxus::prelude::Scoped<'_, DashboardProps>) {
+    // Setup hooks
+    let context = use_shared_state::<ApplicationContext>(cx)
+        .unwrap()
+        .clone();
+    let navigation = use_navigator(cx).clone();
+
+    cx.spawn({
+        async move {
+            let mut context = context.write();
+            if let Some(auth_context) = &context.auth {
+                log::info!("Delete account");
+                match crate::auth::delete_account(&context.client, auth_context)
+                    .await
+                {
+                    | Ok(_) => {
+                        log::info!("Delete account success");
+                        // NOTE: Reset auth context
+                        context.auth = None;
+                        // NOTE: Navigate to home
+                        navigation.push(Route::Home {});
+                    },
+                    | Err(error) => {
+                        log::error!("Delete account failed: {:?}", error);
+                    },
+                }
+            }
+        }
+    });
 }

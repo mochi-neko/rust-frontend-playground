@@ -1,51 +1,21 @@
 use dioxus::prelude::{
-    dioxus_elements, fc_to_builder, inline_props, render, to_owned, use_state,
-    Element, Props, Scope,
+    dioxus_elements, fc_to_builder, inline_props, render, to_owned,
+    use_shared_state, use_state, Element, Props, Scope,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
 
 use super::route::Route;
-use crate::auth::send_reset_password_email::send_reset_password_email;
+use crate::{
+    application_context::ApplicationContext, auth::send_reset_password_email,
+};
 
 #[allow(non_snake_case)]
 #[inline_props]
 pub(crate) fn ResetPassword(cx: Scope) -> Element {
-    let navigation = use_navigator(cx);
+    // Setup hooks
     let email = use_state(cx, String::new);
     let error_message = use_state::<Option<String>>(cx, || None);
-
-    let send_password_reset_email = move |_| {
-        cx.spawn({
-            let email = email.get().clone();
-            let navigation = navigation.clone();
-            let error_message = error_message.clone();
-
-            async move {
-                if email.is_empty() {
-                    error_message.set(None);
-                    return;
-                }
-
-                log::info!("Send password reset email: {:?}", email);
-                let result = send_reset_password_email(email).await;
-                match result {
-                    | Ok(_) => {
-                        log::info!("Send password reset email success");
-                        error_message.set(None);
-                        navigation.push(Route::SignIn {});
-                    },
-                    | Err(error) => {
-                        log::error!(
-                            "Send password reset email failed: {:?}",
-                            error
-                        );
-                        error_message.set(Some(error.to_string()));
-                    },
-                }
-            }
-        })
-    };
 
     render! {
         h1 { "Reset password" }
@@ -66,7 +36,7 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: send_password_reset_email,
+                onclick: |_| send_send_password_reset_email(cx, error_message, email.get().clone()),
                 MatButton {
                     label: "Send password reset email",
                     outlined: true,
@@ -105,4 +75,38 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
             }
         }
     }
+}
+
+fn send_send_password_reset_email(
+    cx: &dioxus::prelude::Scoped<'_, ResetPasswordProps>,
+    error_message: &dioxus::prelude::UseState<Option<String>>,
+    email: String,
+) {
+    // Setup hooks
+    let context = use_shared_state::<ApplicationContext>(cx)
+        .unwrap()
+        .clone();
+    let navigation = use_navigator(cx).clone();
+    let error_message = error_message.clone();
+
+    cx.spawn({
+        async move {
+            log::info!("Send password reset email: {:?}", email);
+            let context = context.read();
+            match send_reset_password_email(&context.client, email).await {
+                | Ok(_) => {
+                    log::info!("Send password reset email success");
+                    error_message.set(None);
+                    navigation.push(Route::SignIn {});
+                },
+                | Err(error) => {
+                    log::error!(
+                        "Send password reset email failed: {:?}",
+                        error
+                    );
+                    error_message.set(Some(error.to_string()));
+                },
+            }
+        }
+    })
 }

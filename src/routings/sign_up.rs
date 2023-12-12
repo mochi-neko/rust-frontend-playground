@@ -8,59 +8,16 @@ use dioxus::{
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{MatButton, MatTextField};
 
-use super::route::Route;
-use crate::auth::{
-    auth_context::AuthContext,
-    sign_up::{sign_up, SignUpInfo},
-};
+use crate::application_context::ApplicationContext;
+use crate::routings::route::Route;
 
 #[allow(non_snake_case)]
 #[inline_props]
 pub(crate) fn SignUp(cx: Scope) -> Element {
-    let auth_context = use_shared_state::<Option<AuthContext>>(cx).unwrap();
-    let navigation = use_navigator(cx);
-
+    // Setup hooks
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
-
-    let sign_up = move |_| {
-        cx.spawn({
-            let email = email.get().clone();
-            let password = password.get().clone();
-            let navigation = navigation.clone();
-            let auth_context = auth_context.clone();
-
-            async move {
-                if email.is_empty() || password.is_empty() {
-                    return;
-                }
-
-                let info = SignUpInfo {
-                    email,
-                    password,
-                };
-
-                log::info!("Sign up: {:?}", info.email);
-                let result = sign_up(&info).await;
-                match result {
-                    | Ok(context) => {
-                        log::info!("Sign up success");
-
-                        // NOTE: Update auth context
-                        let mut auth_context_ref = auth_context.write();
-                        *auth_context_ref = Some(context);
-
-                        // NOTE: Navigate to dashboard
-                        navigation.push(Route::Dashboard {});
-                    },
-                    | Err(error) => {
-                        log::error!("Sign up failed: {:?}", error);
-                    },
-                }
-            }
-        })
-    };
 
     render! {
         h1 { "Sign up" }
@@ -111,7 +68,7 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: sign_up,
+                onclick: |_| sign_up(cx, email.get().clone(), password.get().clone()),
                 MatButton {
                     label: "Sign Up",
                     outlined: true,
@@ -150,4 +107,33 @@ fn can_sign_up(
             .get()
             .is_empty()
         && password.get() == confirm_password.get()
+}
+
+fn sign_up(
+    cx: &dioxus::prelude::Scoped<'_, SignUpProps>,
+    email: String,
+    password: String,
+) {
+    // Setup hooks
+    let context = use_shared_state::<ApplicationContext>(cx)
+        .unwrap()
+        .clone();
+    let navigator = use_navigator(cx).clone();
+
+    cx.spawn(async move {
+        log::info!("Sign up: {:?}", email);
+        let mut context = context.write();
+        match crate::auth::sign_up(&context.client, email, password).await {
+            | Ok(auth_context) => {
+                log::info!("Sign up success");
+                // NOTE: Update auth context
+                context.set_auth(auth_context);
+                // NOTE: Navigate to dashboard
+                navigator.push(Route::Dashboard {});
+            },
+            | Err(error) => {
+                log::error!("Sign up failed: {:?}", error);
+            },
+        }
+    });
 }
