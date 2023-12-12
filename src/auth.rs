@@ -9,6 +9,7 @@ use firebase_auth_rs::api::{
     send_password_reset_email::SendPasswordResetEmailRequestBodyPayload,
     sign_in_with_email_password::SignInWithEmailPasswordRequestBodyPayload,
     sign_up_with_email_password::SignUpWithEmailPasswordRequestBodyPayload,
+    update_profile::{DeleteAttribute, UpdateProfileRequestBodyPayload},
 };
 
 use crate::auth_context::AuthContext;
@@ -224,4 +225,31 @@ pub(crate) async fn change_password(
         id_token,
         refresh_token,
     })
+}
+
+pub(crate) async fn update_profile(
+    client: &reqwest::Client,
+    context: &AuthContext,
+    display_name: String,
+    photo_url: String,
+    delete_attribute: Vec<DeleteAttribute>,
+) -> anyhow::Result<()> {
+    let _ = firebase_auth_rs::api::update_profile::update_profile(
+        client,
+        &dotenv::FIREBASE_API_KEY.to_string(),
+        UpdateProfileRequestBodyPayload::new(
+            context.id_token.clone(),
+            display_name,
+            photo_url,
+            delete_attribute,
+            false,
+        ),
+    )
+    .await
+    .map_err(|error| {
+        log::error!("Sign up failed: {:?}", error);
+        error
+    })?;
+
+    Ok(())
 }

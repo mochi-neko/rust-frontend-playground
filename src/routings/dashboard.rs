@@ -17,6 +17,8 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
+    let display_name = use_state(cx, String::new);
+    let photo_url = use_state(cx, String::new);
 
     let fetch_user_data = use_future(cx, (), move |_| {
         get_user_data(context.read().clone())
@@ -187,7 +189,7 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
 
         br {}
 
-        h2 { "Update user info" }
+        h2 { "Update credentials" }
 
         div {
             MatTextField {
@@ -214,6 +216,8 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                 }
             }
         }
+
+        br {}
 
         div {
             MatTextField {
@@ -253,6 +257,49 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                     outlined: true,
                     disabled: password.get().is_empty()
                         || confirm_password.get().is_empty(),
+                }
+            }
+        }
+
+        h2 { "Update user profile" }
+
+        div {
+            MatTextField {
+                label: "Display name",
+                value: display_name.get(),
+                _oninput: {
+                    to_owned![display_name];
+                    move |event :String| {
+                        log::info!("Display name: {}", event);
+                        display_name.set(event)
+                    }
+                }
+            }
+        }
+
+        div {
+            MatTextField {
+                label: "Photo URL",
+                value: photo_url.get(),
+                _oninput: {
+                    to_owned![photo_url];
+                    move |event :String| {
+                        log::info!("Photo URL: {}", event);
+                        photo_url.set(event)
+                    }
+                }
+            }
+        }
+
+        div {
+            span {
+                onclick: |_| {
+                    update_profile(cx, display_name.get().clone(), photo_url.get().clone());
+                    fetch_user_data.restart();
+                },
+                MatButton {
+                    label: "Update profile",
+                    outlined: true,
                 }
             }
         }
@@ -409,6 +456,42 @@ fn change_password(
                     },
                     | Err(error) => {
                         log::error!("Change password failed: {:?}", error);
+                    },
+                }
+            }
+        }
+    })
+}
+
+fn update_profile(
+    cx: &dioxus::prelude::Scoped<'_, DashboardProps>,
+    display_name: String,
+    photo_url: String,
+) {
+    // Setup hooks
+    let context = use_shared_state::<ApplicationContext>(cx)
+        .unwrap()
+        .clone();
+
+    cx.spawn({
+        async move {
+            let context = context.read();
+            if let Some(auth_context) = &context.auth {
+                log::info!("Update profile");
+                match crate::auth::update_profile(
+                    &context.client,
+                    auth_context,
+                    display_name,
+                    photo_url,
+                    vec![],
+                )
+                .await
+                {
+                    | Ok(_) => {
+                        log::info!("Update profile success");
+                    },
+                    | Err(error) => {
+                        log::error!("Update profile failed: {:?}", error);
                     },
                 }
             }

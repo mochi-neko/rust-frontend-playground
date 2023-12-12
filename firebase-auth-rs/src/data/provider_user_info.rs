@@ -10,4 +10,10 @@ pub struct ProviderUserInfo {
     /// Federated ID.
     #[serde(rename = "federatedId")]
     pub federated_id: String,
+    /// Display name.
+    #[serde(rename = "displayName")]
+    pub display_name: Option<String>,
+    /// Photo URL.
+    #[serde(rename = "photoUrl")]
+    pub photo_url: Option<String>,
 }

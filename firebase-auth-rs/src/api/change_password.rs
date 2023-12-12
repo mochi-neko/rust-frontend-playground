@@ -60,7 +60,7 @@ pub struct ChangePasswordResponsePayload {
     pub refresh_token: Option<String>,
     /// The number of seconds in which the ID token expires.
     #[serde(rename = "expiresIn")]
-    pub expires_in: String,
+    pub expires_in: Option<String>,
 }
 
 /// Changes the password associated with the user account.
