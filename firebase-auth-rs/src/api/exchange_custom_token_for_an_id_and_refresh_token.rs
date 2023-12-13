@@ -54,7 +54,7 @@ pub struct ExchangeCustomTokenForAnIdAndRefreshTokenResponsePayload {
 pub async fn exchange_custom_token_for_an_id_and_refresh_token(
     client: &reqwest::Client,
     api_key: &String,
-    request: ExchangeCustomTokenForAnIdAndRefreshTokenRequestBodyPayload,
+    request_payload: ExchangeCustomTokenForAnIdAndRefreshTokenRequestBodyPayload,
 ) -> Result<ExchangeCustomTokenForAnIdAndRefreshTokenResponsePayload> {
     client::send_post::<
         ExchangeCustomTokenForAnIdAndRefreshTokenRequestBodyPayload,
@@ -63,7 +63,8 @@ pub async fn exchange_custom_token_for_an_id_and_refresh_token(
         client,
         "accounts:signInWithCustomToken",
         api_key,
-        request,
+        request_payload,
+        None,
     )
     .await
 }

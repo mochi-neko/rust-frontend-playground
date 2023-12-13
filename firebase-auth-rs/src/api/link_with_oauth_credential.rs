@@ -123,6 +123,7 @@ pub async fn link_with_oauth_credential(
         "accounts:signInWithIdp",
         api_key,
         request_payload,
+        None,
     )
     .await
 }

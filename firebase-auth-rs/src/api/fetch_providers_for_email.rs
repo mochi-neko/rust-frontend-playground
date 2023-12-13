@@ -64,6 +64,7 @@ pub async fn fetch_providers_for_email(
         "accounts:createAuthUri",
         api_key,
         request_payload,
+        None,
     )
     .await
 }

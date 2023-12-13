@@ -56,7 +56,7 @@ pub struct SignInAnonymouslyResponsePayload {
 pub async fn sign_in_anonymously(
     client: &reqwest::Client,
     api_key: &String,
-    request: SignInAnonymouslyRequestBodyPayload,
+    request_payload: SignInAnonymouslyRequestBodyPayload,
 ) -> Result<SignInAnonymouslyResponsePayload> {
     client::send_post::<
         SignInAnonymouslyRequestBodyPayload,
@@ -65,7 +65,8 @@ pub async fn sign_in_anonymously(
         client,
         "accounts:signUp",
         api_key,
-        request,
+        request_payload,
+        None,
     )
     .await
 }

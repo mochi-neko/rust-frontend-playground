@@ -71,6 +71,7 @@ pub async fn confirm_email_verification(
         "accounts:update",
         api_key,
         request_payload,
+        None,
     )
     .await
 }

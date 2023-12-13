@@ -121,6 +121,6 @@ pub async fn get_user_data(
     client::send_post::<
         GetUserDataRequestBodyPayload,
         GetUserDataResponsePayload,
-    >(client, "accounts:lookup", api_key, request_payload)
+    >(client, "accounts:lookup", api_key, request_payload, None,)
     .await
 }

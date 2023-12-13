@@ -19,6 +19,7 @@ pub(crate) async fn send_post<T, U>(
     endpoint: &str,
     api_key: &String,
     request_payload: T,
+    optional_headers: Option<reqwest::header::HeaderMap>,
 ) -> Result<U>
 where
     T: Serialize,
@@ -29,9 +30,15 @@ where
         endpoint, api_key
     );
 
-    let response = client
-        .post(&url)
-        .json(&request_payload)
+    let mut builder = client
+        .post(url)
+        .json(&request_payload);
+
+    if let Some(optional_headers) = optional_headers {
+        builder = builder.headers(optional_headers);
+    }
+
+    let response = builder
         .send()
         .await
         .map_err(|error| FirebaseError::HttpError(error))?;

@@ -2,7 +2,10 @@
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email)
 use serde::{Deserialize, Serialize};
 
-use crate::{client, result::Result};
+use crate::{
+    client,
+    result::{FirebaseError, Result},
+};
 
 /// Request body payload for the send password reset email API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
@@ -48,8 +51,26 @@ pub struct SendPasswordResetEmailResponsePayload {
 pub async fn send_password_reset_email(
     client: &reqwest::Client,
     api_key: &String,
-    request: SendPasswordResetEmailRequestBodyPayload,
+    request_payload: SendPasswordResetEmailRequestBodyPayload,
+    locale: Option<String>,
 ) -> Result<SendPasswordResetEmailResponsePayload> {
+    let optional_headers = match locale {
+        | Some(locale) => {
+            let mut headers = reqwest::header::HeaderMap::new();
+            headers.insert(
+                "X-Firebase-Locale",
+                reqwest::header::HeaderValue::from_str(&locale).map_err(
+                    |error| FirebaseError::HeaderError {
+                        key: "X-Firebase-Locale",
+                        error: error,
+                    },
+                )?,
+            );
+            Some(headers)
+        },
+        | None => None,
+    };
+
     client::send_post::<
         SendPasswordResetEmailRequestBodyPayload,
         SendPasswordResetEmailResponsePayload,
@@ -57,7 +78,8 @@ pub async fn send_password_reset_email(
         client,
         "accounts:sendOobCode",
         api_key,
-        request,
+        request_payload,
+        optional_headers,
     )
     .await
 }

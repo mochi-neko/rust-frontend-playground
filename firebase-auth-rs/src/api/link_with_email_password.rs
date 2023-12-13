@@ -89,7 +89,7 @@ pub struct LinkWithEmailAndPasswordResponsePayload {
 pub async fn link_with_email_password(
     client: &reqwest::Client,
     api_key: &String,
-    request: LinkWithEmailAndPasswordRequestBodyPayload,
+    request_payload: LinkWithEmailAndPasswordRequestBodyPayload,
 ) -> Result<LinkWithEmailAndPasswordResponsePayload> {
     client::send_post::<
         LinkWithEmailAndPasswordRequestBodyPayload,
@@ -98,7 +98,8 @@ pub async fn link_with_email_password(
         client,
         "accounts:update",
         api_key,
-        request,
+        request_payload,
+        None,
     )
     .await
 }

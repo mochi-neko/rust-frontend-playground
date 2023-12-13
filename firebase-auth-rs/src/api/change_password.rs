@@ -86,6 +86,7 @@ pub async fn change_password(
         "accounts:update",
         api_key,
         request_payload,
+        None,
     )
     .await
 }

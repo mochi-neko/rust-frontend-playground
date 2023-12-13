@@ -18,6 +18,12 @@ pub enum FirebaseError {
     /// JSON error.
     #[error("JSON error: {0}")]
     JsonError(reqwest::Error),
+    /// Header error.
+    #[error("Header error: {key} - {error}")]
+    HeaderError {
+        key: &'static str,
+        error: reqwest::header::InvalidHeaderValue,
+    },
     /// Other error.
     #[error("Other error: {0}")]
     Other(String),

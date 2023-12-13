@@ -118,6 +118,7 @@ pub async fn update_profile(
         "accounts:update",
         api_key,
         request_payload,
+        None,
     )
     .await
 }

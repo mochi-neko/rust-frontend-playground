@@ -47,7 +47,7 @@ pub struct VerifyPasswordResetCodeResponsePayload {
 pub async fn verify_password_reset_code(
     client: &reqwest::Client,
     api_key: &String,
-    request: VerifyPasswordResetCodeRequestBodyPayload,
+    request_payload: VerifyPasswordResetCodeRequestBodyPayload,
 ) -> Result<VerifyPasswordResetCodeResponsePayload> {
     client::send_post::<
         VerifyPasswordResetCodeRequestBodyPayload,
@@ -56,7 +56,8 @@ pub async fn verify_password_reset_code(
         client,
         "accounts:resetPassword",
         api_key,
-        request,
+        request_payload,
+        None,
     )
     .await
 }

@@ -64,6 +64,7 @@ pub async fn confirm_password_reset(
         "accounts:resetPassword",
         api_key,
         request_payload,
+        None,
     )
     .await
 }

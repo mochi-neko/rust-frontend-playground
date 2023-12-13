@@ -63,11 +63,17 @@ pub struct ExchangeRefreshTokenResponsePayload {
 pub async fn exchange_refresh_token(
     client: &reqwest::Client,
     api_key: &String,
-    request: ExchangeRefreshTokenRequestBodyPayload,
+    request_payload: ExchangeRefreshTokenRequestBodyPayload,
 ) -> Result<ExchangeRefreshTokenResponsePayload> {
     client::send_post::<
         ExchangeRefreshTokenRequestBodyPayload,
         ExchangeRefreshTokenResponsePayload,
-    >(client, "token", api_key, request)
+    >(
+        client,
+        "token",
+        api_key,
+        request_payload,
+        None,
+    )
     .await
 }

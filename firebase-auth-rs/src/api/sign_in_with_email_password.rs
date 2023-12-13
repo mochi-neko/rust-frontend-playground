@@ -70,7 +70,7 @@ pub struct SignInWithEmailPasswordResponsePayload {
 pub async fn sign_in_with_email_password(
     client: &reqwest::Client,
     api_key: &String,
-    request: SignInWithEmailPasswordRequestBodyPayload,
+    request_payload: SignInWithEmailPasswordRequestBodyPayload,
 ) -> Result<SignInWithEmailPasswordResponsePayload> {
     client::send_post::<
         SignInWithEmailPasswordRequestBodyPayload,
@@ -79,7 +79,8 @@ pub async fn sign_in_with_email_password(
         client,
         "accounts:signInWithPassword",
         api_key,
-        request,
+        request_payload,
+        None,
     )
     .await
 }

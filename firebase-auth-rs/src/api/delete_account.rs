@@ -50,6 +50,7 @@ pub async fn delete_account(
         "accounts:delete",
         api_key,
         request_payload,
+        None,
     )
     .await
 }
