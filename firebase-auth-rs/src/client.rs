@@ -56,6 +56,15 @@ where
             .await
             .map_err(|error| FirebaseError::JsonError(error))?;
 
-        Err(FirebaseError::ApiError(error_response))
+        let error_code = error_response
+            .error
+            .message
+            .clone()
+            .into();
+
+        Err(FirebaseError::ApiError {
+            error_code: error_code,
+            response: error_response,
+        })
     }
 }
