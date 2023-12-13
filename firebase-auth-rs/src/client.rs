@@ -47,14 +47,14 @@ where
         let response_payload = response
             .json::<U>()
             .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
+            .map_err(|error| FirebaseError::ResponseJsonError(error))?;
 
         Ok(response_payload)
     } else {
         let error_response = response
             .json::<ApiErrorResponse>()
             .await
-            .map_err(|error| FirebaseError::JsonError(error))?;
+            .map_err(|error| FirebaseError::ErrorResponseJsonError(error))?;
 
         let error_code = error_response
             .error

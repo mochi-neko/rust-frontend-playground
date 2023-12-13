@@ -9,18 +9,21 @@ pub type Result<T> = std::result::Result<T, FirebaseError>;
 /// Error type for the Firebase API.
 #[derive(Debug, Error)]
 pub enum FirebaseError {
+    /// HTTP error.
+    #[error("HTTP error: {0}")]
+    HttpError(reqwest::Error),
     /// API error.
     #[error("Firebase API error: {error_code:?} - {response:?}")]
     ApiError {
         error_code: CommonErrorCode,
         response: ApiErrorResponse,
     },
-    /// HTTP error.
-    #[error("HTTP error: {0}")]
-    HttpError(reqwest::Error),
-    /// JSON error.
-    #[error("JSON error: {0}")]
-    JsonError(reqwest::Error),
+    /// Response JSON error.
+    #[error("Response JSON error: {0}")]
+    ResponseJsonError(reqwest::Error),
+    /// Error response JSON error.
+    #[error("Error response JSON error: {0}")]
+    ErrorResponseJsonError(reqwest::Error),
     /// Header error.
     #[error("Header error: {key:?} - {error:?}")]
     HeaderError {
