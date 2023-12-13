@@ -1,19 +1,28 @@
 use serde::Deserialize;
 
-/// Provider user info.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth).
-#[derive(Deserialize)]
+/// Provider user information.
+/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
+#[derive(Deserialize, PartialEq)]
 pub struct ProviderUserInfo {
-    /// Provider ID.
+    /// The provider identifier.
     #[serde(rename = "providerId")]
     pub provider_id: String,
-    /// Federated ID.
-    #[serde(rename = "federatedId")]
-    pub federated_id: String,
-    /// Display name.
+    /// The display name for the account.
     #[serde(rename = "displayName")]
     pub display_name: Option<String>,
-    /// Photo URL.
+    /// The photo url of the account.
     #[serde(rename = "photoUrl")]
     pub photo_url: Option<String>,
+    /// The federated identifier.
+    #[serde(rename = "federatedId")]
+    pub federated_id: String,
+    /// The email of the account.
+    #[serde(rename = "email")]
+    pub email: String,
+    /// The raw identifier of the account.
+    #[serde(rename = "rawId")]
+    pub raw_id: Option<String>,
+    /// The screen name of the account.
+    #[serde(rename = "screenName")]
+    pub screen_name: Option<String>,
 }
