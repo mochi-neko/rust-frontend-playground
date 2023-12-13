@@ -114,6 +114,7 @@ pub(crate) async fn send_email_verification(
             client,
             &dotenv::FIREBASE_API_KEY.to_string(),
             SendEmailVerificationRequestBodyPayload::new(context.id_token.clone()),
+            None,
         )
         .await
         .map_err(|error| {
@@ -135,6 +136,7 @@ pub(crate) async fn send_reset_password_email(
         client,
         &dotenv::FIREBASE_API_KEY.to_string(),
         SendPasswordResetEmailRequestBodyPayload::new(email),
+        None,
     )
     .await
     .map_err(|error| {
@@ -161,6 +163,7 @@ pub(crate) async fn change_email(
             email,
             true,
         ),
+        None,
     )
     .await
     .map_err(|error| {
