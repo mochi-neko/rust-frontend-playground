@@ -139,11 +139,11 @@ impl RedirectToAuthServerRequest {
     }
 
     pub fn build_redirect_uri(self) -> Result<Url> {
-        let base_url = "https://accounts.google.com/o/oauth2/v2/auth";
+        let endpoint = "https://accounts.google.com/o/oauth2/v2/auth";
         let client = reqwest::Client::new();
 
         let url = client
-            .get(base_url)
+            .get(endpoint)
             .query(&self.build_query())
             .build()
             .map_err(|error| Error::RequestBuildError(error))?
