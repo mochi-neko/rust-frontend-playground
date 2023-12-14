@@ -2,10 +2,7 @@
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-email-verification)
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    client,
-    result::{FirebaseError, Result},
-};
+use crate::{client, error::Error, result::Result};
 
 /// Request body payload for the send email verification API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-email-verification).
@@ -60,7 +57,7 @@ pub async fn send_email_verification(
             headers.insert(
                 "X-Firebase-Locale",
                 reqwest::header::HeaderValue::from_str(&locale).map_err(
-                    |error| FirebaseError::HeaderError {
+                    |error| Error::HeaderError {
                         key: "X-Firebase-Locale",
                         error: error,
                     },

@@ -3,9 +3,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    client,
-    data::provider_user_info::ProviderUserInfo,
-    result::{FirebaseError, Result},
+    client, data::provider_user_info::ProviderUserInfo, error::Error,
+    result::Result,
 };
 
 /// Request body payload for the change email API.
@@ -87,7 +86,7 @@ pub async fn change_email(
             headers.insert(
                 "X-Firebase-Locale",
                 reqwest::header::HeaderValue::from_str(&locale).map_err(
-                    |error| FirebaseError::HeaderError {
+                    |error| Error::HeaderError {
                         key: "X-Firebase-Locale",
                         error: error,
                     },

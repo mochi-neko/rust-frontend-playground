@@ -2,7 +2,8 @@
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth).
 use serde::{de::DeserializeOwned, Serialize};
 
-use super::result::{ApiErrorResponse, FirebaseError, Result};
+use crate::error::{ApiErrorResponse, Error};
+use crate::result::Result;
 
 /// Sends a POST request to the Firebase Auth API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth).
@@ -41,34 +42,32 @@ where
     let response = builder
         .send()
         .await
-        .map_err(|error| FirebaseError::HttpError(error))?;
+        .map_err(|error| Error::HttpError(error))?;
 
     let status_code = response.status();
 
     let response_text = response
         .text()
         .await
-        .map_err(
-            |error| FirebaseError::ReadResponseFailed {
-                error,
-            },
-        )?;
+        .map_err(|error| Error::ReadResponseFailed {
+            error,
+        })?;
 
     if status_code.is_success() {
         serde_json::from_str::<U>(&response_text).map_err(|error| {
-            FirebaseError::ResponseJsonError {
+            Error::ResponseJsonError {
                 error,
                 json: response_text,
             }
         })
     } else {
-        let error_response =
-            serde_json::from_str::<ApiErrorResponse>(&response_text).map_err(
-                |error| FirebaseError::ResponseJsonError {
-                    error,
-                    json: response_text,
-                },
-            )?;
+        let error_response = serde_json::from_str::<ApiErrorResponse>(
+            &response_text,
+        )
+        .map_err(|error| Error::ResponseJsonError {
+            error,
+            json: response_text,
+        })?;
 
         let error_code = error_response
             .error
@@ -76,7 +75,7 @@ where
             .clone()
             .into();
 
-        Err(FirebaseError::ApiError {
+        Err(Error::ApiError {
             status_code,
             error_code,
             response: error_response,

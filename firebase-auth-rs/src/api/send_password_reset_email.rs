@@ -2,10 +2,7 @@
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email)
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    client,
-    result::{FirebaseError, Result},
-};
+use crate::{client, error::Error, result::Result};
 
 /// Request body payload for the send password reset email API.
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
@@ -60,7 +57,7 @@ pub async fn send_password_reset_email(
             headers.insert(
                 "X-Firebase-Locale",
                 reqwest::header::HeaderValue::from_str(&locale).map_err(
-                    |error| FirebaseError::HeaderError {
+                    |error| Error::HeaderError {
                         key: "X-Firebase-Locale",
                         error: error,
                     },
