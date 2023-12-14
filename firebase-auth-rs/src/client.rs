@@ -43,18 +43,32 @@ where
         .await
         .map_err(|error| FirebaseError::HttpError(error))?;
 
-    if response.status().is_success() {
-        response
-            .json::<U>()
-            .await
-            .map_err(|error| FirebaseError::ResponseJsonError(error))
-    } else {
-        let status_code = response.status();
+    let status_code = response.status();
 
-        let error_response = response
-            .json::<ApiErrorResponse>()
-            .await
-            .map_err(|error| FirebaseError::ErrorResponseJsonError(error))?;
+    let response_text = response
+        .text()
+        .await
+        .map_err(
+            |error| FirebaseError::ReadResponseFailed {
+                error,
+            },
+        )?;
+
+    if status_code.is_success() {
+        serde_json::from_str::<U>(&response_text).map_err(|error| {
+            FirebaseError::ResponseJsonError {
+                error,
+                json: response_text,
+            }
+        })
+    } else {
+        let error_response =
+            serde_json::from_str::<ApiErrorResponse>(&response_text).map_err(
+                |error| FirebaseError::ResponseJsonError {
+                    error,
+                    json: response_text,
+                },
+            )?;
 
         let error_code = error_response
             .error

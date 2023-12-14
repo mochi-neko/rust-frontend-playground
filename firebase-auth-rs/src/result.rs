@@ -10,7 +10,7 @@ pub type Result<T> = std::result::Result<T, FirebaseError>;
 #[derive(Debug, Error)]
 pub enum FirebaseError {
     /// HTTP error.
-    #[error("HTTP error: {0}")]
+    #[error("HTTP error: {0:?}")]
     HttpError(reqwest::Error),
     /// API error.
     #[error(
@@ -21,12 +21,23 @@ pub enum FirebaseError {
         error_code: CommonErrorCode,
         response: ApiErrorResponse,
     },
+    /// Read response failed.
+    #[error("Read response failed: {error:?}")]
+    ReadResponseFailed {
+        error: reqwest::Error,
+    },
     /// Response JSON error.
-    #[error("Response JSON error: {0}")]
-    ResponseJsonError(reqwest::Error),
+    #[error("Response JSON error: {error:?} - {json:?}")]
+    ResponseJsonError {
+        error: serde_json::Error,
+        json: String,
+    },
     /// Error response JSON error.
-    #[error("Error response JSON error: {0}")]
-    ErrorResponseJsonError(reqwest::Error),
+    #[error("Error response JSON error: {error:?} - {json:?}")]
+    ErrorResponseJsonError {
+        error: reqwest::Error,
+        json: String,
+    },
     /// Header error.
     #[error("Header error: {key:?} - {error:?}")]
     HeaderError {
@@ -34,7 +45,7 @@ pub enum FirebaseError {
         error: reqwest::header::InvalidHeaderValue,
     },
     /// Other error.
-    #[error("Other error: {0}")]
+    #[error("Other error: {0:?}")]
     Other(String),
 }
 
