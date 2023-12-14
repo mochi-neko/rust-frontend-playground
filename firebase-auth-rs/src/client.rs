@@ -44,13 +44,13 @@ where
         .map_err(|error| FirebaseError::HttpError(error))?;
 
     if response.status().is_success() {
-        let response_payload = response
+        response
             .json::<U>()
             .await
-            .map_err(|error| FirebaseError::ResponseJsonError(error))?;
-
-        Ok(response_payload)
+            .map_err(|error| FirebaseError::ResponseJsonError(error))
     } else {
+        let status_code = response.status();
+
         let error_response = response
             .json::<ApiErrorResponse>()
             .await
@@ -63,7 +63,8 @@ where
             .into();
 
         Err(FirebaseError::ApiError {
-            error_code: error_code,
+            status_code,
+            error_code,
             response: error_response,
         })
     }

@@ -13,8 +13,11 @@ pub enum FirebaseError {
     #[error("HTTP error: {0}")]
     HttpError(reqwest::Error),
     /// API error.
-    #[error("Firebase API error: {error_code:?} - {response:?}")]
+    #[error(
+        "Firebase API error: ({status_code:?}) {error_code:?} - {response:?}"
+    )]
     ApiError {
+        status_code: reqwest::StatusCode,
         error_code: CommonErrorCode,
         response: ApiErrorResponse,
     },
