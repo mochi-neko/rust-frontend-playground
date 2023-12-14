@@ -1064,6 +1064,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "google-oauth-rs"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "h2"
 version = "0.3.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1715,6 +1725,7 @@ dependencies = [
  "dioxus-router",
  "dioxus-web",
  "firebase-auth-rs",
+ "google-oauth-rs",
  "log",
  "material-dioxus",
  "reqwest",
