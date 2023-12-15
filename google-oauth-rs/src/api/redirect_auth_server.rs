@@ -19,6 +19,21 @@ impl Scope {
             },
         }
     }
+
+    pub fn from_string(scope: &str) -> Vec<Scope> {
+        scope
+            .split(" ")
+            .map(|scope| match scope {
+                | "https://www.googleapis.com/auth/userinfo.email" => {
+                    Scope::Email
+                },
+                | "https://www.googleapis.com/auth/userinfo.profile" => {
+                    Scope::Profile
+                },
+                | _ => panic!("Invalid scope: {}", scope),
+            })
+            .collect::<Vec<Scope>>()
+    }
 }
 
 pub enum AccessType {
