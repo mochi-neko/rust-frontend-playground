@@ -47,12 +47,15 @@ pub struct SignInAnonymouslyResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-anonymously).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - OPERATION_NOT_ALLOWED: Anonymous user sign-in is disabled for this project.
 pub async fn sign_in_anonymously(
     client: &reqwest::Client,
     api_key: &String,

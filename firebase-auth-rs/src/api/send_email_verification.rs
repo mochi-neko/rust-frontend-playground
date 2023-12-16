@@ -39,12 +39,16 @@ pub struct SendEmailVerificationResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-email-verification).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - INVALID_ID_TOKEN: The user's credential is no longer valid. The user must sign in again.
+/// - USER_NOT_FOUND: There is no user record corresponding to this identifier. The user may have been deleted.
 pub async fn send_email_verification(
     client: &reqwest::Client,
     api_key: &String,

@@ -45,12 +45,16 @@ pub struct ExchangeCustomTokenForAnIdAndRefreshTokenResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-custom-token).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - INVALID_CUSTOM_TOKEN: The custom token format is incorrect or the token is invalid for some reason (e.g. expired, invalid signature etc.)
+/// - CREDENTIAL_MISMATCH: The custom token corresponds to a different Firebase project.
 pub async fn exchange_custom_token_for_an_id_and_refresh_token(
     client: &reqwest::Client,
     api_key: &String,

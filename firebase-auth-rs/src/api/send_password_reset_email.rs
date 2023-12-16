@@ -39,12 +39,15 @@ pub struct SendPasswordResetEmailResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - EMAIL_NOT_FOUND: There is no user record corresponding to this identifier. The user may have been deleted.
 pub async fn send_password_reset_email(
     client: &reqwest::Client,
     api_key: &String,

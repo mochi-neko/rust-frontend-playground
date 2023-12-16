@@ -61,12 +61,17 @@ pub struct SignInWithEmailPasswordResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - EMAIL_NOT_FOUND: There is no user record corresponding to this identifier. The user may have been deleted.
+/// - INVALID_PASSWORD: The password is invalid or the user does not have a password.
+/// - USER_DISABLED: The user account has been disabled by an administrator.
 pub async fn sign_in_with_email_password(
     client: &reqwest::Client,
     api_key: &String,

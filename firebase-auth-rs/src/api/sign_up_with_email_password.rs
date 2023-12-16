@@ -58,12 +58,17 @@ pub struct SignUpWithEmailPasswordResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - EMAIL_EXISTS: The email address is already in use by another account.
+/// - OPERATION_NOT_ALLOWED: Password sign-in is disabled for this project.
+/// - TOO_MANY_ATTEMPTS_TRY_LATER: We have blocked all requests from this device due to unusual activity. Try again later.
 pub async fn sign_up_with_email_password(
     client: &reqwest::Client,
     api_key: &String,

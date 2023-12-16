@@ -45,12 +45,15 @@ pub struct FetchProvidersForEmailResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-fetch-providers-for-email).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - INVALID_EMAIL: The email address is badly formatted.
 pub async fn fetch_providers_for_email(
     client: &reqwest::Client,
     api_key: &String,

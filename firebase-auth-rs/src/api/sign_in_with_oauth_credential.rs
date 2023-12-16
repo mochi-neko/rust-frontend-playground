@@ -103,12 +103,16 @@ pub struct SignInWithOAuthCredentialResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-with-oauth-credential).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - OPERATION_NOT_ALLOWED: The corresponding provider is disabled for this project.
+/// - INVALID_IDP_RESPONSE: The supplied auth credential is malformed or has expired.
 pub async fn sign_in_with_oauth_credential(
     client: &reqwest::Client,
     api_key: &String,

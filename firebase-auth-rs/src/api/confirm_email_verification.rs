@@ -52,12 +52,18 @@ pub struct ConfirmEmailVerificationResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-email-verification).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - EXPIRED_OOB_CODE: The action code has expired.
+/// - INVALID_OOB_CODE: The action code is invalid. This can happen if the code is malformed, expired, or has already been used.
+/// - USER_DISABLED: The user account has been disabled by an administrator.
+/// - EMAIL_NOT_FOUND: There is no user record corresponding to this identifier. The user may have been deleted.
 pub async fn confirm_email_verification(
     client: &reqwest::Client,
     api_key: &String,

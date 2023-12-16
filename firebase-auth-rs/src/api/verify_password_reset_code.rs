@@ -38,12 +38,17 @@ pub struct VerifyPasswordResetCodeResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-password-reset-code).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - OPERATION_NOT_ALLOWED: Password sign-in is disabled for this project.
+/// - EXPIRED_OOB_CODE: The action code has expired.
+/// - INVALID_OOB_CODE: The action code is invalid. This can happen if the code is malformed, expired, or has already been used.
 pub async fn verify_password_reset_code(
     client: &reqwest::Client,
     api_key: &String,

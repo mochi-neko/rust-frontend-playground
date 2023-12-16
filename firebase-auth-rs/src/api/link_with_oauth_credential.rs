@@ -104,12 +104,19 @@ pub struct LinkWithOAuthCredentialResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-oauth-credential).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - OPERATION_NOT_ALLOWED: The corresponding provider is disabled for this project.
+/// - INVALID_IDP_RESPONSE: The supplied auth credential is malformed or has expired.
+/// - INVALID_ID_TOKEN:The user's credential is no longer valid. The user must sign in again.
+/// - EMAIL_EXISTS: The email address is already in use by another account.
+/// - FEDERATED_USER_ID_ALREADY_LINKED: This credential is already associated with a different user account.
 pub async fn link_with_oauth_credential(
     client: &reqwest::Client,
     api_key: &String,

@@ -54,12 +54,22 @@ pub struct ExchangeRefreshTokenResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - TOKEN_EXPIRED: The user's credential is no longer valid. The user must sign in again.
+/// - USER_DISABLED: The user account has been disabled by an administrator.
+/// - USER_NOT_FOUND: The user corresponding to the refresh token was not found. It is likely the user was deleted.
+/// - API key not valid. Please pass a valid API key. (invalid API key provided)
+/// - INVALID_REFRESH_TOKEN: An invalid refresh token is provided.
+/// - Invalid JSON payload received. Unknown name \"refresh_tokens\": Cannot bind query parameter. Field 'refresh_tokens' could not be found in request message.
+/// - INVALID_GRANT_TYPE: the grant type specified is invalid.
+/// - MISSING_REFRESH_TOKEN: no refresh token provided.
 pub async fn exchange_refresh_token(
     client: &reqwest::Client,
     api_key: &String,

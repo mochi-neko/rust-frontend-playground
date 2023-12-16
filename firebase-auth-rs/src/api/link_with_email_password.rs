@@ -80,12 +80,18 @@ pub struct LinkWithEmailAndPasswordResponsePayload {
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-email-password).
 ///
 /// ## Arguments
-/// * `client` - HTTP client.
-/// * `api_key` - Your Firebase project's API key.
-/// * `request_payload` - Request body payload.
+/// - `client` - HTTP client.
+/// - `api_key` - Your Firebase project's API key.
+/// - `request_payload` - Request body payload.
 ///
 /// ## Returns
 /// Result with a response payload.
+///
+/// ## Common error codes
+/// - CREDENTIAL_TOO_OLD_LOGIN_AGAIN: The user's credential is no longer valid. The user must sign in again.
+/// - TOKEN_EXPIRED: The user's credential is no longer valid. The user must sign in again.
+/// - INVALID_ID_TOKEN:The user's credential is no longer valid. The user must sign in again.
+/// - WEAK_PASSWORD: The password must be 6 characters long or more.
 pub async fn link_with_email_password(
     client: &reqwest::Client,
     api_key: &String,
