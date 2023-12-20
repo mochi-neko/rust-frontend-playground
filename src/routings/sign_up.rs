@@ -111,17 +111,15 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
         br {}
 
         div {
-            label {
-                "Back to "
-            }
-
-            Link {
-                to: Route::Home {},
-                "home",
-            }
-
-            label {
-                "."
+            span {
+                onclick: |_| {
+                    let navigator = use_navigator(cx).clone();
+                    navigator.push(Route::Home { });
+                },
+                MatButton {
+                    label: "Back to home",
+                    outlined: true,
+                }
             }
         }
     }

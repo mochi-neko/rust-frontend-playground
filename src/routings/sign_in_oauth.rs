@@ -1,7 +1,7 @@
 use dioxus::prelude::{
     dioxus_elements, fc_to_builder, inline_props, render, Element, Props, Scope,
 };
-use dioxus_router::components::Link;
+use dioxus_router::hooks::use_navigator;
 use material_dioxus::MatButton;
 
 use crate::routings::route::Route;
@@ -26,17 +26,15 @@ pub(crate) fn SignInWithOAuth(cx: Scope) -> Element {
         br {}
 
         div {
-            label {
-                "Back to "
-            }
-
-            Link {
-                to: Route::Home {},
-                "home",
-            }
-
-            label {
-                "."
+            span {
+                onclick: |_| {
+                    let navigator = use_navigator(cx).clone();
+                    navigator.push(Route::Home { });
+                },
+                MatButton {
+                    label: "Back to home",
+                    outlined: true,
+                }
             }
         }
     }
