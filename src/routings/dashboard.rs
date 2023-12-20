@@ -198,7 +198,6 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![email];
                     move |event :String| {
-                        log::info!("Input e-mail address: {}", event);
                         email.set(event)
                     }
                 }
@@ -226,8 +225,6 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![password];
                     move |event: String| {
-                        // NOTE: Hide password
-                        // log::info!("Input password: {}", event);
                         password.set(event)
                     }
                 }
@@ -241,8 +238,6 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![confirm_password];
                     move |event: String| {
-                        // NOTE: Hide password
-                        // log::info!("Input confirm_password: {}", event);
                         confirm_password.set(event)
                     }
                 }
@@ -270,7 +265,6 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![display_name];
                     move |event :String| {
-                        log::info!("Display name: {}", event);
                         display_name.set(event)
                     }
                 }
@@ -284,7 +278,6 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![photo_url];
                     move |event :String| {
-                        log::info!("Photo URL: {}", event);
                         photo_url.set(event)
                     }
                 }
