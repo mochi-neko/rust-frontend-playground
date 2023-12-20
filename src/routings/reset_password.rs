@@ -1,6 +1,7 @@
 use dioxus::prelude::{
     dioxus_elements, fc_to_builder, inline_props, render, to_owned,
     use_shared_state, use_state, Element, GlobalAttributes, Props, Scope,
+    UseState,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
@@ -27,7 +28,6 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![email];
                     move |event :String| {
-                        log::info!("Input e-mail address: {}", event);
                         email.set(event)
                     }
                 }
@@ -36,11 +36,16 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: |_| send_send_password_reset_email(cx, email.get().clone(), error_message),
+                onclick: |_| {
+                    if can_send(email)
+                    {
+                        send_send_password_reset_email(cx, email.get().clone(), error_message)
+                    }
+                },
                 MatButton {
                     label: "Send password reset email",
                     outlined: true,
-                    disabled: email.get().is_empty(),
+                    disabled: !can_send(email),
                 }
             }
         }
@@ -77,6 +82,10 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
             }
         }
     }
+}
+
+fn can_send(email: &UseState<String>) -> bool {
+    !email.get().is_empty()
 }
 
 fn send_send_password_reset_email(

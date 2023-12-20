@@ -48,11 +48,16 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: |_| sign_in(cx, email.get().clone(), password.get().clone(), error_message),
+                onclick: |_| {
+                    if can_sign_in(email, password)
+                    {
+                        sign_in(cx, email.get().clone(), password.get().clone(), error_message)
+                    }
+                },
                 MatButton {
                     label: "Sign In",
                     outlined: true,
-                    disabled: email.is_empty() || password.is_empty(),
+                    disabled: !can_sign_in(email, password),
                 }
             }
         }
@@ -104,6 +109,13 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
             }
         }
     }
+}
+
+fn can_sign_in(
+    email: &UseState<String>,
+    password: &UseState<String>,
+) -> bool {
+    !email.get().is_empty() && !password.get().is_empty()
 }
 
 fn sign_in(

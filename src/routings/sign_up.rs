@@ -62,7 +62,12 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: move |_| sign_up(cx, email.get().clone(), password.get().clone(), error_message),
+                onclick: move |_| {
+                    if can_sign_up(email, password, confirm_password)
+                    {
+                        sign_up(cx, email.get().clone(), password.get().clone(), error_message)
+                    }
+                },
                 MatButton {
                     label: "Sign Up",
                     outlined: true,
