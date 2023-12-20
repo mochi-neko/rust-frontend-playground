@@ -156,20 +156,20 @@ fn sign_up(
                             response: _,
                         } => match error_code {
                             | firebase_auth_rs::error::CommonErrorCode::EmailExists => {
-                                error_message.set("E-mail address already exists.".to_string());
+                                error_message.set("Error: E-mail address already exists.".to_string());
                             },
                             | firebase_auth_rs::error::CommonErrorCode::OperationNotAllowed => {
-                                error_message.set("Operation not allowed.".to_string());
+                                error_message.set("Error: Operation not allowed.".to_string());
                             },
                             | firebase_auth_rs::error::CommonErrorCode::TooManyAttemptsTryLater => {
-                                error_message.set("Too many attempts. Please try again later.".to_string());
+                                error_message.set("Error: Too many attempts. Please try again later.".to_string());
                             },
                             | _ => {
-                                error_message.set("Internal error code.".to_string());
+                                error_message.set("Error: Internal error.".to_string());
                             },
                         },
                         | _ => {
-                            error_message.set("Internal error".to_string());
+                            error_message.set("Error: Internal error.".to_string());
                         },
                     },
                 }
