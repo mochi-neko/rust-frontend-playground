@@ -14,14 +14,14 @@ pub(crate) fn Home(cx: Scope) -> Element {
         div {
             Link {
                 to: Route::SignUp {},
-                "Sign up with email and password",
+                "Sign up with email",
             }
         }
 
         div {
             Link {
                 to: Route::SignIn {},
-                "Sign in with email and password",
+                "Sign in with email",
             }
         }
 

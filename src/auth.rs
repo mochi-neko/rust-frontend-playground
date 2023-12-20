@@ -49,7 +49,7 @@ pub(crate) async fn sign_in(
     client: &reqwest::Client,
     email: String,
     password: String,
-) -> anyhow::Result<AuthContext> {
+) -> Result<AuthContext> {
     let response = firebase_auth_rs::api::sign_in_with_email_password::sign_in_with_email_password(
         client,
         &dotenv::FIREBASE_API_KEY.to_string(),
@@ -61,7 +61,10 @@ pub(crate) async fn sign_in(
     .await
     .map_err(|error| {
         log::error!("[Auth] Sign in failed: {:?}", error);
-        error
+        Error::FirebaseAuthError
+        {
+            inner: error
+        }
     })?;
 
     Ok(AuthContext {
@@ -136,7 +139,7 @@ pub(crate) async fn send_email_verification(
 pub(crate) async fn send_reset_password_email(
     client: &reqwest::Client,
     email: String,
-) -> anyhow::Result<()> {
+) -> Result<()> {
     let _ = firebase_auth_rs::api::send_password_reset_email::send_password_reset_email(
         client,
         &dotenv::FIREBASE_API_KEY.to_string(),
@@ -149,7 +152,10 @@ pub(crate) async fn send_reset_password_email(
             "[Auth] Send reset password email failed: {:?}",
             error
         );
-        error
+        Error::FirebaseAuthError
+        {
+            inner: error
+        }
     })?;
 
     Ok(())

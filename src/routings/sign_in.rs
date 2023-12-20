@@ -1,6 +1,7 @@
 use dioxus::prelude::{
     dioxus_elements, fc_to_builder, inline_props, render, to_owned,
-    use_shared_state, use_state, Element, Props, Scope,
+    use_shared_state, use_state, Element, GlobalAttributes, Props, Scope,
+    UseState,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{MatButton, MatTextField};
@@ -14,6 +15,7 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
     // Setup hooks
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
+    let error_message = use_state::<Option<String>>(cx, || None);
 
     render! {
         h1 { "Sign in" }
@@ -25,7 +27,6 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![email];
                     move |event :String| {
-                        log::info!("Input e-mail address: {}", event);
                         email.set(event)
                     }
                 }
@@ -39,8 +40,6 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![password];
                     move |event: String| {
-                        // NOTE: Hide password
-                        // log::info!("Input password: {}", event);
                         password.set(event)
                     }
                 }
@@ -49,11 +48,26 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: |_| sign_in(cx, email.get().clone(), password.get().clone()),
+                onclick: |_| sign_in(cx, email.get().clone(), password.get().clone(), error_message),
                 MatButton {
                     label: "Sign In",
                     outlined: true,
                     disabled: email.is_empty() || password.is_empty(),
+                }
+            }
+        }
+
+        br {}
+
+        div {
+            if let Some(error_message) = error_message.get() {
+                render! {
+                    div {
+                        color: "red",
+                        label {
+                            error_message.as_str(),
+                        }
+                    }
                 }
             }
         }
@@ -96,16 +110,19 @@ fn sign_in(
     cx: &dioxus::prelude::Scoped<'_, SignInProps>,
     email: String,
     password: String,
+    error_message: &UseState<Option<String>>,
 ) {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx)
         .unwrap()
         .clone();
     let navigator = use_navigator(cx).clone();
+    let error_message = error_message.clone();
 
     cx.spawn({
         async move {
             log::info!("Sign in: {:?}", email);
+            error_message.set(None);
             let mut context = context.write();
             match crate::auth::sign_in(&context.client, email, password).await {
                 | Ok(auth_context) => {
@@ -117,6 +134,30 @@ fn sign_in(
                 },
                 | Err(error) => {
                     log::error!("Sign in failed: {:?}", error);
+                    match error {
+                        | crate::error::Error::FirebaseAuthError {
+                            inner,
+                        } => match inner {
+                            | firebase_auth_rs::error::Error::ApiError {
+                                status_code: _,
+                                error_code,
+                                response: _,
+                            } => match error_code {
+                                | firebase_auth_rs::error::CommonErrorCode::InvalidLoginCredentials => {
+                                    error_message.set(Some("Error: Invalid email or password.".to_string()));
+                                },
+                                | firebase_auth_rs::error::CommonErrorCode::UserDisabled => {
+                                    error_message.set(Some("Error: User disabled.".to_string()));
+                                },
+                                | _ => {
+                                    error_message.set(Some("Error: Internal error.".to_string()));
+                                },
+                            },
+                            | _ => {
+                                error_message.set(Some("Error: Internal error.".to_string()));
+                            },
+                        },
+                    }
                 },
             }
         }

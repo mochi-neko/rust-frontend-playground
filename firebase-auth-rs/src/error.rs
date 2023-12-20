@@ -111,6 +111,8 @@ pub enum CommonErrorCode {
     InvalidIdpResponse,
     /// INVALID_EMAIL: The email address is badly formatted.
     InvalidEmail,
+    /// INVALID_LOGIN_CREDENTIALS: The supplied auth credential is malformed or has expired.
+    InvalidLoginCredentials,
     /// CREDENTIAL_MISMATCH: The custom token corresponds to a different Firebase project.
     CredentialMismatch,
     /// CREDENTIAL_TOO_OLD_LOGIN_AGAIN: The user's credential is no longer valid. The user must sign in again.
@@ -161,6 +163,9 @@ impl Into<CommonErrorCode> for String {
             | "INVALID_PASSWORD" => CommonErrorCode::InvalidPassword,
             | "INVALID_IDP_RESPONSE" => CommonErrorCode::InvalidIdpResponse,
             | "INVALID_EMAIL" => CommonErrorCode::InvalidEmail,
+            | "INVALID_LOGIN_CREDENTIALS" => {
+                CommonErrorCode::InvalidLoginCredentials
+            },
             | "CREDENTIAL_MISMATCH" => CommonErrorCode::CredentialMismatch,
             | "CREDENTIAL_TOO_OLD_LOGIN_AGAIN" => {
                 CommonErrorCode::CredentialTooOldLoginAgain

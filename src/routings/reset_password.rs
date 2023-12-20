@@ -1,6 +1,6 @@
 use dioxus::prelude::{
     dioxus_elements, fc_to_builder, inline_props, render, to_owned,
-    use_shared_state, use_state, Element, Props, Scope,
+    use_shared_state, use_state, Element, GlobalAttributes, Props, Scope,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
@@ -36,7 +36,7 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: |_| send_send_password_reset_email(cx, error_message, email.get().clone()),
+                onclick: |_| send_send_password_reset_email(cx, email.get().clone(), error_message),
                 MatButton {
                     label: "Send password reset email",
                     outlined: true,
@@ -45,14 +45,16 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
             }
         }
 
+        br {}
+
         div {
-            if let Some(message) = error_message.get() {
+            if let Some(error_message) = error_message.get() {
                 render! {
-                    label {
-                    "Error: "
-                    }
-                    label {
-                        message.as_str()
+                    div {
+                        color: "red",
+                        label {
+                            error_message.as_str(),
+                        }
                     }
                 }
             }
@@ -79,8 +81,8 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
 
 fn send_send_password_reset_email(
     cx: &dioxus::prelude::Scoped<'_, ResetPasswordProps>,
-    error_message: &dioxus::prelude::UseState<Option<String>>,
     email: String,
+    error_message: &dioxus::prelude::UseState<Option<String>>,
 ) {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx)
@@ -92,6 +94,7 @@ fn send_send_password_reset_email(
     cx.spawn({
         async move {
             log::info!("Send password reset email: {:?}", email);
+            error_message.set(None);
             let context = context.read();
             match send_reset_password_email(&context.client, email).await {
                 | Ok(_) => {
@@ -100,11 +103,28 @@ fn send_send_password_reset_email(
                     navigation.push(Route::SignIn {});
                 },
                 | Err(error) => {
-                    log::error!(
-                        "Send password reset email failed: {:?}",
-                        error
-                    );
-                    error_message.set(Some(error.to_string()));
+                    log::error!("Sign up failed: {:?}", error);
+                    match error {
+                        | crate::error::Error::FirebaseAuthError {
+                            inner,
+                        } => match inner {
+                            | firebase_auth_rs::error::Error::ApiError {
+                                status_code: _,
+                                error_code,
+                                response: _,
+                            } => match error_code {
+                                | firebase_auth_rs::error::CommonErrorCode::EmailNotFound => {
+                                    error_message.set(Some("Error: E-mail address not found.".to_string()));
+                                },
+                                | _ => {
+                                    error_message.set(Some("Error: Internal error.".to_string()));
+                                },
+                            },
+                            | _ => {
+                                error_message.set(Some("Error: Internal error.".to_string()));
+                            },
+                        },
+                    }
                 },
             }
         }

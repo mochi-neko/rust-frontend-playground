@@ -1,10 +1,7 @@
-use dioxus::{
-    hooks::{to_owned, use_shared_state, UseState},
-    html::GlobalAttributes,
-    prelude::{
-        dioxus_elements, fc_to_builder, inline_props, render, use_state,
-        Element, Props, Scope,
-    },
+use dioxus::prelude::{
+    dioxus_elements, fc_to_builder, inline_props, render, to_owned,
+    use_shared_state, use_state, Element, GlobalAttributes, Props, Scope,
+    UseState,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{MatButton, MatTextField};
@@ -19,7 +16,7 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
-    let error_message = use_state(cx, String::new);
+    let error_message = use_state::<Option<String>>(cx, || None);
 
     render! {
         h1 { "Sign up" }
@@ -31,7 +28,6 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![email];
                     move |event :String| {
-                        log::info!("Input e-mail address: {}", event);
                         email.set(event)
                     }
                 }
@@ -45,8 +41,6 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![password];
                     move |event: String| {
-                        // NOTE: Hide password
-                        // log::info!("Input password: {}", event);
                         password.set(event)
                     }
                 }
@@ -60,8 +54,6 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                 _oninput: {
                     to_owned![confirm_password];
                     move |event: String| {
-                        // NOTE: Hide password
-                        // log::info!("Input confirm_password: {}", event);
                         confirm_password.set(event)
                     }
                 }
@@ -82,9 +74,15 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
         br {}
 
         div {
-            color: "red",
-            label {
-                error_message.get().as_str(),
+            if let Some(error_message) = error_message.get() {
+                render! {
+                    div {
+                        color: "red",
+                        label {
+                            error_message.as_str(),
+                        }
+                    }
+                }
             }
         }
 
@@ -124,7 +122,7 @@ fn sign_up(
     cx: &dioxus::prelude::Scoped<'_, SignUpProps>,
     email: String,
     password: String,
-    error_message: &UseState<String>,
+    error_message: &UseState<Option<String>>,
 ) {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx)
@@ -135,6 +133,7 @@ fn sign_up(
 
     cx.spawn(async move {
         log::info!("Sign up: {:?}", email);
+        error_message.set(None);
         let mut context = context.write();
         match crate::auth::sign_up(&context.client, email, password).await {
             | Ok(auth_context) => {
@@ -156,20 +155,20 @@ fn sign_up(
                             response: _,
                         } => match error_code {
                             | firebase_auth_rs::error::CommonErrorCode::EmailExists => {
-                                error_message.set("Error: E-mail address already exists.".to_string());
+                                error_message.set(Some("Error: E-mail address already exists.".to_string()));
                             },
                             | firebase_auth_rs::error::CommonErrorCode::OperationNotAllowed => {
-                                error_message.set("Error: Operation not allowed.".to_string());
+                                error_message.set(Some("Error: Operation not allowed.".to_string()));
                             },
                             | firebase_auth_rs::error::CommonErrorCode::TooManyAttemptsTryLater => {
-                                error_message.set("Error: Too many attempts. Please try again later.".to_string());
+                                error_message.set(Some("Error: Too many attempts. Please try again later.".to_string()));
                             },
                             | _ => {
-                                error_message.set("Error: Internal error.".to_string());
+                                error_message.set(Some("Error: Internal error.".to_string()));
                             },
                         },
                         | _ => {
-                            error_message.set("Error: Internal error.".to_string());
+                            error_message.set(Some("Error: Internal error.".to_string()));
                         },
                     },
                 }
