@@ -1,8 +1,10 @@
 mod application_context;
 mod auth;
 mod auth_context;
+mod error;
 mod generated;
 mod logging;
+mod result;
 mod routings;
 mod style;
 

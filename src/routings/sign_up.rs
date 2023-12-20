@@ -1,5 +1,6 @@
 use dioxus::{
     hooks::{to_owned, use_shared_state, UseState},
+    html::GlobalAttributes,
     prelude::{
         dioxus_elements, fc_to_builder, inline_props, render, use_state,
         Element, Props, Scope,
@@ -18,6 +19,7 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
+    let error_message = use_state(cx, String::new);
 
     render! {
         h1 { "Sign up" }
@@ -68,12 +70,21 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: |_| sign_up(cx, email.get().clone(), password.get().clone()),
+                onclick: move |_| sign_up(cx, email.get().clone(), password.get().clone(), error_message),
                 MatButton {
                     label: "Sign Up",
                     outlined: true,
                     disabled: !can_sign_up(email, password, confirm_password),
                 }
+            }
+        }
+
+        br {}
+
+        div {
+            color: "red",
+            label {
+                error_message.get().as_str(),
             }
         }
 
@@ -113,12 +124,14 @@ fn sign_up(
     cx: &dioxus::prelude::Scoped<'_, SignUpProps>,
     email: String,
     password: String,
+    error_message: &UseState<String>,
 ) {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx)
         .unwrap()
         .clone();
     let navigator = use_navigator(cx).clone();
+    let error_message = error_message.clone();
 
     cx.spawn(async move {
         log::info!("Sign up: {:?}", email);
@@ -133,6 +146,33 @@ fn sign_up(
             },
             | Err(error) => {
                 log::error!("Sign up failed: {:?}", error);
+                match error {
+                    | crate::error::Error::FirebaseAuthError {
+                        inner,
+                    } => match inner {
+                        | firebase_auth_rs::error::Error::ApiError {
+                            status_code: _,
+                            error_code,
+                            response: _,
+                        } => match error_code {
+                            | firebase_auth_rs::error::CommonErrorCode::EmailExists => {
+                                error_message.set("E-mail address already exists.".to_string());
+                            },
+                            | firebase_auth_rs::error::CommonErrorCode::OperationNotAllowed => {
+                                error_message.set("Operation not allowed.".to_string());
+                            },
+                            | firebase_auth_rs::error::CommonErrorCode::TooManyAttemptsTryLater => {
+                                error_message.set("Too many attempts. Please try again later.".to_string());
+                            },
+                            | _ => {
+                                error_message.set("Internal error code.".to_string());
+                            },
+                        },
+                        | _ => {
+                            error_message.set("Internal error".to_string());
+                        },
+                    },
+                }
             },
         }
     });

@@ -13,13 +13,15 @@ use firebase_auth_rs::api::{
 };
 
 use crate::auth_context::AuthContext;
+use crate::error::Error;
 use crate::generated::dotenv;
+use crate::result::Result;
 
 pub(crate) async fn sign_up(
     client: &reqwest::Client,
     email: String,
     password: String,
-) -> anyhow::Result<AuthContext> {
+) -> Result<AuthContext> {
     let response = firebase_auth_rs::api::sign_up_with_email_password::sign_up_with_email_password(
         client,
         &dotenv::FIREBASE_API_KEY.to_string(),
@@ -31,7 +33,10 @@ pub(crate) async fn sign_up(
     .await
     .map_err(|error| {
         log::error!("[Auth] Sign up failed: {:?}", error);
-        error
+        Error::FirebaseAuthError
+        {
+            inner: error
+        }
     })?;
 
     Ok(AuthContext {
