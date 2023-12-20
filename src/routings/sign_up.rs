@@ -7,6 +7,7 @@ use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{MatButton, MatTextField};
 
 use crate::application_context::ApplicationContext;
+use crate::auth::{is_valid_email, is_valid_password};
 use crate::routings::route::Route;
 
 #[allow(non_snake_case)]
@@ -32,6 +33,29 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                     }
                 }
             }
+
+            if email.get().is_empty() {
+                render! { span {} }
+            }
+            else if is_valid_email(email.get().clone()) {
+                render! {
+                    span {
+                        color: "green",
+                        label {
+                            "✓"
+                        }
+                    }
+                }
+            } else {
+                render! {
+                    span {
+                        color: "red",
+                        label {
+                            " Please enter a valid e-mail address."
+                        }
+                    }
+                }
+            }
         }
 
         div {
@@ -45,6 +69,29 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                     }
                 }
             }
+
+            if password.get().is_empty() {
+                render! { span {} }
+            }
+            else if is_valid_password(password.get().clone()) {
+                render! {
+                    span {
+                        color: "green",
+                        label {
+                            "✓"
+                        }
+                    }
+                }
+            } else {
+                render! {
+                    span {
+                        color: "red",
+                        label {
+                            " Please enter a valid password more than 6 characters."
+                        }
+                    }
+                }
+            }
         }
 
         div {
@@ -55,6 +102,29 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                     to_owned![confirm_password];
                     move |event: String| {
                         confirm_password.set(event)
+                    }
+                }
+            }
+
+            if confirm_password.get().is_empty() {
+                render! { span {} }
+            }
+            else if password.get() == confirm_password.get() {
+                render! {
+                    span {
+                        color: "green",
+                        label {
+                            "✓"
+                        }
+                    }
+                }
+            } else {
+                render! {
+                    span {
+                        color: "red",
+                        label {
+                            " Passwords do not match."
+                        }
                     }
                 }
             }
@@ -87,11 +157,11 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                             error_message.as_str(),
                         }
                     }
+
+                    br {}
                 }
             }
         }
-
-        br {}
 
         div {
             label {
@@ -130,12 +200,13 @@ fn can_sign_up(
     password: &UseState<String>,
     confirm_password: &UseState<String>,
 ) -> bool {
-    !email.get().is_empty()
-        && !password.get().is_empty()
-        && !confirm_password
-            .get()
-            .is_empty()
-        && password.get() == confirm_password.get()
+    let email = email.get();
+    let password = password.get();
+    let confirm_password = confirm_password.get();
+
+    is_valid_email(email.clone())
+        && is_valid_password(password.clone())
+        && password == confirm_password
 }
 
 fn sign_up(

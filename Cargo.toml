@@ -21,6 +21,7 @@ firebase-auth-rs = { path = "firebase-auth-rs" }
 google-oauth-rs = { path = "google-oauth-rs" }
 reqwest = "0.11.22"
 thiserror = "1.0.51"
+regex = "1.10.2"
 
 [build-dependencies]
 anyhow = "1.0.75"

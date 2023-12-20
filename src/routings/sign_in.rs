@@ -73,11 +73,11 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
                             error_message.as_str(),
                         }
                     }
+
+                    br {}
                 }
             }
         }
-
-        br {}
 
         div {
             label {

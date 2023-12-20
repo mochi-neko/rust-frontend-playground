@@ -11,11 +11,22 @@ use firebase_auth_rs::api::{
     sign_up_with_email_password::SignUpWithEmailPasswordRequestBodyPayload,
     update_profile::{DeleteAttribute, UpdateProfileRequestBodyPayload},
 };
+use regex::Regex;
 
 use crate::auth_context::AuthContext;
 use crate::error::Error;
 use crate::generated::dotenv;
 use crate::result::Result;
+
+pub(crate) fn is_valid_password(password: String) -> bool {
+    password.len() >= 6
+}
+
+pub fn is_valid_email(email: String) -> bool {
+    Regex::new(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+        .unwrap()
+        .is_match(&email)
+}
 
 pub(crate) async fn sign_up(
     client: &reqwest::Client,
