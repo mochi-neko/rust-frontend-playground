@@ -1,6 +1,6 @@
 use dioxus::prelude::{
     dioxus_elements, fc_to_builder, inline_props, render, to_owned, use_future,
-    use_shared_state, use_state, Element, Props, Scope,
+    use_shared_state, use_state, Element, Props, Scope, Scoped, UseSharedState,
 };
 use dioxus_router::hooks::use_navigator;
 use firebase_auth_rs::api::get_user_data::GetUserDataResponsePayload;
@@ -351,7 +351,7 @@ async fn get_user_data(
     }
 }
 
-fn redirect_to_home(cx: &dioxus::prelude::Scoped<'_, DashboardProps>) {
+fn redirect_to_home(cx: &Scoped<'_, DashboardProps>) {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx)
         .unwrap()
@@ -365,7 +365,7 @@ fn redirect_to_home(cx: &dioxus::prelude::Scoped<'_, DashboardProps>) {
     }
 }
 
-fn send_email_verification(cx: &dioxus::prelude::Scoped<'_, DashboardProps>) {
+fn send_email_verification(cx: &Scoped<'_, DashboardProps>) {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx)
         .unwrap()
@@ -398,7 +398,7 @@ fn send_email_verification(cx: &dioxus::prelude::Scoped<'_, DashboardProps>) {
 }
 
 fn change_email(
-    cx: &dioxus::prelude::Scoped<'_, DashboardProps>,
+    cx: &Scoped<'_, DashboardProps>,
     email: String,
 ) {
     // Setup hooks
@@ -431,7 +431,7 @@ fn change_email(
 }
 
 fn change_password(
-    cx: &dioxus::prelude::Scoped<'_, DashboardProps>,
+    cx: &Scoped<'_, DashboardProps>,
     password: String,
 ) {
     // Setup hooks
@@ -464,7 +464,7 @@ fn change_password(
 }
 
 fn update_profile(
-    cx: &dioxus::prelude::Scoped<'_, DashboardProps>,
+    cx: &Scoped<'_, DashboardProps>,
     display_name: String,
     photo_url: String,
 ) {
@@ -499,9 +499,9 @@ fn update_profile(
     })
 }
 
-fn sign_out(cx: &dioxus::prelude::Scoped<'_, DashboardProps>) {
+fn sign_out(cx: &Scoped<'_, DashboardProps>) {
     // Setup hooks
-    let context: dioxus::prelude::UseSharedState<ApplicationContext> =
+    let context: UseSharedState<ApplicationContext> =
         use_shared_state::<ApplicationContext>(cx)
             .unwrap()
             .clone();
@@ -519,7 +519,7 @@ fn sign_out(cx: &dioxus::prelude::Scoped<'_, DashboardProps>) {
     };
 }
 
-fn delete_account(cx: &dioxus::prelude::Scoped<'_, DashboardProps>) {
+fn delete_account(cx: &Scoped<'_, DashboardProps>) {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx)
         .unwrap()

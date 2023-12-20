@@ -1,7 +1,7 @@
 use dioxus::prelude::{
     dioxus_elements, fc_to_builder, inline_props, render, to_owned,
     use_shared_state, use_state, Element, GlobalAttributes, Props, Scope,
-    UseState,
+    Scoped, UseState,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
@@ -69,12 +69,12 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
 
         div {
             label {
-                "If you don't have an account, please "
+                "Back to "
             }
 
             Link {
-                to: Route::SignUp {},
-                "sign up",
+                to: Route::Home {},
+                "home",
             }
 
             label {
@@ -89,9 +89,9 @@ fn can_send(email: &UseState<String>) -> bool {
 }
 
 fn send_send_password_reset_email(
-    cx: &dioxus::prelude::Scoped<'_, ResetPasswordProps>,
+    cx: &Scoped<'_, ResetPasswordProps>,
     email: String,
-    error_message: &dioxus::prelude::UseState<Option<String>>,
+    error_message: &UseState<Option<String>>,
 ) {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx)

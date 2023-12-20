@@ -1,7 +1,7 @@
 use dioxus::prelude::{
     dioxus_elements, fc_to_builder, inline_props, render, to_owned,
     use_shared_state, use_state, Element, GlobalAttributes, Props, Scope,
-    UseState,
+    Scoped, UseState,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{MatButton, MatTextField};
@@ -107,6 +107,23 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                 "."
             }
         }
+
+        br {}
+
+        div {
+            label {
+                "Back to "
+            }
+
+            Link {
+                to: Route::Home {},
+                "home",
+            }
+
+            label {
+                "."
+            }
+        }
     }
 }
 
@@ -124,7 +141,7 @@ fn can_sign_up(
 }
 
 fn sign_up(
-    cx: &dioxus::prelude::Scoped<'_, SignUpProps>,
+    cx: &Scoped<'_, SignUpProps>,
     email: String,
     password: String,
     error_message: &UseState<Option<String>>,

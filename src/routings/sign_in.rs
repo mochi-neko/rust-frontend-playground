@@ -1,7 +1,7 @@
 use dioxus::prelude::{
     dioxus_elements, fc_to_builder, inline_props, render, to_owned,
     use_shared_state, use_state, Element, GlobalAttributes, Props, Scope,
-    UseState,
+    Scoped, UseState,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{MatButton, MatTextField};
@@ -108,6 +108,23 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
                 "."
             }
         }
+
+        br {}
+
+        div {
+            label {
+                "Back to "
+            }
+
+            Link {
+                to: Route::Home {},
+                "home",
+            }
+
+            label {
+                "."
+            }
+        }
     }
 }
 
@@ -119,7 +136,7 @@ fn can_sign_in(
 }
 
 fn sign_in(
-    cx: &dioxus::prelude::Scoped<'_, SignInProps>,
+    cx: &Scoped<'_, SignInProps>,
     email: String,
     password: String,
     error_message: &UseState<Option<String>>,
