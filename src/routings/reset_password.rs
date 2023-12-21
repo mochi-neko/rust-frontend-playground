@@ -1,6 +1,6 @@
 use dioxus::prelude::{
-    dioxus_elements, fc_to_builder, inline_props, render, to_owned,
-    use_shared_state, use_state, Element, GlobalAttributes, Props, Scope,
+    component, dioxus_elements, fc_to_builder, render, to_owned,
+    use_shared_state, use_state, Element, GlobalAttributes, IntoDynNode, Scope,
     Scoped, UseState,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[allow(non_snake_case)]
-#[inline_props]
+#[component(no_case_check)]
 pub(crate) fn ResetPassword(cx: Scope) -> Element {
     // Setup hooks
     let email = use_state(cx, String::new);
@@ -89,7 +89,7 @@ fn can_send(email: &UseState<String>) -> bool {
 }
 
 fn send_send_password_reset_email(
-    cx: &Scoped<'_, ResetPasswordProps>,
+    cx: &Scoped<'_>,
     email: String,
     error_message: &UseState<Option<String>>,
 ) {

@@ -1,10 +1,10 @@
 use dioxus::{
     html::GlobalAttributes,
-    prelude::{dioxus_elements, inline_props, render, Element, Props, Scope},
+    prelude::{component, dioxus_elements, render, Element, Props, Scope},
 };
 
 #[allow(non_snake_case)]
-#[inline_props]
+#[component(no_case_check)]
 pub(crate) fn NotFound(
     cx: Scope,
     route: Vec<String>,

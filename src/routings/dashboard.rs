@@ -1,6 +1,7 @@
 use dioxus::prelude::{
-    dioxus_elements, fc_to_builder, inline_props, render, to_owned, use_future,
-    use_shared_state, use_state, Element, Props, Scope, Scoped, UseSharedState,
+    component, dioxus_elements, fc_to_builder, render, to_owned, use_future,
+    use_shared_state, use_state, Element, IntoDynNode, Scope, Scoped,
+    UseSharedState,
 };
 use dioxus_router::hooks::use_navigator;
 use firebase_auth_rs::api::get_user_data::GetUserDataResponsePayload;
@@ -10,7 +11,7 @@ use crate::application_context::ApplicationContext;
 use crate::routings::route::Route;
 
 #[allow(non_snake_case)]
-#[inline_props]
+#[component(no_case_check)]
 pub(crate) fn Dashboard(cx: Scope) -> Element {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx).unwrap();
@@ -344,7 +345,7 @@ async fn get_user_data(
     }
 }
 
-fn redirect_to_home(cx: &Scoped<'_, DashboardProps>) {
+fn redirect_to_home(cx: &Scoped<'_>) {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx)
         .unwrap()
@@ -358,7 +359,7 @@ fn redirect_to_home(cx: &Scoped<'_, DashboardProps>) {
     }
 }
 
-fn send_email_verification(cx: &Scoped<'_, DashboardProps>) {
+fn send_email_verification(cx: &Scoped<'_>) {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx)
         .unwrap()
@@ -391,7 +392,7 @@ fn send_email_verification(cx: &Scoped<'_, DashboardProps>) {
 }
 
 fn change_email(
-    cx: &Scoped<'_, DashboardProps>,
+    cx: &Scoped<'_>,
     email: String,
 ) {
     // Setup hooks
@@ -424,7 +425,7 @@ fn change_email(
 }
 
 fn change_password(
-    cx: &Scoped<'_, DashboardProps>,
+    cx: &Scoped<'_>,
     password: String,
 ) {
     // Setup hooks
@@ -457,7 +458,7 @@ fn change_password(
 }
 
 fn update_profile(
-    cx: &Scoped<'_, DashboardProps>,
+    cx: &Scoped<'_>,
     display_name: String,
     photo_url: String,
 ) {
@@ -492,7 +493,7 @@ fn update_profile(
     })
 }
 
-fn sign_out(cx: &Scoped<'_, DashboardProps>) {
+fn sign_out(cx: &Scoped<'_>) {
     // Setup hooks
     let context: UseSharedState<ApplicationContext> =
         use_shared_state::<ApplicationContext>(cx)
@@ -512,7 +513,7 @@ fn sign_out(cx: &Scoped<'_, DashboardProps>) {
     };
 }
 
-fn delete_account(cx: &Scoped<'_, DashboardProps>) {
+fn delete_account(cx: &Scoped<'_>) {
     // Setup hooks
     let context = use_shared_state::<ApplicationContext>(cx)
         .unwrap()

@@ -1,6 +1,6 @@
 use dioxus::prelude::{
-    dioxus_elements, fc_to_builder, inline_props, render, to_owned,
-    use_shared_state, use_state, Element, GlobalAttributes, Props, Scope,
+    component, dioxus_elements, fc_to_builder, render, to_owned,
+    use_shared_state, use_state, Element, GlobalAttributes, IntoDynNode, Scope,
     Scoped, UseState,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
@@ -10,7 +10,7 @@ use crate::application_context::ApplicationContext;
 use crate::routings::route::Route;
 
 #[allow(non_snake_case)]
-#[inline_props]
+#[component(no_case_check)]
 pub(crate) fn SignIn(cx: Scope) -> Element {
     // Setup hooks
     let email = use_state(cx, String::new);
@@ -134,7 +134,7 @@ fn can_sign_in(
 }
 
 fn sign_in(
-    cx: &Scoped<'_, SignInProps>,
+    cx: &Scoped<'_>,
     email: String,
     password: String,
     error_message: &UseState<Option<String>>,

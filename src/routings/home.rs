@@ -1,5 +1,5 @@
 use dioxus::prelude::{
-    dioxus_elements, fc_to_builder, inline_props, render, Element, Props, Scope,
+    component, dioxus_elements, fc_to_builder, render, Element, Scope,
 };
 use dioxus_router::hooks::use_navigator;
 use material_dioxus::MatButton;
@@ -7,7 +7,7 @@ use material_dioxus::MatButton;
 use super::route::Route;
 
 #[allow(non_snake_case)]
-#[inline_props]
+#[component(no_case_check)]
 pub(crate) fn Home(cx: Scope) -> Element {
     render! {
         h1 { "Home" }

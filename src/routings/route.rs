@@ -2,9 +2,18 @@ use dioxus::prelude::{fc_to_builder, render};
 use dioxus_router::prelude::{Routable, ToRouteSegments};
 
 use super::{
-    dashboard::Dashboard, home::Home, not_found::NotFound,
-    reset_password::ResetPassword, sign_in::SignIn,
-    sign_in_oauth::SignInWithOAuth, sign_up::SignUp,
+    dashboard::Dashboard,
+    home::Home,
+    not_found::NotFound,
+    oauth_google::{
+        OAuthGoogle, OAuthGoogleError, Query,
+        RedirectToAuthServerResponseErrorQuery,
+        RedirectToAuthServerResponseQuery,
+    },
+    reset_password::ResetPassword,
+    sign_in::SignIn,
+    sign_in_oauth::SignInWithOAuth,
+    sign_up::SignUp,
 };
 
 #[rustfmt::skip]
@@ -18,6 +27,14 @@ pub(crate) enum Route {
     SignIn {},
     #[route("/signin/oauth")]
     SignInWithOAuth {},
+    #[route("/auth/google/callback?:query")]
+    OAuthGoogle {
+        query: Query,
+    },
+    #[route("/auth/google/callback?:error")]
+    OAuthGoogleError {
+        error: RedirectToAuthServerResponseErrorQuery,
+    },
     #[route("/reset_password")]
     ResetPassword {},
     #[route("/dashboard")]
