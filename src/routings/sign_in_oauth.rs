@@ -11,13 +11,6 @@ use crate::routings::route::Route;
 #[allow(non_snake_case)]
 #[component(no_case_check)]
 pub(crate) fn SignInWithOAuth(cx: Scope) -> Element {
-    let context = use_shared_state::<ApplicationContext>(cx).unwrap();
-    let navigator = use_navigator(cx);
-
-    if context.read().auth.is_some() {
-        navigator.push(Route::Dashboard {});
-    }
-
     render! {
         h1 { "Sign in with OAuth" }
 
