@@ -1,14 +1,23 @@
 use dioxus::prelude::{
-    component, dioxus_elements, fc_to_builder, render, Element, Scope, Scoped,
+    component, dioxus_elements, fc_to_builder, render, use_shared_state,
+    Element, Scope,
 };
 use dioxus_router::prelude::use_navigator;
 use material_dioxus::MatButton;
 
+use crate::application_context::ApplicationContext;
 use crate::routings::route::Route;
 
 #[allow(non_snake_case)]
 #[component(no_case_check)]
 pub(crate) fn SignInWithOAuth(cx: Scope) -> Element {
+    let context = use_shared_state::<ApplicationContext>(cx).unwrap();
+    let navigator = use_navigator(cx);
+
+    if context.read().auth.is_some() {
+        navigator.push(Route::Dashboard {});
+    }
+
     render! {
         h1 { "Sign in with OAuth" }
 
@@ -16,7 +25,7 @@ pub(crate) fn SignInWithOAuth(cx: Scope) -> Element {
             span {
                 onclick: |_| {
                     log::info!("Sign in with Google");
-                    let _ = sign_in_with_google(cx);
+                    let _ = sign_in_with_google();
                 },
                 MatButton {
                     label: "Sign in with Google",
@@ -42,22 +51,30 @@ pub(crate) fn SignInWithOAuth(cx: Scope) -> Element {
     }
 }
 
-fn sign_in_with_google(cx: &Scoped<'_>) -> anyhow::Result<()> {
-    let window = web_sys::window().unwrap();
-    let url = google_oauth_rs::api::redirect_auth_server::RedirectToAuthServerRequest {
-        client_id: crate::generated::dotenv::GOOGLE_CLIENT_ID.to_string(),
-        redirect_uri: "http://localhost:8080/auth/google/redirect".to_string(),
-        scope: vec![ google_oauth_rs::api::redirect_auth_server::Scope::OpenID, google_oauth_rs::api::redirect_auth_server::Scope::Email, google_oauth_rs::api::redirect_auth_server::Scope::Profile],
-        response_type: google_oauth_rs::api::redirect_auth_server::ResponseType::Code,
-        access_type: Some(google_oauth_rs::api::redirect_auth_server::AccessType::Offline),
-        state: Some("state".to_string()), // TODO: Generate a random string
-        include_granted_scopes: Some(true),
-        enable_granular_consent: None,
-        login_hint: None,
-        prompt: None,
-    }.build_redirect_uri()?;
+fn sign_in_with_google() -> anyhow::Result<()> {
+    if let Some(window) = web_sys::window() {
+        let url = google_oauth_rs::api::redirect_auth_server::RedirectToAuthServerRequest {
+            client_id: crate::generated::dotenv::GOOGLE_CLIENT_ID.to_string(),
+            redirect_uri: "http://localhost:8080/auth/google/redirect".to_string(),
+            scope: vec![ google_oauth_rs::api::redirect_auth_server::Scope::OpenID, google_oauth_rs::api::redirect_auth_server::Scope::Email, google_oauth_rs::api::redirect_auth_server::Scope::Profile],
+            response_type: google_oauth_rs::api::redirect_auth_server::ResponseType::Code,
+            access_type: Some(google_oauth_rs::api::redirect_auth_server::AccessType::Offline),
+            state: Some("state".to_string()), // TODO: Generate a random string
+            include_granted_scopes: Some(true),
+            enable_granular_consent: None,
+            login_hint: None,
+            prompt: None,
+        }.build_redirect_uri()?;
 
-    let _ = window.open_with_url(url.as_str());
-
-    Ok(())
+        let location = window.location();
+        match location.set_href(url.as_str()) {
+            | Ok(_) => Ok(()),
+            | Err(e) => Err(anyhow::anyhow!(
+                "Failed to set href: {:?}",
+                e
+            )),
+        }
+    } else {
+        Err(anyhow::anyhow!("Failed to get window"))
+    }
 }
