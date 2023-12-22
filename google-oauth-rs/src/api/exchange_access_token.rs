@@ -11,20 +11,38 @@ pub enum GrandType {
 
 #[derive(Serialize)]
 pub struct ExchangeAccessTokenRequestParameter {
+    #[serde(rename = "client_id")]
     pub client_id: String,
+    #[serde(rename = "client_secret")]
     pub client_secret: String,
+    #[serde(rename = "code")]
     pub code: String,
+    #[serde(rename = "grant_type")]
     pub grant_type: GrandType,
+    #[serde(rename = "redirect_uri")]
     pub redirect_uri: String,
 }
 
 #[derive(Deserialize)]
+pub enum TokenType {
+    #[serde(rename = "Bearer")]
+    Bearer,
+}
+
+#[derive(Deserialize)]
 pub struct ExchangeAccessTokenResponsePayload {
+    #[serde(rename = "access_token")]
     pub access_token: String,
+    #[serde(rename = "expires_in")]
     pub expires_in: u64,
-    pub refresh_token: String,
+    #[serde(rename = "refresh_token")]
+    pub refresh_token: Option<String>,
+    #[serde(rename = "scope")]
     pub scope: String,
-    pub token_type: String,
+    #[serde(rename = "token_type")]
+    pub token_type: TokenType,
+    #[serde(rename = "id_token")]
+    pub id_token: String,
 }
 
 pub async fn exchange_access_token(

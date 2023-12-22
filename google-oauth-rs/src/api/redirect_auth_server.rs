@@ -6,6 +6,7 @@ use crate::error::Error;
 use crate::result::Result;
 
 pub enum Scope {
+    OpenID,
     Email,
     Profile,
 }
@@ -13,6 +14,7 @@ pub enum Scope {
 impl Scope {
     pub fn to_parameter(&self) -> &str {
         match self {
+            | Scope::OpenID => "openid",
             | Scope::Email => "https://www.googleapis.com/auth/userinfo.email",
             | Scope::Profile => {
                 "https://www.googleapis.com/auth/userinfo.profile"
@@ -24,6 +26,7 @@ impl Scope {
         scope
             .split(" ")
             .map(|scope| match scope {
+                | "openid" => Scope::OpenID,
                 | "https://www.googleapis.com/auth/userinfo.email" => {
                     Scope::Email
                 },

@@ -13,7 +13,7 @@ pub struct SignInWithOAuthCredentialRequestBodyPayload {
     request_uri: String,
     /// Contains the OAuth credential (an ID token or access token) and provider ID which issues the credential.
     #[serde(rename = "postBody")]
-    post_body: String,
+    post_body: IdpPostBody,
     /// Whether or not to return an ID and refresh token. Should always be true.
     #[serde(rename = "returnSecureToken")]
     return_secure_token: bool,
@@ -26,7 +26,7 @@ impl SignInWithOAuthCredentialRequestBodyPayload {
     /// Creates a new request body payload for the sign in with OAuth credential API.
     pub fn new(
         request_uri: String,
-        post_body: String,
+        post_body: IdpPostBody,
         return_ipd_credential: bool,
     ) -> Self {
         Self {
@@ -34,6 +34,64 @@ impl SignInWithOAuthCredentialRequestBodyPayload {
             post_body,
             return_secure_token: true,
             return_ipd_credential,
+        }
+    }
+}
+
+/// Post body for ID providers contains the OAuth credential and provider ID.
+pub enum IdpPostBody {
+    /// Google OAuth.
+    Google {
+        id_token: String,
+    },
+    /// Facebook OAuth.
+    Facebook {
+        access_token: String,
+    },
+    /// Twitter OAuth.
+    Twitter {
+        access_token: String,
+        oauth_token_secret: String,
+    },
+}
+
+impl Serialize for IdpPostBody {
+    fn serialize<S>(
+        &self,
+        serializer: S,
+    ) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            | IdpPostBody::Google {
+                id_token,
+            } => {
+                let post_body = format!(
+                    "id_token={id_token}&providerId=google.com",
+                    id_token = id_token
+                );
+                serializer.serialize_str(post_body.as_str())
+            },
+            | IdpPostBody::Facebook {
+                access_token,
+            } => {
+                let post_body = format!(
+                    "access_token={access_token}&providerId=facebook.com",
+                    access_token = access_token
+                );
+                serializer.serialize_str(post_body.as_str())
+            },
+            | IdpPostBody::Twitter {
+                access_token,
+                oauth_token_secret,
+            } => {
+                let post_body = format!(
+                    "access_token={access_token}&oauth_token_secret={oauth_token_secret}&providerId=twitter.com",
+                    access_token = access_token, oauth_token_secret = oauth_token_secret
+                );
+                serializer.serialize_str(post_body.as_str())
+            },
         }
     }
 }
@@ -96,7 +154,10 @@ pub struct SignInWithOAuthCredentialResponsePayload {
     /// Whether another account with the same credential already exists.
     /// The user will need to sign in to the original account and then link the current credential to it.
     #[serde(rename = "needConfirmation")]
-    pub need_confirmation: bool,
+    pub need_confirmation: Option<bool>,
+    /// Kind.
+    #[serde(rename = "kind")]
+    pub kind: Option<String>,
 }
 
 /// Signs in a user with the given OAuth credential.

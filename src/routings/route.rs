@@ -6,8 +6,7 @@ use super::{
     home::Home,
     not_found::NotFound,
     oauth_google::{
-        OAuthGoogle, OAuthGoogleError, Query,
-        RedirectToAuthServerResponseErrorQuery,
+        OAuthGoogle, OAuthGoogleError, RedirectToAuthServerResponseErrorQuery,
         RedirectToAuthServerResponseQuery,
     },
     reset_password::ResetPassword,
@@ -27,11 +26,11 @@ pub(crate) enum Route {
     SignIn {},
     #[route("/signin/oauth")]
     SignInWithOAuth {},
-    #[route("/auth/google/callback?:query")]
+    #[route("/auth/google/redirect?:query")]
     OAuthGoogle {
-        query: Query,
+        query: RedirectToAuthServerResponseQuery,
     },
-    #[route("/auth/google/callback?:error")]
+    #[route("/auth/google/redirect?:error")]
     OAuthGoogleError {
         error: RedirectToAuthServerResponseErrorQuery,
     },

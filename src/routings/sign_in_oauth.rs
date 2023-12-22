@@ -46,8 +46,8 @@ fn sign_in_with_google(cx: &Scoped<'_>) -> anyhow::Result<()> {
     let window = web_sys::window().unwrap();
     let url = google_oauth_rs::api::redirect_auth_server::RedirectToAuthServerRequest {
         client_id: crate::generated::dotenv::GOOGLE_CLIENT_ID.to_string(),
-        redirect_uri: "http://localhost:8080/auth/google/callback".to_string(),
-        scope: vec![ google_oauth_rs::api::redirect_auth_server::Scope::Email, google_oauth_rs::api::redirect_auth_server::Scope::Profile],
+        redirect_uri: "http://localhost:8080/auth/google/redirect".to_string(),
+        scope: vec![ google_oauth_rs::api::redirect_auth_server::Scope::OpenID, google_oauth_rs::api::redirect_auth_server::Scope::Email, google_oauth_rs::api::redirect_auth_server::Scope::Profile],
         response_type: google_oauth_rs::api::redirect_auth_server::ResponseType::Code,
         access_type: Some(google_oauth_rs::api::redirect_auth_server::AccessType::Offline),
         state: Some("state".to_string()), // TODO: Generate a random string
@@ -57,7 +57,7 @@ fn sign_in_with_google(cx: &Scoped<'_>) -> anyhow::Result<()> {
         prompt: None,
     }.build_redirect_uri()?;
 
-    let _ = window.open_with_url_and_target(url.as_str(), "_blank");
+    let _ = window.open_with_url(url.as_str());
 
     Ok(())
 }
