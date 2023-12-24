@@ -1,5 +1,5 @@
-/// Implements the get user data API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info)
+//! Implements the get user data API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info)
 use serde::{Deserialize, Serialize};
 
 use crate::{

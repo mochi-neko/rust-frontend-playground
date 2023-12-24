@@ -1,5 +1,5 @@
-/// Implements the Firebase Auth API client.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth).
+//! Implements the Firebase Auth API client.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth).
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::error::{ApiErrorResponse, Error};

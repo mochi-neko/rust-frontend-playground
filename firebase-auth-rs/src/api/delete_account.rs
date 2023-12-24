@@ -1,5 +1,5 @@
-/// Implements the delete account API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-delete-account)
+//! Implements the delete account API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-delete-account)
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};

@@ -1,5 +1,5 @@
-/// Implements the sign in anonymously API of Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-anonymously).
+//! Implements the sign in anonymously API of Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-anonymously).
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};

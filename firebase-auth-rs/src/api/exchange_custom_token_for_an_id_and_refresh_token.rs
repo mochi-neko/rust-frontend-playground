@@ -1,5 +1,5 @@
-/// Implements the exchange custom token for an ID and refresh token API of Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-custom-token).
+//! Implements the exchange custom token for an ID and refresh token API of Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-custom-token).
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};

@@ -1,5 +1,5 @@
-/// Implements the sign in with email password API of Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
+//! Implements the sign in with email password API of Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};

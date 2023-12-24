@@ -1,5 +1,5 @@
-/// Implements the send password reset email API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email)
+//! Implements the send password reset email API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email)
 use serde::{Deserialize, Serialize};
 
 use crate::{client, error::Error, result::Result};

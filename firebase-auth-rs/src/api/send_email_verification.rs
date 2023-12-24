@@ -1,5 +1,5 @@
-/// Implements the send email verification API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-email-verification)
+//! Implements the send email verification API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-email-verification)
 use serde::{Deserialize, Serialize};
 
 use crate::{client, error::Error, result::Result};

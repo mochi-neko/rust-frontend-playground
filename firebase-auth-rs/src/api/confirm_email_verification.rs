@@ -1,5 +1,5 @@
-/// Implements the confirm email verification API of the Firebase Auth API.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-email-verification).
+//! Implements the confirm email verification API of the Firebase Auth API.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-email-verification).
 use serde::{Deserialize, Serialize};
 
 use crate::{

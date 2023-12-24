@@ -8,7 +8,7 @@ use firebase_auth_rs::api::sign_in_with_oauth_credential::{
     IdpPostBody, SignInWithOAuthCredentialRequestBodyPayload,
 };
 use google_oauth_rs::api::exchange_access_token::{
-    ExchangeAccessTokenRequestParameter, GrandType,
+    ExchangeAccessTokenRequestParameters, GrandType,
 };
 
 use crate::{
@@ -192,7 +192,7 @@ async fn sign_in_with_google(
     context: ApplicationContext,
     auth_code: String,
 ) -> anyhow::Result<AuthContext> {
-    let request_parameter = ExchangeAccessTokenRequestParameter {
+    let request_parameter = ExchangeAccessTokenRequestParameters {
         client_id: dotenv::GOOGLE_CLIENT_ID.to_string(),
         client_secret: dotenv::GOOGLE_CLIENT_SECRET.to_string(),
         code: auth_code,

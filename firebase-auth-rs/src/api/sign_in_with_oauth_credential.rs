@@ -1,5 +1,5 @@
-/// Implements the sign in with OAuth credential API of Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-with-oauth-credential).
+//! Implements the sign in with OAuth credential API of Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-with-oauth-credential).
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};

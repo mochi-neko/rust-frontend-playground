@@ -1,5 +1,5 @@
-/// Implements the confirm password reset API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-password-reset).
+//! Implements the confirm password reset API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-password-reset).
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};

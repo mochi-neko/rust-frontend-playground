@@ -1,5 +1,5 @@
-/// Implements the change password API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-password).
+//! Implements the change password API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-password).
 use serde::{Deserialize, Serialize};
 
 use crate::{

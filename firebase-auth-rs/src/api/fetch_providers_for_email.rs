@@ -1,5 +1,5 @@
-/// Implements the fetch providers for email API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-fetch-providers-for-email).
+//! Implements the fetch providers for email API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-fetch-providers-for-email).
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};

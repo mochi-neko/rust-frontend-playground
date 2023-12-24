@@ -1,5 +1,5 @@
-/// Implements the unlink provider API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-unlink-provider).
+//! Implements the unlink provider API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-unlink-provider).
 use serde::{Deserialize, Serialize};
 
 use crate::{

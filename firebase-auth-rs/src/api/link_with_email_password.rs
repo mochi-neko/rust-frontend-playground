@@ -1,5 +1,5 @@
-/// Implements the link with email password API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-email-password).
+//! Implements the link with email password API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-email-password).
 use serde::{Deserialize, Serialize};
 
 use crate::{

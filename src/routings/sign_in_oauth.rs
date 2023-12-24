@@ -1,11 +1,9 @@
 use dioxus::prelude::{
-    component, dioxus_elements, fc_to_builder, render, use_shared_state,
-    Element, Scope,
+    component, dioxus_elements, fc_to_builder, render, Element, Scope,
 };
 use dioxus_router::prelude::use_navigator;
 use material_dioxus::MatButton;
 
-use crate::application_context::ApplicationContext;
 use crate::routings::route::Route;
 
 #[allow(non_snake_case)]
@@ -18,7 +16,7 @@ pub(crate) fn SignInWithOAuth(cx: Scope) -> Element {
             span {
                 onclick: |_| {
                     log::info!("Sign in with Google");
-                    let _ = sign_in_with_google();
+                    let _ = authorize_with_google();
                 },
                 MatButton {
                     label: "Sign in with Google",
@@ -44,14 +42,18 @@ pub(crate) fn SignInWithOAuth(cx: Scope) -> Element {
     }
 }
 
-fn sign_in_with_google() -> anyhow::Result<()> {
+fn authorize_with_google() -> anyhow::Result<()> {
     if let Some(window) = web_sys::window() {
-        let url = google_oauth_rs::api::redirect_auth_server::RedirectToAuthServerRequest {
+        let url = google_oauth_rs::api::request_authorization::AuthorizationRequestParameters {
             client_id: crate::generated::dotenv::GOOGLE_CLIENT_ID.to_string(),
             redirect_uri: "http://localhost:8080/auth/google/redirect".to_string(),
-            scope: vec![ google_oauth_rs::api::redirect_auth_server::Scope::OpenID, google_oauth_rs::api::redirect_auth_server::Scope::Email, google_oauth_rs::api::redirect_auth_server::Scope::Profile],
-            response_type: google_oauth_rs::api::redirect_auth_server::ResponseType::Code,
-            access_type: Some(google_oauth_rs::api::redirect_auth_server::AccessType::Offline),
+            scope: vec![
+                google_oauth_rs::api::request_authorization::Scope::OpenID,
+                google_oauth_rs::api::request_authorization::Scope::Email,
+                google_oauth_rs::api::request_authorization::Scope::Profile
+            ],
+            response_type: google_oauth_rs::api::request_authorization::ResponseType::Code,
+            access_type: Some(google_oauth_rs::api::request_authorization::AccessType::Offline),
             state: Some("state".to_string()), // TODO: Generate a random string
             include_granted_scopes: Some(true),
             enable_granular_consent: None,

@@ -1,5 +1,5 @@
-/// Implements the change email API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
+//! Implements the change email API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
 use serde::{Deserialize, Serialize};
 
 use crate::{

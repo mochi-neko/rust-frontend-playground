@@ -1,4 +1,4 @@
-/// A result type for the Firebase Auth API.
+//! A result type for the Firebase Auth API.
 use crate::error::Error;
 
 /// Result type for the Firebase Auth API.

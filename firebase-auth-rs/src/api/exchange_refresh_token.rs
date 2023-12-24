@@ -1,5 +1,5 @@
-/// Implements the exchange refresh token API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token)
+//! Implements the exchange refresh token API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token)
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};

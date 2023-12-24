@@ -1,5 +1,5 @@
-/// Implements the link with OAuth credential API of the Firebase Auth.
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-oauth-credential).
+//! Implements the link with OAuth credential API of the Firebase Auth.
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-oauth-credential).
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};
