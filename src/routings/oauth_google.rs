@@ -197,7 +197,7 @@ async fn sign_in_with_google(
         client_secret: dotenv::GOOGLE_CLIENT_SECRET.to_string(),
         code: auth_code,
         grant_type: GrandType::AuthorizationCode,
-        redirect_uri: "http://localhost:8080/auth/google/redirect".to_string(),
+        redirect_uri: "http://localhost:8080/auth/google-callback".to_string(),
     };
 
     let token_response =
@@ -210,7 +210,7 @@ async fn sign_in_with_google(
     log::info!("Exchange access token success");
 
     let request_payload = SignInWithOAuthCredentialRequestBodyPayload::new(
-        "http://localhost:8080/auth/google/redirect".to_string(),
+        "http://localhost:8080/auth/google-callback".to_string(),
         IdpPostBody::Google {
             id_token: token_response.id_token,
         },

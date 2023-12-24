@@ -26,11 +26,11 @@ pub(crate) enum Route {
     SignIn {},
     #[route("/signin/oauth")]
     SignInWithOAuth {},
-    #[route("/auth/google/redirect?:query")]
+    #[route("/auth/google-callback?:query")]
     OAuthGoogle {
         query: RedirectToAuthServerResponseQuery,
     },
-    #[route("/auth/google/redirect?:error")]
+    #[route("/auth/google-callback?:error")]
     OAuthGoogleError {
         error: RedirectToAuthServerResponseErrorQuery,
     },

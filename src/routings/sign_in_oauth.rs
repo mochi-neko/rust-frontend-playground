@@ -46,7 +46,7 @@ fn authorize_with_google() -> anyhow::Result<()> {
     if let Some(window) = web_sys::window() {
         let url = google_oauth_rs::api::request_authorization::AuthorizationRequestParameters {
             client_id: crate::generated::dotenv::GOOGLE_CLIENT_ID.to_string(),
-            redirect_uri: "http://localhost:8080/auth/google/redirect".to_string(),
+            redirect_uri: "http://localhost:8080/auth/google-callback".to_string(),
             scope: vec![
                 google_oauth_rs::api::request_authorization::Scope::OpenID,
                 google_oauth_rs::api::request_authorization::Scope::Email,
