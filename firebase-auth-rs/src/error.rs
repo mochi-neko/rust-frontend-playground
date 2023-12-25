@@ -17,6 +17,9 @@ pub enum Error {
         error_code: CommonErrorCode,
         response: ApiErrorResponse,
     },
+    /// Invalid ID token error.
+    #[error("Invalid ID token error")]
+    InvalidIdTokenError,
     /// Read response failed.
     #[error("Read response failed: {error:?}")]
     ReadResponseFailed {
@@ -40,9 +43,14 @@ pub enum Error {
         key: &'static str,
         error: reqwest::header::InvalidHeaderValue,
     },
-    /// Other error.
-    #[error("Other error: {0:?}")]
-    Other(String),
+    /// Number parse error.
+    #[error("Number parse error: {error:?}")]
+    NumberParseError {
+        error: std::num::ParseIntError,
+    },
+    /// Not found any user data in a response.
+    #[error("Not found any user data in a response")]
+    NotFoundAnyUserData,
 }
 
 /// Error response payload for the auth endpoints.

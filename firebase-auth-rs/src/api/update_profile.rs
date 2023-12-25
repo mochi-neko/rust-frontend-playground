@@ -28,6 +28,7 @@ pub struct UpdateProfileRequestBodyPayload {
 }
 
 /// Attributes to delete profile information.
+#[derive(Clone, Copy)]
 pub enum DeleteAttribute {
     /// Delete the display name.
     DisplayName,

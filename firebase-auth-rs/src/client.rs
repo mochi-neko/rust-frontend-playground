@@ -2,7 +2,7 @@
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth).
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::error::{ApiErrorResponse, Error};
+use crate::error::{ApiErrorResponse, CommonErrorCode, Error};
 use crate::result::Result;
 
 /// Sends a POST request to the Firebase Auth API.
@@ -69,16 +69,21 @@ where
             json: response_text,
         })?;
 
-        let error_code = error_response
+        let error_code: CommonErrorCode = error_response
             .error
             .message
             .clone()
             .into();
 
-        Err(Error::ApiError {
-            status_code,
-            error_code,
-            response: error_response,
-        })
+        match error_code {
+            | CommonErrorCode::InvalidIdToken => {
+                return Err(Error::InvalidIdTokenError);
+            },
+            | _ => Err(Error::ApiError {
+                status_code,
+                error_code,
+                response: error_response,
+            }),
+        }
     }
 }

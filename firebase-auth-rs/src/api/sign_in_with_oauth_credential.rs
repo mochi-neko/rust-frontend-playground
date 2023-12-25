@@ -39,6 +39,7 @@ impl SignInWithOAuthCredentialRequestBodyPayload {
 }
 
 /// Post body for ID providers contains the OAuth credential and provider ID.
+#[derive(Clone)]
 pub enum IdpPostBody {
     /// Google OAuth.
     Google {
