@@ -51,6 +51,9 @@ pub enum Error {
     /// Not found any user data in a response.
     #[error("Not found any user data in a response")]
     NotFoundAnyUserData,
+    /// HTTP client build error.
+    #[error("HTTP client build error: {0:?}")]
+    HttpClientBuildError(reqwest::Error),
 }
 
 /// Error response payload for the auth endpoints.

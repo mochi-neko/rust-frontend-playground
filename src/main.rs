@@ -1,6 +1,5 @@
 mod application_context;
-mod auth;
-mod auth_context;
+mod credential;
 mod generated;
 mod logging;
 mod routings;
@@ -27,7 +26,10 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn app(cx: Scope) -> Element {
-    use_shared_state_provider::<ApplicationContext>(cx, Default::default);
+    use_shared_state_provider::<ApplicationContext>(
+        cx,
+        ApplicationContext::default,
+    );
 
     render! {
         // NOTE: Failed to load style.css then use inline style

@@ -531,7 +531,7 @@ pub async fn sign_up_with_email_password(
         .connect_timeout(timeout.connection_timeout)
         .timeout(timeout.request_timeout)
         .build()
-        .unwrap();
+        .map_err(|error| Error::HttpClientBuildError(error))?;
 
     // Create request payload.
     let request_payload =
@@ -602,7 +602,7 @@ pub async fn sign_in_with_email_password(
         .connect_timeout(timeout.connection_timeout)
         .timeout(timeout.request_timeout)
         .build()
-        .unwrap();
+        .map_err(|error| Error::HttpClientBuildError(error))?;
 
     // Create request payload.
     let request_payload =
@@ -667,7 +667,7 @@ pub async fn sign_in_anonymously(
         .connect_timeout(timeout.connection_timeout)
         .timeout(timeout.request_timeout)
         .build()
-        .unwrap();
+        .map_err(|error| Error::HttpClientBuildError(error))?;
 
     // Create request payload.
     let request_payload =
@@ -741,7 +741,7 @@ pub async fn sign_in_oauth_credencial(
         .connect_timeout(timeout.connection_timeout)
         .timeout(timeout.request_timeout)
         .build()
-        .unwrap();
+        .map_err(|error| Error::HttpClientBuildError(error))?;
 
     // Create request payload.
     let request_payload =
@@ -812,7 +812,7 @@ pub async fn exchange_refresh_tokens(
         .connect_timeout(timeout.connection_timeout)
         .timeout(timeout.request_timeout)
         .build()
-        .unwrap();
+        .map_err(|error| Error::HttpClientBuildError(error))?;
 
     // Create request payload.
     let request_payload = crate::api::exchange_refresh_token::ExchangeRefreshTokenRequestBodyPayload::new(
@@ -844,7 +844,31 @@ pub async fn exchange_refresh_tokens(
     })
 }
 
-pub async fn fetch_providers_for_email_internal(
+/// Fetches the list of all IDPs for the specified email.
+///
+/// ## Arguments
+/// - `api_key` - Your Firebase project API key.
+/// - `email` - The email of the user to fetch providers.
+/// - `continue_uri` - The URI to which the IDP redirects the user back.
+/// - `timeout` - Timeout options for HTTP client.
+///
+/// ## Returns
+/// The list of all IDPs for the specified email.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::auth::fetch_providers_for_email;
+///
+/// let providers = fetch_providers_for_email(
+///     "your-firebase-project-api-key".to_string(),
+///     "user@example".to_string(),
+///     "https://your-app.com/redirect/path/auth/handler".to_string(),
+///     None,
+/// ).await?;
+///
+/// // Do something with providers.
+/// ```
+pub async fn fetch_providers_for_email(
     api_key: String,
     email: String,
     continue_uri: String,
@@ -856,7 +880,7 @@ pub async fn fetch_providers_for_email_internal(
         .connect_timeout(timeout.connection_timeout)
         .timeout(timeout.request_timeout)
         .build()
-        .unwrap();
+        .map_err(|error| Error::HttpClientBuildError(error))?;
 
     // Create request payload.
     let request_payload =
@@ -877,6 +901,27 @@ pub async fn fetch_providers_for_email_internal(
     Ok(response.all_providers)
 }
 
+/// Sends a password reset email to the given email address.
+///
+/// ## Arguments
+/// - `api_key` - Your Firebase project API key.
+/// - `email` - The email of the user to send password reset email.
+/// - `locale` - The optional language code corresponding to the user's locale.
+/// - `timeout` - Timeout options for HTTP client.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::auth::send_reset_password_email;
+///
+/// send_reset_password_email(
+///     "your-firebase-project-api-key".to_string(),
+///     "user@example".to_string(),
+///     None,
+///     None,
+/// ).await?;
+///
+/// // Do something.
+/// ```
 pub async fn send_reset_password_email(
     api_key: String,
     email: String,
@@ -889,7 +934,7 @@ pub async fn send_reset_password_email(
         .connect_timeout(timeout.connection_timeout)
         .timeout(timeout.request_timeout)
         .build()
-        .unwrap();
+        .map_err(|error| Error::HttpClientBuildError(error))?;
 
     // Create request payload.
     let request_payload =

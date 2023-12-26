@@ -7,7 +7,7 @@ use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{MatButton, MatTextField};
 
 use crate::application_context::ApplicationContext;
-use crate::auth::{is_valid_email, is_valid_password};
+use crate::credential::{is_valid_email, is_valid_password};
 use crate::routings::route::Route;
 
 #[allow(non_snake_case)]

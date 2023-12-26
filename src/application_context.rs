@@ -1,13 +1,6 @@
 use firebase_auth_rs::auth::Auth;
 
+#[derive(Default)]
 pub(crate) struct ApplicationContext {
     pub(crate) auth: Option<Auth>,
-}
-
-impl Default for ApplicationContext {
-    fn default() -> Self {
-        Self {
-            auth: None,
-        }
-    }
 }
