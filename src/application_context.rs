@@ -1,25 +1,13 @@
-use crate::auth_context::AuthContext;
+use firebase_auth_rs::auth::Auth;
 
-#[derive(Clone)]
 pub(crate) struct ApplicationContext {
-    pub(crate) client: reqwest::Client,
-    pub(crate) auth: Option<AuthContext>,
+    pub(crate) auth: Option<Auth>,
 }
 
 impl Default for ApplicationContext {
     fn default() -> Self {
         Self {
-            client: reqwest::Client::new(),
             auth: None,
         }
-    }
-}
-
-impl ApplicationContext {
-    pub(crate) fn set_auth(
-        &mut self,
-        auth: AuthContext,
-    ) {
-        self.auth = Some(auth);
     }
 }

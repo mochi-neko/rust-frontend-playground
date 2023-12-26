@@ -3,6 +3,7 @@ use crate::error::Error;
 use crate::result::Result;
 
 /// Authentication state for a user of Firebase Auth.
+#[derive(Clone)]
 pub struct Auth {
     /// HTTP client.
     client: reqwest::Client,
@@ -13,6 +14,7 @@ pub struct Auth {
 }
 
 /// Tokens returned by the Firebase Auth API.
+#[derive(Clone)]
 struct Tokens {
     /// Firebase Auth ID token.
     id_token: String,
@@ -34,6 +36,11 @@ pub struct UserData {
     pub display_name: Option<String>,
     /// The photo url of the account.
     pub photo_url: Option<String>,
+    /// List of all linked provider information.
+    pub provider_user_info:
+        Vec<crate::data::provider_user_info::ProviderUserInfo>,
+    /// The timestamp, in milliseconds, that the account password was last changed.
+    pub password_updated_at: f64,
     /// The timestamp, in seconds, which marks a boundary, before which Firebase ID token are considered revoked.
     pub valid_since: String,
     /// Whether the account is disabled or not.
@@ -42,14 +49,16 @@ pub struct UserData {
     pub last_login_at: String,
     /// The timestamp, in milliseconds, that the account was created at.
     pub created_at: String,
+    /// Whether the account is authenticated by the developer.
+    pub custom_auth: Option<bool>,
 }
 
 /// Timeout options for HTTP client.
 pub struct Timeout {
     /// Connection timeout duration.
-    connection_timeout: std::time::Duration,
+    pub connection_timeout: std::time::Duration,
     /// Request timeout duration.
-    request_timeout: std::time::Duration,
+    pub request_timeout: std::time::Duration,
 }
 
 impl Default for Timeout {
@@ -227,30 +236,6 @@ impl Auth {
         })
     }
 
-    async fn fetch_providers_for_email_internal(
-        &self,
-        email: String,
-        continue_uri: String,
-    ) -> Result<Vec<String>> {
-        // Create request payload.
-        let request_payload =
-            crate::api::fetch_providers_for_email::FetchProvidersForEmailRequestBodyPayload::new(
-                email,
-                continue_uri,
-            );
-
-        // Send request.
-        let response =
-            crate::api::fetch_providers_for_email::fetch_providers_for_email(
-                &self.client,
-                &self.api_key,
-                request_payload,
-            )
-            .await?;
-
-        Ok(response.all_providers)
-    }
-
     async fn change_email_internal(
         &self,
         new_email: String,
@@ -293,27 +278,6 @@ impl Auth {
             &self.client,
             &self.api_key,
             request_payload,
-        )
-        .await?;
-
-        Ok(())
-    }
-
-    async fn send_reset_password_email_internal(
-        &self,
-        email: String,
-        locale: Option<String>,
-    ) -> Result<()> {
-        // Create request payload.
-        let request_payload =
-            crate::api::send_password_reset_email::SendPasswordResetEmailRequestBodyPayload::new(email);
-
-        // Send request.
-        crate::api::send_password_reset_email::send_password_reset_email(
-            &self.client,
-            &self.api_key,
-            request_payload,
-            locale,
         )
         .await?;
 
@@ -374,10 +338,17 @@ impl Auth {
             email_verified: user.email_verified,
             display_name: user.display_name.clone(),
             photo_url: user.photo_url.clone(),
+            provider_user_info: user
+                .provider_user_info
+                .clone(),
+            password_updated_at: user
+                .password_updated_at
+                .clone(),
             valid_since: user.valid_since.clone(),
             disabled: user.disabled.unwrap_or(false),
             last_login_at: user.last_login_at.clone(),
             created_at: user.created_at.clone(),
+            custom_auth: user.custom_auth,
         })
     }
 
@@ -523,265 +494,265 @@ impl Auth {
 }
 
 /// Implements factory functions for `Auth`.
-impl Auth {
-    /// Signs up a new user with the given email and password.
-    ///
-    /// ## Arguments
-    /// - `api_key` - Your Firebase project API key.
-    /// - `email` - The email of the user to sign up.
-    /// - `password` - The password of the user to sign up.
-    /// - `timeout` - Timeout options for HTTP client.
-    ///
-    /// ## Returns
-    /// The `Auth` instance for the signed up user.
-    ///
-    /// ## Example
-    /// ```
-    /// use firebase_auth_rs::auth::Auth;
-    ///
-    /// let auth = Auth::sign_up_with_email_password(
-    ///     "your-firebase-project-api-key".to_string(),
-    ///     "user@example".to_string(),
-    ///     "password".to_string(),
-    ///     None,
-    /// ).await?;
-    ///
-    /// // Do something with auth.
-    /// ```
-    pub async fn sign_up_with_email_password(
-        api_key: String,
-        email: String,
-        password: String,
-        timeout: Option<Timeout>,
-    ) -> Result<Self> {
-        // Create a shared HTTP client.
-        let timeout = timeout.unwrap_or_default();
-        let client = reqwest::ClientBuilder::new()
-            .connect_timeout(timeout.connection_timeout)
-            .timeout(timeout.request_timeout)
-            .build()
-            .unwrap();
 
-        // Create request payload.
-        let request_payload =
+/// Signs up a new user with the given email and password.
+///
+/// ## Arguments
+/// - `api_key` - Your Firebase project API key.
+/// - `email` - The email of the user to sign up.
+/// - `password` - The password of the user to sign up.
+/// - `timeout` - Timeout options for HTTP client.
+///
+/// ## Returns
+/// The `Auth` instance for the signed up user.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::auth::Auth;
+///
+/// let auth = Auth::sign_up_with_email_password(
+///     "your-firebase-project-api-key".to_string(),
+///     "user@example".to_string(),
+///     "password".to_string(),
+///     None,
+/// ).await?;
+///
+/// // Do something with auth.
+/// ```
+pub async fn sign_up_with_email_password(
+    api_key: String,
+    email: String,
+    password: String,
+    timeout: Option<Timeout>,
+) -> Result<Auth> {
+    // Create a shared HTTP client.
+    let timeout = timeout.unwrap_or_default();
+    let client = reqwest::ClientBuilder::new()
+        .connect_timeout(timeout.connection_timeout)
+        .timeout(timeout.request_timeout)
+        .build()
+        .unwrap();
+
+    // Create request payload.
+    let request_payload =
             crate::api::sign_up_with_email_password::SignUpWithEmailPasswordRequestBodyPayload::new(email, password);
 
-        // Send request.
-        let response_payload =
-            crate::api::sign_up_with_email_password::sign_up_with_email_password(
-                &client,
-                &api_key,
-                request_payload,
-            )
-            .await?;
+    // Send request.
+    let response_payload =
+        crate::api::sign_up_with_email_password::sign_up_with_email_password(
+            &client,
+            &api_key,
+            request_payload,
+        )
+        .await?;
 
-        // Create tokens.
-        let tokens = Tokens {
-            id_token: response_payload.id_token,
-            expires_in: response_payload
-                .expires_in
-                .parse()
-                .map_err(|error| Error::NumberParseError {
-                    error,
-                })?,
-            refresh_token: response_payload.refresh_token,
-        };
+    // Create tokens.
+    let tokens = Tokens {
+        id_token: response_payload.id_token,
+        expires_in: response_payload
+            .expires_in
+            .parse()
+            .map_err(|error| Error::NumberParseError {
+                error,
+            })?,
+        refresh_token: response_payload.refresh_token,
+    };
 
-        // Create auth.
-        Ok(Self {
-            client,
-            api_key,
-            tokens,
-        })
-    }
+    // Create auth.
+    Ok(Auth {
+        client,
+        api_key,
+        tokens,
+    })
+}
 
-    /// Signs in a user with the given email and password.
-    ///
-    /// ## Arguments
-    /// - `api_key` - Your Firebase project API key.
-    /// - `email` - The email of the user to sign in.
-    /// - `password` - The password of the user to sign in.
-    /// - `timeout` - Timeout options for HTTP client.
-    ///
-    /// ## Returns
-    /// The `Auth` instance for the signed in user.
-    ///
-    /// ## Example
-    /// ```
-    /// use firebase_auth_rs::auth::Auth;
-    ///
-    /// let auth = Auth::sign_in_with_email_password(
-    ///     "your-firebase-project-api-key".to_string(),
-    ///     "user@example".to_string(),
-    ///     "password".to_string(),
-    ///     None,
-    /// ).await?;
-    ///
-    /// // Do something with auth.
-    /// ```
-    pub async fn sign_in_with_email_password(
-        api_key: String,
-        email: String,
-        password: String,
-        timeout: Option<Timeout>,
-    ) -> Result<Self> {
-        // Create a shared HTTP client.
-        let timeout = timeout.unwrap_or_default();
-        let client = reqwest::ClientBuilder::new()
-            .connect_timeout(timeout.connection_timeout)
-            .timeout(timeout.request_timeout)
-            .build()
-            .unwrap();
+/// Signs in a user with the given email and password.
+///
+/// ## Arguments
+/// - `api_key` - Your Firebase project API key.
+/// - `email` - The email of the user to sign in.
+/// - `password` - The password of the user to sign in.
+/// - `timeout` - Timeout options for HTTP client.
+///
+/// ## Returns
+/// The `Auth` instance for the signed in user.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::auth::Auth;
+///
+/// let auth = Auth::sign_in_with_email_password(
+///     "your-firebase-project-api-key".to_string(),
+///     "user@example".to_string(),
+///     "password".to_string(),
+///     None,
+/// ).await?;
+///
+/// // Do something with auth.
+/// ```
+pub async fn sign_in_with_email_password(
+    api_key: String,
+    email: String,
+    password: String,
+    timeout: Option<Timeout>,
+) -> Result<Auth> {
+    // Create a shared HTTP client.
+    let timeout = timeout.unwrap_or_default();
+    let client = reqwest::ClientBuilder::new()
+        .connect_timeout(timeout.connection_timeout)
+        .timeout(timeout.request_timeout)
+        .build()
+        .unwrap();
 
-        // Create request payload.
-        let request_payload =
+    // Create request payload.
+    let request_payload =
             crate::api::sign_in_with_email_password::SignInWithEmailPasswordRequestBodyPayload::new(email, password);
 
-        // Send request.
-        let response_payload =
-            crate::api::sign_in_with_email_password::sign_in_with_email_password(
-                &client,
-                &api_key,
-                request_payload,
-            )
-            .await?;
+    // Send request.
+    let response_payload =
+        crate::api::sign_in_with_email_password::sign_in_with_email_password(
+            &client,
+            &api_key,
+            request_payload,
+        )
+        .await?;
 
-        // Create tokens.
-        let tokens = Tokens {
-            id_token: response_payload.id_token,
-            expires_in: response_payload
-                .expires_in
-                .parse()
-                .map_err(|error| Error::NumberParseError {
-                    error,
-                })?,
-            refresh_token: response_payload.refresh_token,
-        };
+    // Create tokens.
+    let tokens = Tokens {
+        id_token: response_payload.id_token,
+        expires_in: response_payload
+            .expires_in
+            .parse()
+            .map_err(|error| Error::NumberParseError {
+                error,
+            })?,
+        refresh_token: response_payload.refresh_token,
+    };
 
-        // Create auth.
-        Ok(Self {
-            client,
-            api_key,
-            tokens,
-        })
-    }
+    // Create auth.
+    Ok(Auth {
+        client,
+        api_key,
+        tokens,
+    })
+}
 
-    /// Signs in as an anonymous user.
-    ///
-    /// ## Arguments
-    /// - `api_key` - Your Firebase project API key.
-    /// - `timeout` - Timeout options for HTTP client.
-    ///
-    /// ## Returns
-    /// The `Auth` instance for the signed in user.
-    ///
-    /// ## Example
-    /// ```
-    /// use firebase_auth_rs::auth::Auth;
-    ///
-    /// let auth = Auth::sign_in_anonymously(
-    ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
-    /// ).await?;
-    ///
-    /// // Do something with auth.
-    /// ```
-    pub async fn sign_in_anonymously(
-        api_key: String,
-        timeout: Option<Timeout>,
-    ) -> Result<Self> {
-        // Create a shared HTTP client.
-        let timeout = timeout.unwrap_or_default();
-        let client = reqwest::ClientBuilder::new()
-            .connect_timeout(timeout.connection_timeout)
-            .timeout(timeout.request_timeout)
-            .build()
-            .unwrap();
+/// Signs in as an anonymous user.
+///
+/// ## Arguments
+/// - `api_key` - Your Firebase project API key.
+/// - `timeout` - Timeout options for HTTP client.
+///
+/// ## Returns
+/// The `Auth` instance for the signed in user.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::auth::Auth;
+///
+/// let auth = Auth::sign_in_anonymously(
+///     "your-firebase-project-api-key".to_string(),
+///     None,
+/// ).await?;
+///
+/// // Do something with auth.
+/// ```
+pub async fn sign_in_anonymously(
+    api_key: String,
+    timeout: Option<Timeout>,
+) -> Result<Auth> {
+    // Create a shared HTTP client.
+    let timeout = timeout.unwrap_or_default();
+    let client = reqwest::ClientBuilder::new()
+        .connect_timeout(timeout.connection_timeout)
+        .timeout(timeout.request_timeout)
+        .build()
+        .unwrap();
 
-        // Create request payload.
-        let request_payload =
+    // Create request payload.
+    let request_payload =
             crate::api::sign_in_anonymously::SignInAnonymouslyRequestBodyPayload::new();
 
-        // Send request.
-        let response_payload =
-            crate::api::sign_in_anonymously::sign_in_anonymously(
-                &client,
-                &api_key,
-                request_payload,
-            )
-            .await?;
+    // Send request.
+    let response_payload =
+        crate::api::sign_in_anonymously::sign_in_anonymously(
+            &client,
+            &api_key,
+            request_payload,
+        )
+        .await?;
 
-        // Create tokens.
-        let tokens = Tokens {
-            id_token: response_payload.id_token,
-            expires_in: response_payload
-                .expires_in
-                .parse()
-                .map_err(|error| Error::NumberParseError {
-                    error,
-                })?,
-            refresh_token: response_payload.refresh_token,
-        };
+    // Create tokens.
+    let tokens = Tokens {
+        id_token: response_payload.id_token,
+        expires_in: response_payload
+            .expires_in
+            .parse()
+            .map_err(|error| Error::NumberParseError {
+                error,
+            })?,
+        refresh_token: response_payload.refresh_token,
+    };
 
-        // Create auth.
-        Ok(Self {
-            client,
-            api_key,
-            tokens,
-        })
-    }
+    // Create auth.
+    Ok(Auth {
+        client,
+        api_key,
+        tokens,
+    })
+}
 
-    /// Signs in a user with the given OAuth credential.
-    ///
-    /// ## Arguments
-    /// - `api_key` - Your Firebase project API key.
-    /// - `request_uri` - The URI to which the IDP redirects the user back.
-    /// - `post_body` - The POST body passed to the IDP containing the OAuth credential and provider ID.
-    /// - `timeout` - Timeout options for HTTP client.
-    ///
-    /// ## Returns
-    /// The `Auth` instance for the signed in user.
-    ///
-    /// ## Example
-    /// ```
-    /// use firebase_auth_rs::auth::Auth;
-    /// use firebase_auth_rs::api::sign_in_with_oauth_credential::IdpPostBody;
-    ///
-    /// let auth = Auth::sign_in_oauth_credencial(
-    ///     "your-firebase-project-api-key".to_string(),
-    ///     "https://your-app.com/redirect/path/auth/handler".to_string(),
-    ///     IdpPostBody::Google {
-    ///         id_token: "user-google-id-token-got-from-google-oauth-api".to_string(),
-    ///     },
-    ///     None,
-    /// ).await?;
-    ///
-    /// // Do something with auth.
-    /// ```
-    pub async fn sign_in_oauth_credencial(
-        api_key: String,
-        request_uri: String,
-        post_body: crate::api::sign_in_with_oauth_credential::IdpPostBody,
-        timeout: Option<Timeout>,
-    ) -> Result<Self> {
-        // Create a shared HTTP client.
-        let timeout = timeout.unwrap_or_default();
-        let client = reqwest::ClientBuilder::new()
-            .connect_timeout(timeout.connection_timeout)
-            .timeout(timeout.request_timeout)
-            .build()
-            .unwrap();
+/// Signs in a user with the given OAuth credential.
+///
+/// ## Arguments
+/// - `api_key` - Your Firebase project API key.
+/// - `request_uri` - The URI to which the IDP redirects the user back.
+/// - `post_body` - The POST body passed to the IDP containing the OAuth credential and provider ID.
+/// - `timeout` - Timeout options for HTTP client.
+///
+/// ## Returns
+/// The `Auth` instance for the signed in user.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::auth::Auth;
+/// use firebase_auth_rs::api::sign_in_with_oauth_credential::IdpPostBody;
+///
+/// let auth = Auth::sign_in_oauth_credencial(
+///     "your-firebase-project-api-key".to_string(),
+///     "https://your-app.com/redirect/path/auth/handler".to_string(),
+///     IdpPostBody::Google {
+///         id_token: "user-google-id-token-got-from-google-oauth-api".to_string(),
+///     },
+///     None,
+/// ).await?;
+///
+/// // Do something with auth.
+/// ```
+pub async fn sign_in_oauth_credencial(
+    api_key: String,
+    request_uri: String,
+    post_body: crate::api::sign_in_with_oauth_credential::IdpPostBody,
+    timeout: Option<Timeout>,
+) -> Result<Auth> {
+    // Create a shared HTTP client.
+    let timeout = timeout.unwrap_or_default();
+    let client = reqwest::ClientBuilder::new()
+        .connect_timeout(timeout.connection_timeout)
+        .timeout(timeout.request_timeout)
+        .build()
+        .unwrap();
 
-        // Create request payload.
-        let request_payload =
+    // Create request payload.
+    let request_payload =
             crate::api::sign_in_with_oauth_credential::SignInWithOAuthCredentialRequestBodyPayload::new(
                 request_uri,
                 post_body,
                 false,
             );
 
-        // Send request.
-        let response_payload =
+    // Send request.
+    let response_payload =
             crate::api::sign_in_with_oauth_credential::sign_in_with_oauth_credential(
                 &client,
                 &api_key,
@@ -789,183 +760,155 @@ impl Auth {
             )
             .await?;
 
-        // Create tokens.
-        let tokens = Tokens {
-            id_token: response_payload.id_token,
-            expires_in: response_payload
+    // Create tokens.
+    let tokens = Tokens {
+        id_token: response_payload.id_token,
+        expires_in: response_payload
+            .expires_in
+            .parse()
+            .map_err(|error| Error::NumberParseError {
+                error,
+            })?,
+        refresh_token: response_payload.refresh_token,
+    };
+
+    Ok(Auth {
+        client,
+        api_key,
+        tokens,
+    })
+}
+
+/// Exchanges a refresh token for an ID token and new refresh token.
+///
+/// ## Arguments
+/// - `api_key` - Your Firebase project API key.
+/// - `refresh_token` - A Firebase Auth refresh token.
+/// - `timeout` - Timeout options for HTTP client.
+///
+/// ## Returns
+/// The `Auth` instance for the signed in user.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::auth::Auth;
+///
+/// let auth = Auth::exchange_refresh_tokens(
+///     "your-firebase-project-api-key".to_string(),
+///     "user-firebase-refresh-token".to_string(),
+///     None,
+/// ).await?;
+///
+/// // Do something with auth.
+/// ```
+pub async fn exchange_refresh_tokens(
+    api_key: String,
+    refresh_token: String,
+    timeout: Option<Timeout>,
+) -> Result<Auth> {
+    // Create a shared HTTP client.
+    let timeout = timeout.unwrap_or_default();
+    let client = reqwest::ClientBuilder::new()
+        .connect_timeout(timeout.connection_timeout)
+        .timeout(timeout.request_timeout)
+        .build()
+        .unwrap();
+
+    // Create request payload.
+    let request_payload = crate::api::exchange_refresh_token::ExchangeRefreshTokenRequestBodyPayload::new(
+            refresh_token,
+        );
+
+    // Send request.
+    let response = crate::api::exchange_refresh_token::exchange_refresh_token(
+        &client,
+        &api_key,
+        request_payload,
+    )
+    .await?;
+
+    // Create tokens.
+    Ok(Auth {
+        client,
+        api_key,
+        tokens: Tokens {
+            id_token: response.id_token,
+            expires_in: response
                 .expires_in
                 .parse()
                 .map_err(|error| Error::NumberParseError {
                     error,
                 })?,
-            refresh_token: response_payload.refresh_token,
-        };
+            refresh_token: response.refresh_token,
+        },
+    })
+}
 
-        Ok(Self {
-            client,
-            api_key,
-            tokens,
-        })
-    }
+pub async fn fetch_providers_for_email_internal(
+    api_key: String,
+    email: String,
+    continue_uri: String,
+    timeout: Option<Timeout>,
+) -> Result<Vec<String>> {
+    // Create a shared HTTP client.
+    let timeout = timeout.unwrap_or_default();
+    let client = reqwest::ClientBuilder::new()
+        .connect_timeout(timeout.connection_timeout)
+        .timeout(timeout.request_timeout)
+        .build()
+        .unwrap();
 
-    /// Exchanges a refresh token for an ID token and new refresh token.
-    ///
-    /// ## Arguments
-    /// - `api_key` - Your Firebase project API key.
-    /// - `refresh_token` - A Firebase Auth refresh token.
-    /// - `timeout` - Timeout options for HTTP client.
-    ///
-    /// ## Returns
-    /// The `Auth` instance for the signed in user.
-    ///
-    /// ## Example
-    /// ```
-    /// use firebase_auth_rs::auth::Auth;
-    ///
-    /// let auth = Auth::exchange_refresh_tokens(
-    ///     "your-firebase-project-api-key".to_string(),
-    ///     "user-firebase-refresh-token".to_string(),
-    ///     None,
-    /// ).await?;
-    ///
-    /// // Do something with auth.
-    /// ```
-    pub async fn exchange_refresh_tokens(
-        api_key: String,
-        refresh_token: String,
-        timeout: Option<Timeout>,
-    ) -> Result<Self> {
-        // Create a shared HTTP client.
-        let timeout = timeout.unwrap_or_default();
-        let client = reqwest::ClientBuilder::new()
-            .connect_timeout(timeout.connection_timeout)
-            .timeout(timeout.request_timeout)
-            .build()
-            .unwrap();
-
-        // Create request payload.
-        let request_payload = crate::api::exchange_refresh_token::ExchangeRefreshTokenRequestBodyPayload::new(
-            refresh_token,
+    // Create request payload.
+    let request_payload =
+        crate::api::fetch_providers_for_email::FetchProvidersForEmailRequestBodyPayload::new(
+            email,
+            continue_uri,
         );
 
-        // Send request.
-        let response =
-            crate::api::exchange_refresh_token::exchange_refresh_token(
-                &client,
-                &api_key,
-                request_payload,
-            )
-            .await?;
+    // Send request.
+    let response =
+        crate::api::fetch_providers_for_email::fetch_providers_for_email(
+            &client,
+            &api_key,
+            request_payload,
+        )
+        .await?;
 
-        // Create tokens.
-        Ok(Self {
-            client,
-            api_key,
-            tokens: Tokens {
-                id_token: response.id_token,
-                expires_in: response
-                    .expires_in
-                    .parse()
-                    .map_err(|error| Error::NumberParseError {
-                        error,
-                    })?,
-                refresh_token: response.refresh_token,
-            },
-        })
-    }
+    Ok(response.all_providers)
+}
+
+pub async fn send_reset_password_email(
+    api_key: String,
+    email: String,
+    locale: Option<String>,
+    timeout: Option<Timeout>,
+) -> Result<()> {
+    // Create a shared HTTP client.
+    let timeout = timeout.unwrap_or_default();
+    let client = reqwest::ClientBuilder::new()
+        .connect_timeout(timeout.connection_timeout)
+        .timeout(timeout.request_timeout)
+        .build()
+        .unwrap();
+
+    // Create request payload.
+    let request_payload =
+            crate::api::send_password_reset_email::SendPasswordResetEmailRequestBodyPayload::new(email);
+
+    // Send request.
+    crate::api::send_password_reset_email::send_password_reset_email(
+        &client,
+        &api_key,
+        request_payload,
+        locale,
+    )
+    .await?;
+
+    Ok(())
 }
 
 /// Implements public API callings for an `Auth` instance with automatic refreshing tokens.
 impl Auth {
-    /// Fetches the list of IdPs that can be used for signing in with the provided email address.
-    ///
-    /// Automatically refreshes tokens if needed.
-    ///
-    /// ## Arguments
-    /// - `email` - The email address of the user.
-    /// - `continue_uri` - The URI to which the IDP redirects the user back.
-    ///
-    /// ## Returns
-    /// 1. New `Auth` instance to replace the consumed `Auth` instance.
-    /// 2. The list of IdPs that can be used for signing in with the provided email address.
-    ///
-    /// ## Example
-    /// ```
-    /// use firebase_auth_rs::auth::Auth;
-    ///
-    /// let auth = Auth::sign_in_with_email_password(
-    ///     "your-firebase-project-api-key".to_string(),
-    ///     "user@example".to_string(),
-    ///     "password".to_string(),
-    ///     None,
-    /// ).await?;
-    ///
-    /// let (auth, providers) = auth.fetch_providers_for_email(
-    ///     "user@example".to_string(),
-    ///     "https://your-app.com/redirect/path/auth/handler".to_string(),
-    /// ).await?;
-    ///
-    /// // Do something with auth and providers.
-    /// ```
-    pub async fn fetch_providers_for_email(
-        self,
-        email: String,
-        continue_uri: String,
-    ) -> Result<(Auth, Vec<String>)> {
-        call_api_with_refreshing_tokens_with_return_value!(
-            self,
-            Auth::fetch_providers_for_email_internal,
-            1,
-            email.clone(),
-            continue_uri.clone()
-        )
-        .await
-    }
-
-    /// Sends a password reset email to the given email address.
-    ///
-    /// Automatically refreshes tokens if needed.
-    ///
-    /// ## Arguments
-    /// - `email` - The email address of the user.
-    /// - `locale` - The optional language code corresponding to the user's locale.
-    ///
-    /// ## Returns
-    /// New `Auth` instance to replace the consumed `Auth` instance.
-    ///
-    /// ## Example
-    /// ```
-    /// use firebase_auth_rs::auth::Auth;
-    ///
-    /// let auth = Auth::sign_in_with_email_password(
-    ///     "your-firebase-project-api-key".to_string(),
-    ///     "user@example".to_string(),
-    ///     "password".to_string(),
-    ///     None,
-    /// ).await?;
-    ///
-    /// let auth = auth.send_password_reset_email(
-    ///     "user@example".to_string(),
-    ///     None,
-    /// ).await?;
-    ///
-    /// // Do something with auth.
-    /// ```
-    pub async fn send_password_reset_email(
-        self,
-        email: String,
-        locale: Option<String>,
-    ) -> Result<Auth> {
-        call_api_with_refreshing_tokens_without_return_value!(
-            self,
-            Auth::send_reset_password_email_internal,
-            1,
-            email.clone(),
-            locale.clone()
-        )
-        .await
-    }
-
     /// Changes the email for the user.
     ///
     /// Automatically refreshes tokens if needed.
@@ -1110,7 +1053,6 @@ impl Auth {
     /// ## Example
     /// ```
     /// use firebase_auth_rs::auth::Auth;
-    /// use firebase_auth_rs::api::update_profile::DeleteAttribute;
     ///
     /// let auth = Auth::sign_in_with_email_password(
     ///     "your-firebase-project-api-key".to_string(),

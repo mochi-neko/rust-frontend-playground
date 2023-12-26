@@ -4,16 +4,17 @@ use dioxus::prelude::{
     component, dioxus_elements, render, use_shared_state, Element, Props, Scope,
 };
 use dioxus_router::prelude::{use_navigator, FromQuery};
-use firebase_auth_rs::api::sign_in_with_oauth_credential::{
-    IdpPostBody, SignInWithOAuthCredentialRequestBodyPayload,
+use firebase_auth_rs::{
+    api::sign_in_with_oauth_credential::IdpPostBody,
+    auth::{Auth, Timeout},
 };
 use google_oauth_rs::api::exchange_access_token::{
     ExchangeAccessTokenRequestParameters, GrandType,
 };
 
 use crate::{
-    application_context::ApplicationContext, auth_context::AuthContext,
-    generated::dotenv, routings::route::Route,
+    application_context::ApplicationContext, generated::dotenv,
+    routings::route::Route,
 };
 
 #[allow(non_snake_case)]
@@ -38,10 +39,10 @@ pub(crate) fn OAuthGoogle(
 
         cx.spawn(async move {
             let mut context = context.write_silent();
-            match sign_in_with_google(context.clone(), code).await {
-                | Ok(auth_context) => {
+            match sign_in_with_google(code).await {
+                | Ok(auth) => {
                     log::info!("Sign in with Google success");
-                    context.set_auth(auth_context);
+                    context.auth = Some(auth);
                     navigator.push(Route::Dashboard {});
                 },
                 | Err(error) => {
@@ -188,10 +189,13 @@ impl FromQuery for RedirectToAuthServerResponseErrorQuery {
     }
 }
 
-async fn sign_in_with_google(
-    context: ApplicationContext,
-    auth_code: String,
-) -> anyhow::Result<AuthContext> {
+async fn sign_in_with_google(auth_code: String) -> anyhow::Result<Auth> {
+    let timeout = Timeout::default();
+    let client = reqwest::ClientBuilder::new()
+        .connect_timeout(timeout.connection_timeout)
+        .timeout(timeout.request_timeout)
+        .build()?;
+
     let request_parameter = ExchangeAccessTokenRequestParameters {
         client_id: dotenv::GOOGLE_CLIENT_ID.to_string(),
         client_secret: dotenv::GOOGLE_CLIENT_SECRET.to_string(),
@@ -202,31 +206,24 @@ async fn sign_in_with_google(
 
     let token_response =
         google_oauth_rs::api::exchange_access_token::exchange_access_token(
-            &context.client,
+            &client,
             request_parameter,
         )
         .await?;
 
     log::info!("Exchange access token success");
 
-    let request_payload = SignInWithOAuthCredentialRequestBodyPayload::new(
+    let auth = firebase_auth_rs::auth::sign_in_oauth_credencial(
+        dotenv::FIREBASE_API_KEY.to_string(),
         "http://localhost:8080/auth/google-callback".to_string(),
         IdpPostBody::Google {
             id_token: token_response.id_token,
         },
-        true,
-    );
-
-    let sign_in_response = firebase_auth_rs::api::sign_in_with_oauth_credential::sign_in_with_oauth_credential(
-        &context.client,
-        &dotenv::FIREBASE_API_KEY.to_string(),
-        request_payload,
-    ).await?;
+        None,
+    )
+    .await?;
 
     log::info!("Sign in with OAuth credential success");
 
-    Ok(AuthContext {
-        id_token: sign_in_response.id_token,
-        refresh_token: sign_in_response.refresh_token,
-    })
+    Ok(auth)
 }

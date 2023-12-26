@@ -1,15 +1,11 @@
 use dioxus::prelude::{
-    component, dioxus_elements, fc_to_builder, render, to_owned,
-    use_shared_state, use_state, Element, GlobalAttributes, IntoDynNode, Scope,
-    Scoped, UseState,
+    component, dioxus_elements, fc_to_builder, render, to_owned, use_state,
+    Element, GlobalAttributes, IntoDynNode, Scope, Scoped, UseState,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
 
 use super::route::Route;
-use crate::{
-    application_context::ApplicationContext, auth::send_reset_password_email,
-};
 
 #[allow(non_snake_case)]
 #[component(no_case_check)]
@@ -94,9 +90,6 @@ fn send_send_password_reset_email(
     error_message: &UseState<Option<String>>,
 ) {
     // Setup hooks
-    let context = use_shared_state::<ApplicationContext>(cx)
-        .unwrap()
-        .clone();
     let navigation = use_navigator(cx).clone();
     let error_message = error_message.clone();
 
@@ -104,8 +97,10 @@ fn send_send_password_reset_email(
         async move {
             log::info!("Send password reset email: {:?}", email);
             error_message.set(None);
-            let context = context.read();
-            match send_reset_password_email(&context.client, email).await {
+            match firebase_auth_rs::auth::send_reset_password_email(
+                crate::generated::dotenv::FIREBASE_API_KEY.to_string(),
+                email, None, None,
+            ).await {
                 | Ok(_) => {
                     log::info!("Send password reset email success");
                     error_message.set(None);
@@ -114,24 +109,20 @@ fn send_send_password_reset_email(
                 | Err(error) => {
                     log::error!("Sign up failed: {:?}", error);
                     match error {
-                        | crate::error::Error::FirebaseAuthError {
-                            inner,
-                        } => match inner {
-                            | firebase_auth_rs::error::Error::ApiError {
-                                status_code: _,
-                                error_code,
-                                response: _,
-                            } => match error_code {
-                                | firebase_auth_rs::error::CommonErrorCode::EmailNotFound => {
-                                    error_message.set(Some("Error: E-mail address not found.".to_string()));
-                                },
-                                | _ => {
-                                    error_message.set(Some("Error: Internal error.".to_string()));
-                                },
+                        | firebase_auth_rs::error::Error::ApiError {
+                            status_code: _,
+                            error_code,
+                            response: _,
+                        } => match error_code {
+                            | firebase_auth_rs::error::CommonErrorCode::EmailNotFound => {
+                                error_message.set(Some("Error: E-mail address not found.".to_string()));
                             },
                             | _ => {
                                 error_message.set(Some("Error: Internal error.".to_string()));
                             },
+                        },
+                        | _ => {
+                            error_message.set(Some("Error: Internal error.".to_string()));
                         },
                     }
                 },

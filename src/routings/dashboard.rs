@@ -1,10 +1,10 @@
 use dioxus::prelude::{
-    component, dioxus_elements, fc_to_builder, render, to_owned, use_future,
-    use_shared_state, use_state, Element, IntoDynNode, Scope, Scoped,
-    UseSharedState,
+    component, dioxus_elements, fc_to_builder, render, rsx, to_owned,
+    use_future, use_shared_state, use_state, Element, IntoDynNode, Scope,
+    Scoped, UseSharedState,
 };
 use dioxus_router::hooks::use_navigator;
-use firebase_auth_rs::api::get_user_data::GetUserDataResponsePayload;
+use firebase_auth_rs::auth::{Auth, UserData};
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
 
 use crate::application_context::ApplicationContext;
@@ -22,7 +22,18 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
     let photo_url = use_state(cx, String::new);
 
     let fetch_user_data = use_future(cx, (), move |_| {
-        get_user_data(context.read().clone())
+        let context = context.clone();
+        async move {
+            let mut context = context.write();
+            let auth: Option<Auth> = context.auth.clone();
+            match fetch_user_data_helper(auth).await {
+                | Some((new_auth, user_data)) => {
+                    context.auth = Some(new_auth);
+                    Some(user_data)
+                },
+                | None => None,
+            }
+        }
     });
 
     redirect_to_home(cx);
@@ -44,14 +55,6 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
         }
 
         match fetch_user_data.value() {
-            | Some(Err(error)) => {
-                render! {
-                    div {
-                        "Failed to get user data: "
-                        error.to_string()
-                    }
-                }
-            },
             | None => {
                 render! {
                     div {
@@ -59,133 +62,9 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                     }
                 }
             },
-            | Some(Ok(user_data)) => {
-                match user_data.users.get(0) {
-                    | None => {
-                        render! {
-                            div {
-                                "User not found"
-                            }
-                        }
-                    },
-                    | Some(user) => {
-                        render! {
-                            div {
-                                span {
-                                    onclick: |_| send_email_verification(cx),
-                                    MatButton {
-                                        label: "Send email verification",
-                                        outlined: true,
-                                        disabled: user.email_verified,
-                                    }
-                                }
-                            }
-
-                            h2 { "User info" }
-
-                            div {
-                                "Local ID: "
-                                span { user.local_id.clone() }
-                            }
-
-                            div {
-                                "E-mail: "
-                                span { user.email.clone() }
-                            }
-
-                            div {
-                                "E-mail verified: "
-                                span { user.email_verified.to_string() }
-                            }
-
-                            div {
-                                "Display name: "
-                                span { user.display_name.clone() }
-                            }
-
-                            div {
-                                "Provider user info: "
-                                for provider_user_info in user.provider_user_info.iter() {
-                                    div {
-                                        "- Provider ID: "
-                                        span { provider_user_info.provider_id.clone() }
-                                    }
-
-                                    div {
-                                        "- Display name: "
-                                        span { provider_user_info.display_name.clone() }
-                                    }
-
-                                    div {
-                                        "- Photo URL: "
-                                        span { provider_user_info.photo_url.clone() }
-                                    }
-
-                                    div {
-                                        "- Federated ID: "
-                                        span { provider_user_info.federated_id.clone() }
-                                    }
-
-                                    div {
-                                        "- Email: "
-                                        span { provider_user_info.email.clone() }
-                                    }
-
-                                    div {
-                                        "- Raw ID: "
-                                        span { provider_user_info.raw_id.clone() }
-                                    }
-
-                                    div {
-                                        "- Screen name: "
-                                        span { provider_user_info.screen_name.clone() }
-                                    }
-                                }
-                            }
-
-                            div {
-                                "Photo URL: "
-                                span { user.photo_url.clone() }
-                            }
-
-                            div {
-                                "Password hash: "
-                                span { "XXXX" }
-                            }
-
-                            div {
-                                "Password updated at: "
-                                span { user.password_updated_at.to_string() }
-                            }
-
-                            div {
-                                "Valid since: "
-                                span { user.valid_since.clone() }
-                            }
-
-                            div {
-                                "Disabled: "
-                                span { user.disabled.unwrap_or(false).to_string() }
-                            }
-
-                            div {
-                                "Last login at: "
-                                span { user.last_login_at.clone() }
-                            }
-
-                            div {
-                                "Created at: "
-                                span { user.created_at.clone() }
-                            }
-
-                            div {
-                                "Custom auth: "
-                                span { user.custom_auth.unwrap_or(false).to_string() }
-                            }
-                        }
-                    },
-                }
-            }
+            | Some(user_data) => {
+                render_user_data(cx, user_data)
+            },
         }
 
         br {}
@@ -322,26 +201,156 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
     }
 }
 
-async fn get_user_data(
-    context: ApplicationContext
-) -> anyhow::Result<GetUserDataResponsePayload> {
-    if let Some(auth_context) = &context.auth {
-        log::info!("Get user data");
-        match crate::auth::get_user_data(&context.client, auth_context).await {
-            | Ok(data) => {
-                log::info!("Get user data success");
-                Ok(data)
-            },
-            | Err(error) => {
-                log::error!("Get user data failed: {:?}", error);
-                Err(error)
-            },
-        }
-    } else {
-        log::error!("Get user data failed: Auth context not found");
-        Err(anyhow::anyhow!(
-            "Auth context not found"
-        ))
+fn render_user_data<'a>(
+    cx: Scope<'a>,
+    user_data: &Option<UserData>,
+) -> Element<'a> {
+    match user_data {
+        | None => {
+            render! {
+                div {
+                    "User data is not available"
+                }
+            }
+        },
+        | Some(user_data) => cx.render(rsx! {
+            div {
+                span {
+                    onclick: |_| send_email_verification(cx),
+                    MatButton {
+                        label: "Send email verification",
+                        outlined: true,
+                        disabled: user_data.email_verified,
+                    }
+                }
+            }
+
+            h2 { "User info" }
+
+            div {
+                "Local ID: "
+                span { user_data.local_id.clone() }
+            }
+
+            div {
+                "E-mail: "
+                span { user_data.email.clone() }
+            }
+
+            div {
+                "E-mail verified: "
+                span { user_data.email_verified.to_string() }
+            }
+
+            div {
+                "Display name: "
+                span { user_data.display_name.clone() }
+            }
+
+            div {
+                "Provider user info: "
+                for provider_user_info in user_data.provider_user_info.iter() {
+                    div {
+                        "- Provider ID: "
+                        span { provider_user_info.provider_id.clone() }
+                    }
+
+                    div {
+                        "- Display name: "
+                        span { provider_user_info.display_name.clone() }
+                    }
+
+                    div {
+                        "- Photo URL: "
+                        span { provider_user_info.photo_url.clone() }
+                    }
+
+                    div {
+                        "- Federated ID: "
+                        span { provider_user_info.federated_id.clone() }
+                    }
+
+                    div {
+                        "- Email: "
+                        span { provider_user_info.email.clone() }
+                    }
+
+                    div {
+                        "- Raw ID: "
+                        span { provider_user_info.raw_id.clone() }
+                    }
+
+                    div {
+                        "- Screen name: "
+                        span { provider_user_info.screen_name.clone() }
+                    }
+                }
+            }
+
+            div {
+                "Photo URL: "
+                span { user_data.photo_url.clone() }
+            }
+
+            div {
+                "Password hash: "
+                span { "XXXX" }
+            }
+
+            div {
+                "Password updated at: "
+                span { user_data.password_updated_at.to_string() }
+            }
+
+            div {
+                "Valid since: "
+                span { user_data.valid_since.clone() }
+            }
+
+            div {
+                "Disabled: "
+                span { user_data.disabled.to_string() }
+            }
+
+            div {
+                "Last login at: "
+                span { user_data.last_login_at.clone() }
+            }
+
+            div {
+                "Created at: "
+                span { user_data.created_at.clone() }
+            }
+
+            div {
+                "Custom auth: "
+                span { user_data.custom_auth.unwrap_or(false).to_string() }
+            }
+        }),
+    }
+}
+
+async fn fetch_user_data_helper(
+    auth_option: Option<Auth>
+) -> Option<(Auth, UserData)> {
+    match auth_option {
+        | Some(auth) => {
+            log::info!("Get user data");
+            match auth.get_user_data().await {
+                | Ok((new_auth, user_data)) => {
+                    log::info!("Get user data success");
+                    Some((new_auth, user_data))
+                },
+                | Err(error) => {
+                    log::error!("Get user data failed: {:?}", error);
+                    None
+                },
+            }
+        },
+        | None => {
+            log::error!("Auth context is not available");
+            None
+        },
     }
 }
 
@@ -367,17 +376,17 @@ fn send_email_verification(cx: &Scoped<'_>) {
 
     cx.spawn({
         async move {
-            let context = context.read();
-            if let Some(auth_context) = &context.auth {
+            let mut context = context.write();
+            if let Some(auth) = &context.auth {
                 log::info!("Send email verification");
-                match crate::auth::send_email_verification(
-                    &context.client,
-                    auth_context,
-                )
-                .await
+                match auth
+                    .clone()
+                    .send_email_verification(None)
+                    .await
                 {
-                    | Ok(_) => {
+                    | Ok(new_auth) => {
                         log::info!("Send email verification success");
+                        context.auth = Some(new_auth);
                     },
                     | Err(error) => {
                         log::error!(
@@ -402,18 +411,17 @@ fn change_email(
 
     cx.spawn({
         async move {
-            let context = context.read();
-            if let Some(auth_context) = &context.auth {
+            let mut context = context.write();
+            if let Some(auth) = &context.auth {
                 log::info!("Change email");
-                match crate::auth::change_email(
-                    &context.client,
-                    auth_context,
-                    email,
-                )
-                .await
+                match auth
+                    .clone()
+                    .change_email(email, None)
+                    .await
                 {
-                    | Ok(_) => {
+                    | Ok(new_auth) => {
                         log::info!("Change email success");
+                        context.auth = Some(new_auth);
                     },
                     | Err(error) => {
                         log::error!("Change email failed: {:?}", error);
@@ -435,18 +443,17 @@ fn change_password(
 
     cx.spawn({
         async move {
-            let context = context.read();
-            if let Some(auth_context) = &context.auth {
+            let mut context = context.write();
+            if let Some(auth) = &context.auth {
                 log::info!("Change password");
-                match crate::auth::change_password(
-                    &context.client,
-                    auth_context,
-                    password,
-                )
-                .await
+                match auth
+                    .clone()
+                    .change_password(password)
+                    .await
                 {
-                    | Ok(_) => {
+                    | Ok(new_auth) => {
                         log::info!("Change password success");
+                        context.auth = Some(new_auth);
                     },
                     | Err(error) => {
                         log::error!("Change password failed: {:?}", error);
@@ -469,20 +476,17 @@ fn update_profile(
 
     cx.spawn({
         async move {
-            let context = context.read();
-            if let Some(auth_context) = &context.auth {
+            let mut context = context.write();
+            if let Some(auth) = &context.auth {
                 log::info!("Update profile");
-                match crate::auth::update_profile(
-                    &context.client,
-                    auth_context,
-                    display_name,
-                    photo_url,
-                    vec![],
-                )
-                .await
+                match auth
+                    .clone()
+                    .update_profile(display_name, photo_url, vec![])
+                    .await
                 {
-                    | Ok(_) => {
+                    | Ok(new_auth) => {
                         log::info!("Update profile success");
+                        context.auth = Some(new_auth);
                     },
                     | Err(error) => {
                         log::error!("Update profile failed: {:?}", error);
@@ -523,9 +527,11 @@ fn delete_account(cx: &Scoped<'_>) {
     cx.spawn({
         async move {
             let mut context = context.write();
-            if let Some(auth_context) = &context.auth {
+            if let Some(auth) = &context.auth {
                 log::info!("Delete account");
-                match crate::auth::delete_account(&context.client, auth_context)
+                match auth
+                    .clone()
+                    .delete_account()
                     .await
                 {
                     | Ok(_) => {

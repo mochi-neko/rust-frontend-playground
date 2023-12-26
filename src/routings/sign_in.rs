@@ -151,38 +151,39 @@ fn sign_in(
             log::info!("Sign in: {:?}", email);
             error_message.set(None);
             let mut context = context.write();
-            match crate::auth::sign_in(&context.client, email, password).await {
-                | Ok(auth_context) => {
+            match firebase_auth_rs::auth::sign_in_with_email_password(
+                crate::generated::dotenv::FIREBASE_API_KEY.to_string(),
+                email,
+                password,
+                None,
+            ).await {
+                | Ok(auth) => {
                     log::info!("Sign in success");
-                    // NOTE: Update auth context
-                    context.set_auth(auth_context);
+                    // NOTE: Update auth
+                    context.auth = Some(auth);
                     // NOTE: Navigate to dashboard
                     navigator.push(Route::Dashboard {});
                 },
                 | Err(error) => {
                     log::error!("Sign in failed: {:?}", error);
                     match error {
-                        | crate::error::Error::FirebaseAuthError {
-                            inner,
-                        } => match inner {
-                            | firebase_auth_rs::error::Error::ApiError {
-                                status_code: _,
-                                error_code,
-                                response: _,
-                            } => match error_code {
-                                | firebase_auth_rs::error::CommonErrorCode::InvalidLoginCredentials => {
-                                    error_message.set(Some("Error: Invalid email or password.".to_string()));
-                                },
-                                | firebase_auth_rs::error::CommonErrorCode::UserDisabled => {
-                                    error_message.set(Some("Error: User disabled.".to_string()));
-                                },
-                                | _ => {
-                                    error_message.set(Some("Error: Internal error.".to_string()));
-                                },
+                        | firebase_auth_rs::error::Error::ApiError {
+                            status_code: _,
+                            error_code,
+                            response: _,
+                        } => match error_code {
+                            | firebase_auth_rs::error::CommonErrorCode::InvalidLoginCredentials => {
+                                error_message.set(Some("Error: Invalid email or password.".to_string()));
+                            },
+                            | firebase_auth_rs::error::CommonErrorCode::UserDisabled => {
+                                error_message.set(Some("Error: User disabled.".to_string()));
                             },
                             | _ => {
                                 error_message.set(Some("Error: Internal error.".to_string()));
                             },
+                        },
+                        | _ => {
+                            error_message.set(Some("Error: Internal error.".to_string()));
                         },
                     }
                 },

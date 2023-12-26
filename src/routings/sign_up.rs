@@ -226,41 +226,42 @@ fn sign_up(
         log::info!("Sign up: {:?}", email);
         error_message.set(None);
         let mut context = context.write();
-        match crate::auth::sign_up(&context.client, email, password).await {
-            | Ok(auth_context) => {
+        match firebase_auth_rs::auth::sign_up_with_email_password(
+            crate::generated::dotenv::FIREBASE_API_KEY.to_string(),
+            email,
+            password,
+            None,
+        ).await {
+            | Ok(auth) => {
                 log::info!("Sign up success");
                 // NOTE: Update auth context
-                context.set_auth(auth_context);
+                context.auth = Some(auth);
                 // NOTE: Navigate to dashboard
                 navigator.push(Route::Dashboard {});
             },
             | Err(error) => {
                 log::error!("Sign up failed: {:?}", error);
                 match error {
-                    | crate::error::Error::FirebaseAuthError {
-                        inner,
-                    } => match inner {
-                        | firebase_auth_rs::error::Error::ApiError {
-                            status_code: _,
-                            error_code,
-                            response: _,
-                        } => match error_code {
-                            | firebase_auth_rs::error::CommonErrorCode::EmailExists => {
-                                error_message.set(Some("Error: E-mail address already exists.".to_string()));
-                            },
-                            | firebase_auth_rs::error::CommonErrorCode::OperationNotAllowed => {
-                                error_message.set(Some("Error: Operation not allowed.".to_string()));
-                            },
-                            | firebase_auth_rs::error::CommonErrorCode::TooManyAttemptsTryLater => {
-                                error_message.set(Some("Error: Too many attempts. Please try again later.".to_string()));
-                            },
-                            | _ => {
-                                error_message.set(Some("Error: Internal error.".to_string()));
-                            },
+                    | firebase_auth_rs::error::Error::ApiError {
+                        status_code: _,
+                        error_code,
+                        response: _,
+                    } => match error_code {
+                        | firebase_auth_rs::error::CommonErrorCode::EmailExists => {
+                            error_message.set(Some("Error: E-mail address already exists.".to_string()));
+                        },
+                        | firebase_auth_rs::error::CommonErrorCode::OperationNotAllowed => {
+                            error_message.set(Some("Error: Operation not allowed.".to_string()));
+                        },
+                        | firebase_auth_rs::error::CommonErrorCode::TooManyAttemptsTryLater => {
+                            error_message.set(Some("Error: Too many attempts. Please try again later.".to_string()));
                         },
                         | _ => {
                             error_message.set(Some("Error: Internal error.".to_string()));
                         },
+                    },
+                    | _ => {
+                        error_message.set(Some("Error: Internal error.".to_string()));
                     },
                 }
             },
