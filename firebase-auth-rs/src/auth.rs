@@ -193,8 +193,40 @@ macro_rules! call_api_with_refreshing_tokens_without_auth {
     }};
 }
 
-/// Implements internal API callings for `Auth`.
+/// Implements internal API callings for an `Auth` instance.
 impl Auth {
+    async fn refresh_tokens(self) -> Result<Self> {
+        // Create request payload.
+        let request_payload = crate::api::exchange_refresh_token::ExchangeRefreshTokenRequestBodyPayload::new(
+            self.tokens.refresh_token.clone(),
+        );
+
+        // Send request.
+        let response =
+            crate::api::exchange_refresh_token::exchange_refresh_token(
+                &self.client,
+                &self.api_key,
+                request_payload,
+            )
+            .await?;
+
+        // Create tokens.
+        Ok(Self {
+            client: self.client.clone(),
+            api_key: self.api_key.clone(),
+            tokens: Tokens {
+                id_token: response.id_token,
+                expires_in: response
+                    .expires_in
+                    .parse()
+                    .map_err(|error| Error::NumberParseError {
+                        error,
+                    })?,
+                refresh_token: response.refresh_token,
+            },
+        })
+    }
+
     async fn fetch_providers_for_email_internal(
         &self,
         email: String,
@@ -490,8 +522,32 @@ impl Auth {
     }
 }
 
-/// Implements builder functions for `Auth`.
+/// Implements factory functions for `Auth`.
 impl Auth {
+    /// Signs up a new user with the given email and password.
+    ///
+    /// ## Arguments
+    /// - `api_key` - Your Firebase project API key.
+    /// - `email` - The email of the user to sign up.
+    /// - `password` - The password of the user to sign up.
+    /// - `timeout` - Timeout options for HTTP client.
+    ///
+    /// ## Returns
+    /// The `Auth` instance for the signed up user.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::sign_up_with_email_password(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user@example".to_string(),
+    ///     "password".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
     pub async fn sign_up_with_email_password(
         api_key: String,
         email: String,
@@ -539,6 +595,30 @@ impl Auth {
         })
     }
 
+    /// Signs in a user with the given email and password.
+    ///
+    /// ## Arguments
+    /// - `api_key` - Your Firebase project API key.
+    /// - `email` - The email of the user to sign in.
+    /// - `password` - The password of the user to sign in.
+    /// - `timeout` - Timeout options for HTTP client.
+    ///
+    /// ## Returns
+    /// The `Auth` instance for the signed in user.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::sign_in_with_email_password(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user@example".to_string(),
+    ///     "password".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
     pub async fn sign_in_with_email_password(
         api_key: String,
         email: String,
@@ -586,6 +666,26 @@ impl Auth {
         })
     }
 
+    /// Signs in as an anonymous user.
+    ///
+    /// ## Arguments
+    /// - `api_key` - Your Firebase project API key.
+    /// - `timeout` - Timeout options for HTTP client.
+    ///
+    /// ## Returns
+    /// The `Auth` instance for the signed in user.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::sign_in_anonymously(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
     pub async fn sign_in_anonymously(
         api_key: String,
         timeout: Option<Timeout>,
@@ -631,6 +731,33 @@ impl Auth {
         })
     }
 
+    /// Signs in a user with the given OAuth credential.
+    ///
+    /// ## Arguments
+    /// - `api_key` - Your Firebase project API key.
+    /// - `request_uri` - The URI to which the IDP redirects the user back.
+    /// - `post_body` - The POST body passed to the IDP containing the OAuth credential and provider ID.
+    /// - `timeout` - Timeout options for HTTP client.
+    ///
+    /// ## Returns
+    /// The `Auth` instance for the signed in user.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    /// use firebase_auth_rs::api::sign_in_with_oauth_credential::IdpPostBody;
+    ///
+    /// let auth = Auth::sign_in_oauth_credencial(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "https://your-app.com/redirect/path/auth/handler".to_string(),
+    ///     IdpPostBody::Google {
+    ///         id_token: "user-google-id-token-got-from-google-oauth-api".to_string(),
+    ///     },
+    ///     None,
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
     pub async fn sign_in_oauth_credencial(
         api_key: String,
         request_uri: String,
@@ -680,31 +807,60 @@ impl Auth {
             tokens,
         })
     }
-}
 
-/// Implements public API callings for `Auth`.
-impl Auth {
-    pub async fn refresh_tokens(self) -> Result<Self> {
+    /// Exchanges a refresh token for an ID token and new refresh token.
+    ///
+    /// ## Arguments
+    /// - `api_key` - Your Firebase project API key.
+    /// - `refresh_token` - A Firebase Auth refresh token.
+    /// - `timeout` - Timeout options for HTTP client.
+    ///
+    /// ## Returns
+    /// The `Auth` instance for the signed in user.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::exchange_refresh_tokens(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user-firebase-refresh-token".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
+    pub async fn exchange_refresh_tokens(
+        api_key: String,
+        refresh_token: String,
+        timeout: Option<Timeout>,
+    ) -> Result<Self> {
+        // Create a shared HTTP client.
+        let timeout = timeout.unwrap_or_default();
+        let client = reqwest::ClientBuilder::new()
+            .connect_timeout(timeout.connection_timeout)
+            .timeout(timeout.request_timeout)
+            .build()
+            .unwrap();
+
         // Create request payload.
         let request_payload = crate::api::exchange_refresh_token::ExchangeRefreshTokenRequestBodyPayload::new(
-            self.tokens
-                .refresh_token
-                .clone(),
+            refresh_token,
         );
 
         // Send request.
         let response =
             crate::api::exchange_refresh_token::exchange_refresh_token(
-                &self.client,
-                &self.api_key,
+                &client,
+                &api_key,
                 request_payload,
             )
             .await?;
 
-        // Update tokens.
+        // Create tokens.
         Ok(Self {
-            client: self.client,
-            api_key: self.api_key,
+            client,
+            api_key,
             tokens: Tokens {
                 id_token: response.id_token,
                 expires_in: response
@@ -717,7 +873,40 @@ impl Auth {
             },
         })
     }
+}
 
+/// Implements public API callings for an `Auth` instance with automatic refreshing tokens.
+impl Auth {
+    /// Fetches the list of IdPs that can be used for signing in with the provided email address.
+    ///
+    /// Automatically refreshes tokens if needed.
+    ///
+    /// ## Arguments
+    /// - `email` - The email address of the user.
+    /// - `continue_uri` - The URI to which the IDP redirects the user back.
+    ///
+    /// ## Returns
+    /// 1. New `Auth` instance to replace the consumed `Auth` instance.
+    /// 2. The list of IdPs that can be used for signing in with the provided email address.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::sign_in_with_email_password(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user@example".to_string(),
+    ///     "password".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// let (auth, providers) = auth.fetch_providers_for_email(
+    ///     "user@example".to_string(),
+    ///     "https://your-app.com/redirect/path/auth/handler".to_string(),
+    /// ).await?;
+    ///
+    /// // Do something with auth and providers.
+    /// ```
     pub async fn fetch_providers_for_email(
         self,
         email: String,
@@ -733,6 +922,35 @@ impl Auth {
         .await
     }
 
+    /// Sends a password reset email to the given email address.
+    ///
+    /// Automatically refreshes tokens if needed.
+    ///
+    /// ## Arguments
+    /// - `email` - The email address of the user.
+    /// - `locale` - The optional language code corresponding to the user's locale.
+    ///
+    /// ## Returns
+    /// New `Auth` instance to replace the consumed `Auth` instance.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::sign_in_with_email_password(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user@example".to_string(),
+    ///     "password".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// let auth = auth.send_password_reset_email(
+    ///     "user@example".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
     pub async fn send_password_reset_email(
         self,
         email: String,
@@ -748,6 +966,35 @@ impl Auth {
         .await
     }
 
+    /// Changes the email for the user.
+    ///
+    /// Automatically refreshes tokens if needed.
+    ///
+    /// ## Arguments
+    /// - `new_email` - The new email address of the user.
+    /// - `locale` - The optional language code corresponding to the user's locale.
+    ///
+    /// ## Returns
+    /// New `Auth` instance to replace the consumed `Auth` instance.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::sign_in_with_email_password(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user@example".to_string(),
+    ///     "password".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// let auth = auth.change_email(
+    ///     "new-user@example".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
     pub async fn change_email(
         self,
         new_email: String,
@@ -763,6 +1010,33 @@ impl Auth {
         .await
     }
 
+    /// Changes the password for the user.
+    ///
+    /// Automatically refreshes tokens if needed.
+    ///
+    /// ## Arguments
+    /// - `new_password` - The new password of the user.
+    ///
+    /// ## Returns
+    /// New `Auth` instance to replace the consumed `Auth` instance.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::sign_in_with_email_password(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user@example".to_string(),
+    ///     "password".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// let auth = auth.change_password(
+    ///     "new-password".to_string(),
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
     pub async fn change_password(
         self,
         new_password: String,
@@ -776,6 +1050,38 @@ impl Auth {
         .await
     }
 
+    /// Updates the user profile information.
+    ///
+    /// Automatically refreshes tokens if needed.
+    ///
+    /// ## Arguments
+    /// - `display_name` - The display name for the account.
+    /// - `photo_url` - The photo url of the account.
+    /// - `delete_attribute` - The attributes that should be deleted from the account.
+    ///
+    /// ## Returns
+    /// New `Auth` instance to replace the consumed `Auth` instance.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    /// use firebase_auth_rs::api::update_profile::DeleteAttribute;
+    ///
+    /// let auth = Auth::sign_in_with_email_password(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user@example".to_string(),
+    ///     "password".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// let auth = auth.update_profile(
+    ///     "new-display-name".to_string(),
+    ///     "new-photo-url".to_string(),
+    ///     Vec::new(),
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
     pub async fn update_profile(
         self,
         display_name: String,
@@ -793,6 +1099,30 @@ impl Auth {
         .await
     }
 
+    /// Gets the user data.
+    ///
+    /// Automatically refreshes tokens if needed.
+    ///
+    /// ## Returns
+    /// 1. New `Auth` instance to replace the consumed `Auth` instance.
+    /// 2. The user data.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    /// use firebase_auth_rs::api::update_profile::DeleteAttribute;
+    ///
+    /// let auth = Auth::sign_in_with_email_password(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user@example".to_string(),
+    ///     "password".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// let (auth, user_data) = auth.get_user_data().await?;
+    ///
+    /// // Do something with auth and user_data.
+    /// ```
     pub async fn get_user_data(self) -> Result<(Auth, UserData)> {
         call_api_with_refreshing_tokens_with_return_value!(
             self,
@@ -802,6 +1132,37 @@ impl Auth {
         .await
     }
 
+    /// Links the user with the given email and password.
+    ///
+    /// Automatically refreshes tokens if needed.
+    ///
+    /// ## Arguments
+    /// - `email` - The email of the user to link.
+    /// - `password` - The password of the user to link.
+    ///
+    /// ## Returns
+    /// New `Auth` instance to replace the consumed `Auth` instance.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::sign_in_with_oauth_credencial(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "https://your-app.com/redirect/path/auth/handler".to_string(),
+    ///     IdpPostBody::Google {
+    ///         id_token: "user-google-id-token-got-from-google-oauth-api".to_string(),
+    ///     },
+    ///     None,
+    /// ).await?;
+    ///
+    /// let auth = auth.link_with_email_password(
+    ///    "new-user@example".to_string(),
+    ///    "new-password".to_string(),
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
     pub async fn link_with_email_password(
         self,
         email: String,
@@ -817,6 +1178,37 @@ impl Auth {
         .await
     }
 
+    /// Links the user with the given OAuth credential.
+    ///
+    /// Automatically refreshes tokens if needed.
+    ///
+    /// ## Arguments
+    /// - `request_uri` - The URI to which the IDP redirects the user back.
+    /// - `post_body` - The POST body passed to the IDP containing the OAuth credential and provider ID.
+    ///
+    /// ## Returns
+    /// New `Auth` instance to replace the consumed `Auth` instance.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::sign_in_with_email_password(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user@example".to_string(),
+    ///     "password".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// let auth = auth.link_with_oauth_credential(
+    ///     "https://your-app.com/redirect/path/auth/handler".to_string(),
+    ///     IdpPostBody::Google {
+    ///         id_token: "user-google-id-token-got-from-google-oauth-api".to_string(),
+    ///     },
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
     pub async fn link_with_oauth_credential(
         self,
         request_uri: String,
@@ -847,6 +1239,33 @@ impl Auth {
         .await
     }
 
+    /// Sends an email verification to the user.
+    ///
+    /// Automatically refreshes tokens if needed.
+    ///
+    /// ## Arguments
+    /// - `locale` - The optional language code corresponding to the user's locale.
+    ///
+    /// ## Returns
+    /// New `Auth` instance to replace the consumed `Auth` instance.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::sign_in_with_email_password(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user@example".to_string(),
+    ///     "password".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// let auth = auth.send_email_verification(
+    ///     None,
+    /// ).await?;
+    ///
+    /// // Do something with auth.
+    /// ```
     pub async fn send_email_verification(
         self,
         locale: Option<String>,
@@ -860,6 +1279,25 @@ impl Auth {
         .await
     }
 
+    /// Deletes the user account.
+    ///
+    /// Automatically refreshes tokens if needed.
+    ///
+    /// ## Example
+    /// ```
+    /// use firebase_auth_rs::auth::Auth;
+    ///
+    /// let auth = Auth::sign_in_with_email_password(
+    ///     "your-firebase-project-api-key".to_string(),
+    ///     "user@example".to_string(),
+    ///     "password".to_string(),
+    ///     None,
+    /// ).await?;
+    ///
+    /// auth.delete_account().await?;
+    ///
+    /// // Do something.
+    /// ```
     pub async fn delete_account(self) -> Result<()> {
         call_api_with_refreshing_tokens_without_auth!(
             self,
