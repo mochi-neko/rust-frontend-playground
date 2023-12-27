@@ -25,10 +25,10 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
         let context = context.clone();
         async move {
             let mut context = context.write();
-            let auth: Option<AuthSession> = context.auth.clone();
-            match fetch_user_data_helper(auth).await {
-                | Some((new_auth, user_data)) => {
-                    context.auth = Some(new_auth);
+            let session: Option<AuthSession> = context.auth_session.clone();
+            match fetch_user_data_helper(session).await {
+                | Some((new_session, user_data)) => {
+                    context.auth_session = Some(new_session);
                     Some(user_data)
                 },
                 | None => None,
@@ -361,7 +361,11 @@ fn redirect_to_home(cx: &Scoped<'_>) {
         .clone();
     let navigation = use_navigator(cx).clone();
 
-    if context.read().auth.is_none() {
+    if context
+        .read()
+        .auth_session
+        .is_none()
+    {
         // NOTE: Redirect to home
         log::info!("Redirect to home");
         navigation.push(Route::Home {});
@@ -377,16 +381,16 @@ fn send_email_verification(cx: &Scoped<'_>) {
     cx.spawn({
         async move {
             let mut context = context.write();
-            if let Some(auth) = &context.auth {
+            if let Some(sessoin) = &context.auth_session {
                 log::info!("Send email verification");
-                match auth
+                match sessoin
                     .clone()
                     .send_email_verification(None)
                     .await
                 {
-                    | Ok(new_auth) => {
+                    | Ok(new_session) => {
                         log::info!("Send email verification success");
-                        context.auth = Some(new_auth);
+                        context.auth_session = Some(new_session);
                     },
                     | Err(error) => {
                         log::error!(
@@ -412,16 +416,16 @@ fn change_email(
     cx.spawn({
         async move {
             let mut context = context.write();
-            if let Some(auth) = &context.auth {
+            if let Some(session) = &context.auth_session {
                 log::info!("Change email");
-                match auth
+                match session
                     .clone()
                     .change_email(email, None)
                     .await
                 {
-                    | Ok(new_auth) => {
+                    | Ok(new_session) => {
                         log::info!("Change email success");
-                        context.auth = Some(new_auth);
+                        context.auth_session = Some(new_session);
                     },
                     | Err(error) => {
                         log::error!("Change email failed: {:?}", error);
@@ -444,16 +448,16 @@ fn change_password(
     cx.spawn({
         async move {
             let mut context = context.write();
-            if let Some(auth) = &context.auth {
+            if let Some(session) = &context.auth_session {
                 log::info!("Change password");
-                match auth
+                match session
                     .clone()
                     .change_password(password)
                     .await
                 {
-                    | Ok(new_auth) => {
+                    | Ok(new_session) => {
                         log::info!("Change password success");
-                        context.auth = Some(new_auth);
+                        context.auth_session = Some(new_session);
                     },
                     | Err(error) => {
                         log::error!("Change password failed: {:?}", error);
@@ -477,16 +481,16 @@ fn update_profile(
     cx.spawn({
         async move {
             let mut context = context.write();
-            if let Some(auth) = &context.auth {
+            if let Some(session) = &context.auth_session {
                 log::info!("Update profile");
-                match auth
+                match session
                     .clone()
                     .update_profile(display_name, photo_url, vec![])
                     .await
                 {
-                    | Ok(new_auth) => {
+                    | Ok(new_session) => {
                         log::info!("Update profile success");
-                        context.auth = Some(new_auth);
+                        context.auth_session = Some(new_session);
                     },
                     | Err(error) => {
                         log::error!("Update profile failed: {:?}", error);
@@ -506,11 +510,11 @@ fn sign_out(cx: &Scoped<'_>) {
     let navigation = use_navigator(cx).clone();
 
     let mut context = context.write();
-    if context.auth.is_some() {
+    if context.auth_session.is_some() {
         log::info!("Sign out");
 
-        // NOTE: Reset auth context
-        context.auth = None;
+        // NOTE: Reset auth session
+        context.auth_session = None;
 
         // NOTE: Navigate to home
         navigation.push(Route::Home {});
@@ -527,9 +531,9 @@ fn delete_account(cx: &Scoped<'_>) {
     cx.spawn({
         async move {
             let mut context = context.write();
-            if let Some(auth) = &context.auth {
+            if let Some(session) = &context.auth_session {
                 log::info!("Delete account");
-                match auth
+                match session
                     .clone()
                     .delete_account()
                     .await
@@ -537,7 +541,7 @@ fn delete_account(cx: &Scoped<'_>) {
                     | Ok(_) => {
                         log::info!("Delete account success");
                         // NOTE: Reset auth context
-                        context.auth = None;
+                        context.auth_session = None;
                         // NOTE: Navigate to home
                         navigation.push(Route::Home {});
                     },

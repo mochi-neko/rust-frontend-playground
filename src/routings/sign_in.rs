@@ -151,17 +151,13 @@ fn sign_in(
             log::info!("Sign in: {:?}", email);
             error_message.set(None);
             let mut context = context.write();
-            match firebase_auth_rs::auth::sign_in_with_email_password(
-                crate::generated::dotenv::FIREBASE_API_KEY.to_string(),
+            match context.auth_config.sign_in_with_email_password(
                 email,
                 password,
-                None,
             ).await {
-                | Ok(auth) => {
+                | Ok(session) => {
                     log::info!("Sign in success");
-                    // NOTE: Update auth
-                    context.auth = Some(auth);
-                    // NOTE: Navigate to dashboard
+                    context.auth_session = Some(session);
                     navigator.push(Route::Dashboard {});
                 },
                 | Err(error) => {

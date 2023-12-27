@@ -1,9 +1,12 @@
 use dioxus::prelude::{
-    component, dioxus_elements, fc_to_builder, render, to_owned, use_state,
-    Element, GlobalAttributes, IntoDynNode, Scope, Scoped, UseState,
+    component, dioxus_elements, fc_to_builder, render, to_owned,
+    use_shared_state, use_state, Element, GlobalAttributes, IntoDynNode, Scope,
+    Scoped, UseState,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
+
+use crate::application_context::ApplicationContext;
 
 use super::route::Route;
 
@@ -90,6 +93,9 @@ fn send_send_password_reset_email(
     error_message: &UseState<Option<String>>,
 ) {
     // Setup hooks
+    let context = use_shared_state::<ApplicationContext>(cx)
+        .unwrap()
+        .clone();
     let navigation = use_navigator(cx).clone();
     let error_message = error_message.clone();
 
@@ -97,10 +103,8 @@ fn send_send_password_reset_email(
         async move {
             log::info!("Send password reset email: {:?}", email);
             error_message.set(None);
-            match firebase_auth_rs::auth::send_reset_password_email(
-                crate::generated::dotenv::FIREBASE_API_KEY.to_string(),
-                email, None, None,
-            ).await {
+            let context = context.read();
+            match context.auth_config.send_reset_password_email(email, None).await {
                 | Ok(_) => {
                     log::info!("Send password reset email success");
                     error_message.set(None);

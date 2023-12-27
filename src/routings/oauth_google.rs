@@ -6,7 +6,7 @@ use dioxus::prelude::{
 use dioxus_router::prelude::{use_navigator, FromQuery};
 use firebase_auth_rs::{
     api::sign_in_with_oauth_credential::IdpPostBody,
-    auth::{AuthSession, Timeout},
+    auth::{AuthConfig, AuthSession, Timeout},
 };
 use google_oauth_rs::api::exchange_access_token::{
     ExchangeAccessTokenRequestParameters, GrandType,
@@ -39,10 +39,10 @@ pub(crate) fn OAuthGoogle(
 
         cx.spawn(async move {
             let mut context = context.write_silent();
-            match sign_in_with_google(code).await {
-                | Ok(auth) => {
+            match sign_in_with_google(context.auth_config.clone(), code).await {
+                | Ok(session) => {
                     log::info!("Sign in with Google success");
-                    context.auth = Some(auth);
+                    context.auth_session = Some(session);
                     navigator.push(Route::Dashboard {});
                 },
                 | Err(error) => {
@@ -189,7 +189,10 @@ impl FromQuery for RedirectToAuthServerResponseErrorQuery {
     }
 }
 
-async fn sign_in_with_google(auth_code: String) -> anyhow::Result<AuthSession> {
+async fn sign_in_with_google(
+    auth_config: AuthConfig,
+    auth_code: String,
+) -> anyhow::Result<AuthSession> {
     let timeout = Timeout::default();
     let client = reqwest::ClientBuilder::new()
         .connect_timeout(timeout.connection_timeout)
@@ -213,15 +216,14 @@ async fn sign_in_with_google(auth_code: String) -> anyhow::Result<AuthSession> {
 
     log::info!("Exchange access token success");
 
-    let auth = firebase_auth_rs::auth::sign_in_oauth_credencial(
-        dotenv::FIREBASE_API_KEY.to_string(),
-        "http://localhost:8080/auth/google-callback".to_string(),
-        IdpPostBody::Google {
-            id_token: token_response.id_token,
-        },
-        None,
-    )
-    .await?;
+    let auth = auth_config
+        .sign_in_oauth_credencial(
+            "http://localhost:8080/auth/google-callback".to_string(),
+            IdpPostBody::Google {
+                id_token: token_response.id_token,
+            },
+        )
+        .await?;
 
     log::info!("Sign in with OAuth credential success");
 
