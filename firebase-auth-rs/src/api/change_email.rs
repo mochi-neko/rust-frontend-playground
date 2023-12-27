@@ -24,6 +24,11 @@ pub struct ChangeEmailRequestBodyPayload {
 
 impl ChangeEmailRequestBodyPayload {
     /// Creates a new request body payload for the change email API.
+    ///
+    /// ## Arguments
+    /// - `id_token` - A Firebase Auth ID token for the user.
+    /// - `email` - The user's new email.
+    /// - `return_secure_token` - Whether or not to return an ID and refresh token.
     pub fn new(
         id_token: String,
         email: String,
@@ -78,6 +83,26 @@ pub struct ChangeEmailResponsePayload {
 /// ## Common error codes
 /// - EMAIL_EXISTS: The email address is already in use by another account.
 /// - INVALID_ID_TOKEN:The user's credential is no longer valid. The user must sign in again.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::change_email::{
+///    change_email, ChangeEmailRequestBodyPayload,
+/// };
+///
+/// let resopnse_payload = change_email(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     ChangeEmailRequestBodyPayload::new(
+///         id_token,
+///         email,
+///         true,
+///     ),
+///     None,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn change_email(
     client: &reqwest::Client,
     api_key: &String,

@@ -23,6 +23,11 @@ pub struct ChangePasswordRequestBodyPayload {
 
 impl ChangePasswordRequestBodyPayload {
     /// Creates a new request body payload for the `setAccountInfo` endpoint.
+    ///
+    /// ## Arguments
+    /// - `id_token` - A Firebase Auth ID token for the user.
+    /// - `password` - The user's new password.
+    /// - `return_secure_token` - Whether or not to return an ID and refresh token.
     pub fn new(
         id_token: String,
         password: String,
@@ -77,6 +82,23 @@ pub struct ChangePasswordResponsePayload {
 /// ## Common error codes
 /// - INVALID_ID_TOKEN:The user's credential is no longer valid. The user must sign in again.
 /// - WEAK_PASSWORD: The password must be 6 characters long or more.
+///
+/// # Example
+/// ```
+/// use firebase_auth_rs::api::change_password::{
+///    change_password, ChangePasswordRequestBodyPayload,
+/// };
+///
+/// let resopnse_payload = change_password(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     ChangePasswordRequestBodyPayload::new(
+///         id_token,
+///         password,
+///         false,
+///     ),
+/// ).await.unwrap();
+/// ```
 pub async fn change_password(
     client: &reqwest::Client,
     api_key: &String,
