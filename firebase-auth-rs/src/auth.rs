@@ -2,9 +2,9 @@
 use crate::error::Error;
 use crate::result::Result;
 
-/// Authentication state for a user of Firebase Auth.
+/// Authentication session for a user of Firebase Auth.
 #[derive(Clone)]
-pub struct Auth {
+pub struct AuthSession {
     /// HTTP client.
     client: reqwest::Client,
     /// Firebase project API key.
@@ -70,7 +70,7 @@ impl Default for Timeout {
     }
 }
 
-/// Calls an API with refreshing tokens then return value with new Auth.
+/// Calls an API with refreshing tokens then return value with new `AuthSession``.
 macro_rules! call_api_with_refreshing_tokens_with_return_value {
     // Has arguments and return value with Auth.
     ($auth:expr, $api_call:expr, $retry_count:expr, $($api_call_args:expr), *) => {{
@@ -103,7 +103,7 @@ macro_rules! call_api_with_refreshing_tokens_with_return_value {
     }};
 }
 
-/// Calls an API with refreshing tokens then return not value with new Auth.
+/// Calls an API with refreshing tokens then return not value with new `AuthSession`.
 macro_rules! call_api_with_refreshing_tokens_without_return_value {
     // Has arguments and return only Auth.
     ($auth:expr, $api_call_unit:expr, $retry_count:expr, $($api_call_args:expr), *) => {{
@@ -136,7 +136,7 @@ macro_rules! call_api_with_refreshing_tokens_without_return_value {
     }};
 }
 
-/// Calls an API with refreshing tokens then return new Auth.
+/// Calls an API with refreshing tokens then return new `AuthSession`.
 macro_rules! call_api_with_refreshing_tokens_with_return_auth {
     // Has arguments and return Auth.
     ($auth:expr, $api_call:expr, $retry_count:expr, $($api_call_args:expr),*) => {{
@@ -169,7 +169,7 @@ macro_rules! call_api_with_refreshing_tokens_with_return_auth {
     }};
 }
 
-/// Calls an API with refreshing tokens then return no Auth.
+/// Calls an API with refreshing tokens then return no `AuthSession`.
 macro_rules! call_api_with_refreshing_tokens_without_auth {
     // Has arguments and return no Auth.
     ($auth:expr, $api_call:expr, $retry_count:expr, $($api_call_args:expr),*) => {{
@@ -202,8 +202,8 @@ macro_rules! call_api_with_refreshing_tokens_without_auth {
     }};
 }
 
-/// Implements internal API callings for an `Auth` instance.
-impl Auth {
+/// Implements internal API callings for an `AuthSession`.
+impl AuthSession {
     async fn refresh_tokens(self) -> Result<Self> {
         // Create request payload.
         let request_payload = crate::api::exchange_refresh_token::ExchangeRefreshTokenRequestBodyPayload::new(
@@ -493,7 +493,7 @@ impl Auth {
     }
 }
 
-/// Implements factory functions for `Auth`.
+/// Implements factory functions for `AuthSession`.
 
 /// Signs up a new user with the given email and password.
 ///
@@ -504,13 +504,11 @@ impl Auth {
 /// - `timeout` - Timeout options for HTTP client.
 ///
 /// ## Returns
-/// The `Auth` instance for the signed up user.
+/// The `AuthSession` instance for the signed up user.
 ///
 /// ## Example
 /// ```
-/// use firebase_auth_rs::auth::Auth;
-///
-/// let auth = Auth::sign_up_with_email_password(
+/// let auth = firebase_auth_rs::auth::sign_up_with_email_password(
 ///     "your-firebase-project-api-key".to_string(),
 ///     "user@example".to_string(),
 ///     "password".to_string(),
@@ -524,7 +522,7 @@ pub async fn sign_up_with_email_password(
     email: String,
     password: String,
     timeout: Option<Timeout>,
-) -> Result<Auth> {
+) -> Result<AuthSession> {
     // Create a shared HTTP client.
     let timeout = timeout.unwrap_or_default();
     let client = reqwest::ClientBuilder::new()
@@ -558,8 +556,8 @@ pub async fn sign_up_with_email_password(
         refresh_token: response_payload.refresh_token,
     };
 
-    // Create auth.
-    Ok(Auth {
+    // Create session.
+    Ok(AuthSession {
         client,
         api_key,
         tokens,
@@ -575,7 +573,7 @@ pub async fn sign_up_with_email_password(
 /// - `timeout` - Timeout options for HTTP client.
 ///
 /// ## Returns
-/// The `Auth` instance for the signed in user.
+/// The `AuthSession` instance for the signed in user.
 ///
 /// ## Example
 /// ```
@@ -595,7 +593,7 @@ pub async fn sign_in_with_email_password(
     email: String,
     password: String,
     timeout: Option<Timeout>,
-) -> Result<Auth> {
+) -> Result<AuthSession> {
     // Create a shared HTTP client.
     let timeout = timeout.unwrap_or_default();
     let client = reqwest::ClientBuilder::new()
@@ -629,8 +627,8 @@ pub async fn sign_in_with_email_password(
         refresh_token: response_payload.refresh_token,
     };
 
-    // Create auth.
-    Ok(Auth {
+    // Create session.
+    Ok(AuthSession {
         client,
         api_key,
         tokens,
@@ -644,7 +642,7 @@ pub async fn sign_in_with_email_password(
 /// - `timeout` - Timeout options for HTTP client.
 ///
 /// ## Returns
-/// The `Auth` instance for the signed in user.
+/// The `AuthSession` instance for the signed in user.
 ///
 /// ## Example
 /// ```
@@ -660,7 +658,7 @@ pub async fn sign_in_with_email_password(
 pub async fn sign_in_anonymously(
     api_key: String,
     timeout: Option<Timeout>,
-) -> Result<Auth> {
+) -> Result<AuthSession> {
     // Create a shared HTTP client.
     let timeout = timeout.unwrap_or_default();
     let client = reqwest::ClientBuilder::new()
@@ -694,8 +692,8 @@ pub async fn sign_in_anonymously(
         refresh_token: response_payload.refresh_token,
     };
 
-    // Create auth.
-    Ok(Auth {
+    // Create session.
+    Ok(AuthSession {
         client,
         api_key,
         tokens,
@@ -734,7 +732,7 @@ pub async fn sign_in_oauth_credencial(
     request_uri: String,
     post_body: crate::api::sign_in_with_oauth_credential::IdpPostBody,
     timeout: Option<Timeout>,
-) -> Result<Auth> {
+) -> Result<AuthSession> {
     // Create a shared HTTP client.
     let timeout = timeout.unwrap_or_default();
     let client = reqwest::ClientBuilder::new()
@@ -772,7 +770,8 @@ pub async fn sign_in_oauth_credencial(
         refresh_token: response_payload.refresh_token,
     };
 
-    Ok(Auth {
+    // Create session.
+    Ok(AuthSession {
         client,
         api_key,
         tokens,
@@ -787,7 +786,7 @@ pub async fn sign_in_oauth_credencial(
 /// - `timeout` - Timeout options for HTTP client.
 ///
 /// ## Returns
-/// The `Auth` instance for the signed in user.
+/// The `AuthSession` instance for the signed in user.
 ///
 /// ## Example
 /// ```
@@ -805,7 +804,7 @@ pub async fn exchange_refresh_tokens(
     api_key: String,
     refresh_token: String,
     timeout: Option<Timeout>,
-) -> Result<Auth> {
+) -> Result<AuthSession> {
     // Create a shared HTTP client.
     let timeout = timeout.unwrap_or_default();
     let client = reqwest::ClientBuilder::new()
@@ -827,8 +826,8 @@ pub async fn exchange_refresh_tokens(
     )
     .await?;
 
-    // Create tokens.
-    Ok(Auth {
+    // Create session.
+    Ok(AuthSession {
         client,
         api_key,
         tokens: Tokens {
@@ -952,8 +951,8 @@ pub async fn send_reset_password_email(
     Ok(())
 }
 
-/// Implements public API callings for an `Auth` instance with automatic refreshing tokens.
-impl Auth {
+/// Implements public API callings for an `AuthSession` with automatic refreshing tokens.
+impl AuthSession {
     /// Changes the email for the user.
     ///
     /// Automatically refreshes tokens if needed.
@@ -987,10 +986,10 @@ impl Auth {
         self,
         new_email: String,
         locale: Option<String>,
-    ) -> Result<Auth> {
+    ) -> Result<AuthSession> {
         call_api_with_refreshing_tokens_without_return_value!(
             self,
-            Auth::change_email_internal,
+            AuthSession::change_email_internal,
             1,
             new_email.clone(),
             locale.clone()
@@ -1028,10 +1027,10 @@ impl Auth {
     pub async fn change_password(
         self,
         new_password: String,
-    ) -> Result<Auth> {
+    ) -> Result<AuthSession> {
         call_api_with_refreshing_tokens_without_return_value!(
             self,
-            Auth::change_password_internal,
+            AuthSession::change_password_internal,
             1,
             new_password.clone()
         )
@@ -1075,10 +1074,10 @@ impl Auth {
         display_name: String,
         photo_url: String,
         delete_attribute: Vec<crate::api::update_profile::DeleteAttribute>,
-    ) -> Result<Auth> {
+    ) -> Result<AuthSession> {
         call_api_with_refreshing_tokens_without_return_value!(
             self,
-            Auth::update_profile_internal,
+            AuthSession::update_profile_internal,
             1,
             display_name.clone(),
             photo_url.clone(),
@@ -1110,10 +1109,10 @@ impl Auth {
     ///
     /// // Do something with auth and user_data.
     /// ```
-    pub async fn get_user_data(self) -> Result<(Auth, UserData)> {
+    pub async fn get_user_data(self) -> Result<(AuthSession, UserData)> {
         call_api_with_refreshing_tokens_with_return_value!(
             self,
-            Auth::get_user_data_internal,
+            AuthSession::get_user_data_internal,
             1,
         )
         .await
@@ -1154,10 +1153,10 @@ impl Auth {
         self,
         email: String,
         password: String,
-    ) -> Result<Auth> {
+    ) -> Result<AuthSession> {
         call_api_with_refreshing_tokens_with_return_auth!(
             self,
-            Auth::link_with_email_password_internal,
+            AuthSession::link_with_email_password_internal,
             1,
             email.clone(),
             password.clone()
@@ -1200,10 +1199,10 @@ impl Auth {
         self,
         request_uri: String,
         post_body: crate::api::sign_in_with_oauth_credential::IdpPostBody,
-    ) -> Result<Auth> {
+    ) -> Result<AuthSession> {
         call_api_with_refreshing_tokens_with_return_auth!(
             self,
-            Auth::link_with_oauth_credential_internal,
+            AuthSession::link_with_oauth_credential_internal,
             1,
             request_uri.clone(),
             post_body.clone()
@@ -1215,10 +1214,10 @@ impl Auth {
         self,
         id_token: String,
         delete_provider: Vec<String>,
-    ) -> Result<Auth> {
+    ) -> Result<AuthSession> {
         call_api_with_refreshing_tokens_without_return_value!(
             self,
-            Auth::unlink_provider_internal,
+            AuthSession::unlink_provider_internal,
             1,
             id_token.clone(),
             delete_provider.clone()
@@ -1256,10 +1255,10 @@ impl Auth {
     pub async fn send_email_verification(
         self,
         locale: Option<String>,
-    ) -> Result<Auth> {
+    ) -> Result<AuthSession> {
         call_api_with_refreshing_tokens_without_return_value!(
             self,
-            Auth::send_email_verification_internal,
+            AuthSession::send_email_verification_internal,
             1,
             locale.clone()
         )
@@ -1288,7 +1287,7 @@ impl Auth {
     pub async fn delete_account(self) -> Result<()> {
         call_api_with_refreshing_tokens_without_auth!(
             self,
-            Auth::delete_account_internal,
+            AuthSession::delete_account_internal,
             1,
         )
         .await

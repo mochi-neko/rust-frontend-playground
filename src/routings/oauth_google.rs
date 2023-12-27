@@ -6,7 +6,7 @@ use dioxus::prelude::{
 use dioxus_router::prelude::{use_navigator, FromQuery};
 use firebase_auth_rs::{
     api::sign_in_with_oauth_credential::IdpPostBody,
-    auth::{Auth, Timeout},
+    auth::{AuthSession, Timeout},
 };
 use google_oauth_rs::api::exchange_access_token::{
     ExchangeAccessTokenRequestParameters, GrandType,
@@ -189,7 +189,7 @@ impl FromQuery for RedirectToAuthServerResponseErrorQuery {
     }
 }
 
-async fn sign_in_with_google(auth_code: String) -> anyhow::Result<Auth> {
+async fn sign_in_with_google(auth_code: String) -> anyhow::Result<AuthSession> {
     let timeout = Timeout::default();
     let client = reqwest::ClientBuilder::new()
         .connect_timeout(timeout.connection_timeout)

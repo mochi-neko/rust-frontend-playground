@@ -4,7 +4,7 @@ use dioxus::prelude::{
     Scoped, UseSharedState,
 };
 use dioxus_router::hooks::use_navigator;
-use firebase_auth_rs::auth::{Auth, UserData};
+use firebase_auth_rs::auth::{AuthSession, UserData};
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
 
 use crate::application_context::ApplicationContext;
@@ -25,7 +25,7 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
         let context = context.clone();
         async move {
             let mut context = context.write();
-            let auth: Option<Auth> = context.auth.clone();
+            let auth: Option<AuthSession> = context.auth.clone();
             match fetch_user_data_helper(auth).await {
                 | Some((new_auth, user_data)) => {
                     context.auth = Some(new_auth);
@@ -331,8 +331,8 @@ fn render_user_data<'a>(
 }
 
 async fn fetch_user_data_helper(
-    auth_option: Option<Auth>
-) -> Option<(Auth, UserData)> {
+    auth_option: Option<AuthSession>
+) -> Option<(AuthSession, UserData)> {
     match auth_option {
         | Some(auth) => {
             log::info!("Get user data");
