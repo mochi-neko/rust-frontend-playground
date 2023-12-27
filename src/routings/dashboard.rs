@@ -4,7 +4,7 @@ use dioxus::prelude::{
     Scoped, UseSharedState,
 };
 use dioxus_router::hooks::use_navigator;
-use firebase_auth_rs::auth::{AuthSession, UserData};
+use firebase_auth_rs::session::{AuthSession, UserData};
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
 
 use crate::application_context::ApplicationContext;

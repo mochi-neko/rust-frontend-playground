@@ -1,4 +1,5 @@
-use firebase_auth_rs::auth::{AuthConfig, AuthSession};
+use firebase_auth_rs::config::AuthConfig;
+use firebase_auth_rs::session::AuthSession;
 
 pub(crate) struct ApplicationContext {
     pub(crate) auth_config: AuthConfig,
