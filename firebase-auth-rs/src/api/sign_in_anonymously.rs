@@ -1,10 +1,13 @@
 //! Implements the sign in anonymously API of Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-anonymously).
+
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};
 
 /// Request body payload for the sign in anonymously API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-anonymously).
 #[derive(Serialize)]
 pub struct SignInAnonymouslyRequestBodyPayload {
@@ -15,6 +18,8 @@ pub struct SignInAnonymouslyRequestBodyPayload {
 
 impl SignInAnonymouslyRequestBodyPayload {
     /// Creates a new request body payload for the sign in anonymously API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-anonymously).
     pub fn new() -> Self {
         Self {
             return_secure_token: true,
@@ -23,6 +28,7 @@ impl SignInAnonymouslyRequestBodyPayload {
 }
 
 /// Response payload for the sign in anonymously API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-anonymously).
 #[derive(Deserialize)]
 pub struct SignInAnonymouslyResponsePayload {
@@ -44,6 +50,7 @@ pub struct SignInAnonymouslyResponsePayload {
 }
 
 /// Signs in a user anonymously.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-anonymously).
 ///
 /// ## Arguments
@@ -56,6 +63,24 @@ pub struct SignInAnonymouslyResponsePayload {
 ///
 /// ## Common error codes
 /// - OPERATION_NOT_ALLOWED: Anonymous user sign-in is disabled for this project.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::sign_in_anonymously::{
+///     SignInAnonymouslyRequestBodyPayload,
+///     sign_in_anonymously,
+/// };
+///
+/// let request_payload = SignInAnonymouslyRequestBodyPayload::new();
+///
+/// let response_payload = sign_in_anonymously(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn sign_in_anonymously(
     client: &reqwest::Client,
     api_key: &String,

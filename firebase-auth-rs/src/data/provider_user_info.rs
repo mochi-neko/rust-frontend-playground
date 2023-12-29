@@ -1,4 +1,5 @@
 //! Provider user information.
+
 use serde::Deserialize;
 
 /// Provider user information.

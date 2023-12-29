@@ -1,13 +1,15 @@
 //! Implements the change email API of the Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    client, data::provider_user_info::ProviderUserInfo, error::Error,
-    result::Result,
+    client, data::provider_user_info::ProviderUserInfo, result::Result,
 };
 
 /// Request body payload for the change email API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
 #[derive(Serialize)]
 pub struct ChangeEmailRequestBodyPayload {
@@ -24,6 +26,8 @@ pub struct ChangeEmailRequestBodyPayload {
 
 impl ChangeEmailRequestBodyPayload {
     /// Creates a new request body payload for the change email API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
     ///
     /// ## Arguments
     /// - `id_token` - A Firebase Auth ID token for the user.
@@ -43,6 +47,7 @@ impl ChangeEmailRequestBodyPayload {
 }
 
 /// Response payload for the the change email API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
 #[derive(Deserialize)]
 pub struct ChangeEmailResponsePayload {
@@ -70,12 +75,14 @@ pub struct ChangeEmailResponsePayload {
 }
 
 /// Changes the email address associated with the user account.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
 ///
 /// ## Arguments
 /// - `client` - HTTP client.
 /// - `api_key` - Your Firebase project's API key.
 /// - `request_payload` - Request body payload.
+/// - `locale` - (Optional) The BCP 47 language code, eg: en-US.
 ///
 /// ## Returns
 /// Result with a response payload.
@@ -87,17 +94,19 @@ pub struct ChangeEmailResponsePayload {
 /// ## Example
 /// ```
 /// use firebase_auth_rs::api::change_email::{
-///    change_email, ChangeEmailRequestBodyPayload,
+///     change_email, ChangeEmailRequestBodyPayload,
 /// };
+///
+/// let request_payload = ChangeEmailRequestBodyPayload::new(
+///     id_token,
+///     email,
+///     true,
+/// );
 ///
 /// let resopnse_payload = change_email(
 ///     reqwest::Client::new(),
 ///     "your-firebase-project-api-key".to_string(),
-///     ChangeEmailRequestBodyPayload::new(
-///         id_token,
-///         email,
-///         true,
-///     ),
+///     request_payload,
 ///     None,
 /// ).await.unwrap();
 ///
@@ -109,22 +118,7 @@ pub async fn change_email(
     request_payload: ChangeEmailRequestBodyPayload,
     locale: Option<String>,
 ) -> Result<ChangeEmailResponsePayload> {
-    let optional_headers = match locale {
-        | Some(locale) => {
-            let mut headers = reqwest::header::HeaderMap::new();
-            headers.insert(
-                "X-Firebase-Locale",
-                reqwest::header::HeaderValue::from_str(&locale).map_err(
-                    |error| Error::HeaderError {
-                        key: "X-Firebase-Locale",
-                        error: error,
-                    },
-                )?,
-            );
-            Some(headers)
-        },
-        | None => None,
-    };
+    let optional_headers = client::optional_locale_header(locale)?;
 
     client::send_post::<
         ChangeEmailRequestBodyPayload,

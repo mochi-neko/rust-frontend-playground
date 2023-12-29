@@ -1,10 +1,13 @@
 //! Implements the sign up with email password API of Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
+
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};
 
 /// Request body payload for the sign up with email password API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 #[derive(Serialize)]
 pub struct SignUpWithEmailPasswordRequestBodyPayload {
@@ -21,6 +24,12 @@ pub struct SignUpWithEmailPasswordRequestBodyPayload {
 
 impl SignUpWithEmailPasswordRequestBodyPayload {
     /// Creates a new request body payload for the sign up with email password API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
+    ///
+    /// ## Arguments
+    /// - `email` - The email for the user to create.
+    /// - `password` - The password for the user to create.
     pub fn new(
         email: String,
         password: String,
@@ -34,6 +43,7 @@ impl SignUpWithEmailPasswordRequestBodyPayload {
 }
 
 /// Response payload for the sign up with email password API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 #[derive(Deserialize)]
 pub struct SignUpWithEmailPasswordResponsePayload {
@@ -55,6 +65,7 @@ pub struct SignUpWithEmailPasswordResponsePayload {
 }
 
 /// Signs up a user with the given email address and password.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 ///
 /// ## Arguments
@@ -69,6 +80,27 @@ pub struct SignUpWithEmailPasswordResponsePayload {
 /// - EMAIL_EXISTS: The email address is already in use by another account.
 /// - OPERATION_NOT_ALLOWED: Password sign-in is disabled for this project.
 /// - TOO_MANY_ATTEMPTS_TRY_LATER: We have blocked all requests from this device due to unusual activity. Try again later.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::sign_up_with_email_password::{
+///     SignUpWithEmailPasswordRequestBodyPayload,
+///     sign_up_with_email_password,
+/// };
+///
+/// let request_payload = SignUpWithEmailPasswordRequestBodyPayload::new(
+///     "email".to_string(),
+///     "password".to_string(),
+/// );
+///
+/// let response_payload = sign_up_with_email_password(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn sign_up_with_email_password(
     client: &reqwest::Client,
     api_key: &String,

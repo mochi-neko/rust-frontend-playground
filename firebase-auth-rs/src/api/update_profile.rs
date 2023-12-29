@@ -1,4 +1,5 @@
 /// Implements the update profile API of the Firebase Auth API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-update-profile).
 use serde::{Deserialize, Serialize};
 
@@ -7,6 +8,7 @@ use crate::{
 };
 
 /// Request body payload for the update profile API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-update-profile).
 #[derive(Serialize)]
 pub struct UpdateProfileRequestBodyPayload {
@@ -38,6 +40,15 @@ pub enum DeleteAttribute {
 
 impl UpdateProfileRequestBodyPayload {
     /// Creates a new request body payload for the update profile API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-update-profile).
+    ///
+    /// ## Arguments
+    /// - `id_token` - A Firebase Auth ID token for the user.
+    /// - `display_name` - The user's new display name.
+    /// - `photo_url` - The user's new photo url.
+    /// - `delete_attribute` - List of attributes to delete.
+    /// - `return_secure_token` - Whether or not to return an ID and refresh token.
     pub fn new(
         id_token: String,
         display_name: String,
@@ -64,6 +75,7 @@ impl UpdateProfileRequestBodyPayload {
 }
 
 /// Response payload for the update profile API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-update-profile).
 #[derive(Deserialize)]
 pub struct UpdateProfileResponsePayload {
@@ -97,6 +109,7 @@ pub struct UpdateProfileResponsePayload {
 }
 
 /// Updates a user's profile information.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-update-profile).
 ///
 /// ## Arguments
@@ -109,6 +122,28 @@ pub struct UpdateProfileResponsePayload {
 ///
 /// ## Common error codes
 /// - INVALID_ID_TOKEN:The user's credential is no longer valid. The user must sign in again.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::update_profile::{
+///     UpdateProfileRequestBodyPayload, update_profile,
+/// };
+///
+/// let request_payload = UpdateProfileRequestBodyPayload::new(
+///     "id-token".to_string(),
+///     "new-display-name".to_string(),
+///     "new-photo-url".to_string(),
+///     vec![],
+/// );
+///
+/// let response_payload = update_profile(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn update_profile(
     client: &reqwest::Client,
     api_key: &String,

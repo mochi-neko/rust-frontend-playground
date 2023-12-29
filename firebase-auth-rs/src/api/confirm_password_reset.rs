@@ -1,10 +1,13 @@
 //! Implements the confirm password reset API of the Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-password-reset).
+
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};
 
 /// Request body payload for the confirm password reset API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-password-reset).
 #[derive(Serialize)]
 pub struct ConfirmPasswordResetRequestBodyPayload {
@@ -18,6 +21,12 @@ pub struct ConfirmPasswordResetRequestBodyPayload {
 
 impl ConfirmPasswordResetRequestBodyPayload {
     /// Creates a new request body payload for the confirm password reset API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-password-reset).
+    ///
+    /// ## Arguments
+    /// - `oob_code` - The email action code sent to the user's email for resetting the password.
+    /// - `new_password` - The new password.
     pub fn new(
         oob_code: String,
         new_password: String,
@@ -30,6 +39,7 @@ impl ConfirmPasswordResetRequestBodyPayload {
 }
 
 /// Response payload for the confirm password reset API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-password-reset).
 #[derive(Deserialize)]
 pub struct ConfirmPasswordResetResponsePayload {
@@ -42,6 +52,7 @@ pub struct ConfirmPasswordResetResponsePayload {
 }
 
 /// Confirms the password reset with the given code.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-password-reset).
 ///
 /// ## Arguments
@@ -57,6 +68,27 @@ pub struct ConfirmPasswordResetResponsePayload {
 /// - EXPIRED_OOB_CODE: The action code has expired.
 /// - INVALID_OOB_CODE: The action code is invalid. This can happen if the code is malformed, expired, or has already been used.
 /// - USER_DISABLED: The user account has been disabled by an administrator.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::confirm_password_reset::{
+///     confirm_password_reset,
+///     ConfirmPasswordResetRequestBodyPayload,
+/// };
+///
+/// let response_payload = ConfirmPasswordResetRequestBodyPayload::new(
+///     "oob-code".to_string(),
+///     "new-password".to_string(),
+/// );
+///
+/// let response_payload = confirm_password_reset(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     response_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn confirm_password_reset(
     client: &reqwest::Client,
     api_key: &String,

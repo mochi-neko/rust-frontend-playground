@@ -1,5 +1,7 @@
 //! Implements the link with email password API of the Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-email-password).
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -7,6 +9,7 @@ use crate::{
 };
 
 /// Request body payload for the link with email password API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-email-password).
 #[derive(Serialize)]
 pub struct LinkWithEmailAndPasswordRequestBodyPayload {
@@ -26,6 +29,13 @@ pub struct LinkWithEmailAndPasswordRequestBodyPayload {
 
 impl LinkWithEmailAndPasswordRequestBodyPayload {
     /// Creates a new request body payload for the link with email password API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-email-password).
+    ///
+    /// ## Arguments
+    /// - `id_token` - The Firebase ID token of the account you are trying to link the credential to.
+    /// - `email` - The email to link to the account.
+    /// - `password` - The new password of the account.
     pub fn new(
         id_token: String,
         email: String,
@@ -41,6 +51,7 @@ impl LinkWithEmailAndPasswordRequestBodyPayload {
 }
 
 /// Response payload for the link with email password API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-email-password).
 #[derive(Deserialize)]
 pub struct LinkWithEmailAndPasswordResponsePayload {
@@ -77,6 +88,7 @@ pub struct LinkWithEmailAndPasswordResponsePayload {
 }
 
 /// Links the user account with the given credentials.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-email-password).
 ///
 /// ## Arguments
@@ -92,6 +104,28 @@ pub struct LinkWithEmailAndPasswordResponsePayload {
 /// - TOKEN_EXPIRED: The user's credential is no longer valid. The user must sign in again.
 /// - INVALID_ID_TOKEN:The user's credential is no longer valid. The user must sign in again.
 /// - WEAK_PASSWORD: The password must be 6 characters long or more.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::link_with_email_password::{
+///     LinkWithEmailAndPasswordRequestBodyPayload,
+///     link_with_email_password,
+/// };
+///
+/// let request_payload = LinkWithEmailAndPasswordRequestBodyPayload::new(
+///     "id-token".to_string(),
+///     "email".to_string(),
+///     "password".to_string(),
+/// );
+///
+/// let response_payload = link_with_email_password(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn link_with_email_password(
     client: &reqwest::Client,
     api_key: &String,

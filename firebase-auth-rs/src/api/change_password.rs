@@ -1,5 +1,7 @@
 //! Implements the change password API of the Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-password).
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -7,6 +9,7 @@ use crate::{
 };
 
 /// Request body payload for the change password API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-password).
 #[derive(Serialize)]
 pub struct ChangePasswordRequestBodyPayload {
@@ -23,6 +26,8 @@ pub struct ChangePasswordRequestBodyPayload {
 
 impl ChangePasswordRequestBodyPayload {
     /// Creates a new request body payload for the `setAccountInfo` endpoint.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-password).
     ///
     /// ## Arguments
     /// - `id_token` - A Firebase Auth ID token for the user.
@@ -42,6 +47,7 @@ impl ChangePasswordRequestBodyPayload {
 }
 
 /// Response payload for the `setAccountInfo` endpoint.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-password).
 #[derive(Deserialize)]
 pub struct ChangePasswordResponsePayload {
@@ -69,6 +75,7 @@ pub struct ChangePasswordResponsePayload {
 }
 
 /// Changes the password associated with the user account.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-password).
 ///
 /// ## Arguments
@@ -86,18 +93,22 @@ pub struct ChangePasswordResponsePayload {
 /// # Example
 /// ```
 /// use firebase_auth_rs::api::change_password::{
-///    change_password, ChangePasswordRequestBodyPayload,
+///     change_password, ChangePasswordRequestBodyPayload,
 /// };
+///
+/// let request_payload = ChangePasswordRequestBodyPayload::new(
+///     id_token,
+///     password,
+///     false,
+/// );
 ///
 /// let resopnse_payload = change_password(
 ///     reqwest::Client::new(),
 ///     "your-firebase-project-api-key".to_string(),
-///     ChangePasswordRequestBodyPayload::new(
-///         id_token,
-///         password,
-///         false,
-///     ),
+///     request_payload,
 /// ).await.unwrap();
+///
+/// // Do something with the response payload.
 /// ```
 pub async fn change_password(
     client: &reqwest::Client,

@@ -1,10 +1,13 @@
 //! Implements the sign in with email password API of Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
+
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};
 
 /// Request body payload for the sign in with email password API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 #[derive(Serialize)]
 pub struct SignInWithEmailPasswordRequestBodyPayload {
@@ -21,6 +24,12 @@ pub struct SignInWithEmailPasswordRequestBodyPayload {
 
 impl SignInWithEmailPasswordRequestBodyPayload {
     /// Creates a new request body payload for the sign in with email password API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
+    ///
+    /// ## Arguments
+    /// - `email` - The email the user is sign in with.
+    /// - `password` - The password for the account.
     pub fn new(
         email: String,
         password: String,
@@ -34,6 +43,7 @@ impl SignInWithEmailPasswordRequestBodyPayload {
 }
 
 /// Response payload for the sign in with email password API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 #[derive(Deserialize)]
 pub struct SignInWithEmailPasswordResponsePayload {
@@ -58,6 +68,7 @@ pub struct SignInWithEmailPasswordResponsePayload {
 }
 
 /// Signs in a user with the given email address and password.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 ///
 /// ## Arguments
@@ -72,6 +83,27 @@ pub struct SignInWithEmailPasswordResponsePayload {
 /// - EMAIL_NOT_FOUND: There is no user record corresponding to this identifier. The user may have been deleted.
 /// - INVALID_PASSWORD: The password is invalid or the user does not have a password.
 /// - USER_DISABLED: The user account has been disabled by an administrator.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::sign_in_with_email_password::{
+///     SignInWithEmailPasswordRequestBodyPayload,
+///     sign_in_with_email_password,
+/// };
+///
+/// let request_payload = SignInWithEmailPasswordRequestBodyPayload::new(
+///     "email".to_string(),
+///     "password".to_string(),
+/// );
+///
+/// let response_payload = sign_in_with_email_password(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn sign_in_with_email_password(
     client: &reqwest::Client,
     api_key: &String,

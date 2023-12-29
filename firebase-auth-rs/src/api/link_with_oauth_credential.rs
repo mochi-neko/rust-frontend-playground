@@ -1,10 +1,14 @@
 //! Implements the link with OAuth credential API of the Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-oauth-credential).
+
 use serde::{Deserialize, Serialize};
 
+use crate::data::idp_post_body::IdpPostBody;
 use crate::{client, result::Result};
 
 /// Request body payload for the link with OAuth credential API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-oauth-credential).
 #[derive(Serialize)]
 pub struct LinkWithOAuthCredentialRequestBodyPayload {
@@ -16,7 +20,7 @@ pub struct LinkWithOAuthCredentialRequestBodyPayload {
     request_uri: String,
     /// Contains the OAuth credential (an ID token or access token) and provider ID which issues the credential.
     #[serde(rename = "postBody")]
-    post_body: String,
+    post_body: IdpPostBody,
     /// Whether or not to return an ID and refresh token. Should always be true.
     #[serde(rename = "returnSecureToken")]
     return_secure_token: bool,
@@ -27,10 +31,18 @@ pub struct LinkWithOAuthCredentialRequestBodyPayload {
 
 impl LinkWithOAuthCredentialRequestBodyPayload {
     /// Creates a new request body payload for the link with OAuth credential API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-oauth-credential).
+    ///
+    /// ## Arguments
+    /// - `id_token` - The Firebase ID token of the account you are trying to link the credential to.
+    /// - `request_uri` - The URI to which the IDP redirects the user back.
+    /// - `post_body` - Contains the OAuth credential (an ID token or access token) and provider ID which issues the credential.
+    /// - `return_secure_token` - Whether or not to return an ID and refresh token. Should always be true.
     pub fn new(
         id_token: String,
         request_uri: String,
-        post_body: String,
+        post_body: IdpPostBody,
         return_idp_credential: bool,
     ) -> Self {
         Self {
@@ -44,6 +56,7 @@ impl LinkWithOAuthCredentialRequestBodyPayload {
 }
 
 /// Response payload for the link with OAuth credential API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-oauth-credential).
 #[derive(Deserialize)]
 pub struct LinkWithOAuthCredentialResponsePayload {
@@ -101,6 +114,7 @@ pub struct LinkWithOAuthCredentialResponsePayload {
 }
 
 /// Links the authenticated user with a federated OAuth credential.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-oauth-credential).
 ///
 /// ## Arguments
@@ -117,6 +131,29 @@ pub struct LinkWithOAuthCredentialResponsePayload {
 /// - INVALID_ID_TOKEN:The user's credential is no longer valid. The user must sign in again.
 /// - EMAIL_EXISTS: The email address is already in use by another account.
 /// - FEDERATED_USER_ID_ALREADY_LINKED: This credential is already associated with a different user account.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::link_with_oauth_credential::{
+///     LinkWithOAuthCredentialRequestBodyPayload,
+///     link_with_oauth_credential,
+/// };
+///
+/// let request_payload = LinkWithOAuthCredentialRequestBodyPayload::new(
+///     "id-token".to_string(),
+///     "request-uri".to_string(),
+///     IdpPostBody::Google{ id_token: "google-oauth-open-id-token".to_string() },
+///     true,
+/// );
+///
+/// let response_payload = link_with_oauth_credential(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn link_with_oauth_credential(
     client: &reqwest::Client,
     api_key: &String,

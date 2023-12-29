@@ -1,10 +1,13 @@
 //! Implements the fetch providers for email API of the Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-fetch-providers-for-email).
+
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};
 
 /// Request body payload for the fetch providers for email API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-fetch-providers-for-email).
 #[derive(Serialize)]
 pub struct FetchProvidersForEmailRequestBodyPayload {
@@ -18,6 +21,12 @@ pub struct FetchProvidersForEmailRequestBodyPayload {
 
 impl FetchProvidersForEmailRequestBodyPayload {
     /// Creates a new request body payload for the fetch providers for email API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-fetch-providers-for-email).
+    ///
+    /// ## Arguments
+    /// - `identifier` - User's email address
+    /// - `continue_uri` - The URI to which the IDP redirects the user back. For this use case, this is just the current URL.
     pub fn new(
         identifier: String,
         continue_uri: String,
@@ -30,6 +39,7 @@ impl FetchProvidersForEmailRequestBodyPayload {
 }
 
 /// Response payload for the fetch providers for email API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-fetch-providers-for-email).
 #[derive(Deserialize)]
 pub struct FetchProvidersForEmailResponsePayload {
@@ -42,6 +52,7 @@ pub struct FetchProvidersForEmailResponsePayload {
 }
 
 /// Fetches the list of sign-in methods available for the specified email address.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-fetch-providers-for-email).
 ///
 /// ## Arguments
@@ -54,6 +65,27 @@ pub struct FetchProvidersForEmailResponsePayload {
 ///
 /// ## Common error codes
 /// - INVALID_EMAIL: The email address is badly formatted.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::fetch_providers_for_email::{
+///     FetchProvidersForEmailRequestBodyPayload,
+///     fetch_providers_for_email,
+/// };
+///
+/// let request_payload = FetchProvidersForEmailRequestBodyPayload::new(
+///     "email".to_string(),
+///     "continue-uri".to_string(),
+/// );
+///
+/// let response_payload = fetch_providers_for_email(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn fetch_providers_for_email(
     client: &reqwest::Client,
     api_key: &String,

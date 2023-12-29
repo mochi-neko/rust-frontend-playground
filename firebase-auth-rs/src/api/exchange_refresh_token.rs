@@ -1,10 +1,13 @@
 //! Implements the exchange refresh token API of the Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token)
+
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};
 
 /// Request body payload for the exchange refresh token API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
 #[derive(Serialize)]
 pub struct ExchangeRefreshTokenRequestBodyPayload {
@@ -18,6 +21,11 @@ pub struct ExchangeRefreshTokenRequestBodyPayload {
 
 impl ExchangeRefreshTokenRequestBodyPayload {
     /// Creates a new request body payload for the exchange refresh token API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
+    ///
+    /// ## Arguments
+    /// - `refresh_token` - A Firebase Auth refresh token.
     pub fn new(refresh_token: String) -> Self {
         Self {
             grant_type: "refresh_token".to_string(),
@@ -27,6 +35,7 @@ impl ExchangeRefreshTokenRequestBodyPayload {
 }
 
 /// Response payload for the exchange refresh token API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
 #[derive(Deserialize)]
 pub struct ExchangeRefreshTokenResponsePayload {
@@ -51,6 +60,7 @@ pub struct ExchangeRefreshTokenResponsePayload {
 }
 
 /// Exchanges a refresh token for an access token and an ID token.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token).
 ///
 /// ## Arguments
@@ -70,6 +80,26 @@ pub struct ExchangeRefreshTokenResponsePayload {
 /// - Invalid JSON payload received. Unknown name \"refresh_tokens\": Cannot bind query parameter. Field 'refresh_tokens' could not be found in request message.
 /// - INVALID_GRANT_TYPE: the grant type specified is invalid.
 /// - MISSING_REFRESH_TOKEN: no refresh token provided.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::exchange_refresh_token::{
+///     ExchangeRefreshTokenRequestBodyPayload,
+///     exchange_refresh_token,
+/// };
+///
+/// let request_payload = ExchangeRefreshTokenRequestBodyPayload::new(
+///     "refresh-token".to_string(),
+/// );
+///
+/// let response_payload = exchange_refresh_token
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn exchange_refresh_token(
     client: &reqwest::Client,
     api_key: &String,

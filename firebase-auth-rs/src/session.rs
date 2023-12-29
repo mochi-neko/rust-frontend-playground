@@ -1,4 +1,8 @@
 //! Authentication session for a user of the Firebase Auth.
+
+use std::collections::HashSet;
+
+use crate::data::provider_id::ProviderId;
 use crate::error::Error;
 use crate::result::Result;
 
@@ -448,7 +452,7 @@ impl AuthSession {
     pub async fn link_with_oauth_credential(
         self,
         request_uri: String,
-        post_body: crate::api::sign_in_with_oauth_credential::IdpPostBody,
+        post_body: crate::data::idp_post_body::IdpPostBody,
     ) -> Result<AuthSession> {
         call_api_with_refreshing_tokens_with_return_auth!(
             self,
@@ -473,6 +477,7 @@ impl AuthSession {
     /// ## Example
     /// ```
     /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::data::provider_id::ProviderId;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -484,14 +489,14 @@ impl AuthSession {
     /// ).await.unwrap();
     ///
     /// let new_session = session.unlink_provider(
-    ///    vec!["google.com".to_string()],
+    ///    vec![ ProviderId::Google, ].into_iter().collect(),
     /// ).await.unwrap();
     ///
     /// // Do something with new_session.
     /// ```
     pub async fn unlink_provider(
         self,
-        delete_provider: Vec<String>,
+        delete_provider: HashSet<ProviderId>,
     ) -> Result<AuthSession> {
         call_api_with_refreshing_tokens_without_return_value!(
             self,
@@ -730,14 +735,15 @@ impl AuthSession {
     ) -> Result<Self> {
         // Create request payload.
         let request_payload =
-            crate::api::sign_in_with_email_password::SignInWithEmailPasswordRequestBodyPayload::new(
+            crate::api::link_with_email_password::LinkWithEmailAndPasswordRequestBodyPayload::new(
+                self.tokens.id_token.clone(),
                 email,
                 password,
             );
 
         // Send request.
         let response_payload =
-            crate::api::sign_in_with_email_password::sign_in_with_email_password(
+            crate::api::link_with_email_password::link_with_email_password(
                 &self.client,
                 &self.api_key,
                 request_payload,
@@ -764,11 +770,12 @@ impl AuthSession {
     async fn link_with_oauth_credential_internal(
         &self,
         request_uri: String,
-        post_body: crate::api::sign_in_with_oauth_credential::IdpPostBody,
+        post_body: crate::data::idp_post_body::IdpPostBody,
     ) -> Result<Self> {
         // Create request payload.
         let request_payload =
-            crate::api::sign_in_with_oauth_credential::SignInWithOAuthCredentialRequestBodyPayload::new(
+            crate::api::link_with_oauth_credential::LinkWithOAuthCredentialRequestBodyPayload::new(
+                self.tokens.id_token.clone(),
                 request_uri,
                 post_body,
                 false,
@@ -776,7 +783,7 @@ impl AuthSession {
 
         // Send request.
         let response_payload =
-            crate::api::sign_in_with_oauth_credential::sign_in_with_oauth_credential(
+            crate::api::link_with_oauth_credential::link_with_oauth_credential(
                 &self.client,
                 &self.api_key,
                 request_payload,
@@ -802,7 +809,7 @@ impl AuthSession {
 
     async fn unlink_provider_internal(
         &self,
-        delete_provider: Vec<String>,
+        delete_provider: HashSet<ProviderId>,
     ) -> Result<()> {
         // Create request payload.
         let request_payload =

@@ -5,8 +5,8 @@ use dioxus::prelude::{
 };
 use dioxus_router::prelude::{use_navigator, FromQuery};
 use firebase_auth_rs::{
-    api::sign_in_with_oauth_credential::IdpPostBody,
     config::{AuthConfig, Timeout},
+    data::idp_post_body::IdpPostBody,
     session::AuthSession,
 };
 use google_oauth_rs::api::exchange_access_token::{

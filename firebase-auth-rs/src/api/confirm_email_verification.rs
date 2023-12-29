@@ -1,5 +1,7 @@
 //! Implements the confirm email verification API of the Firebase Auth API.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-email-verification).
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -7,6 +9,7 @@ use crate::{
 };
 
 /// Request body payload for the confirm email verification API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-email-verification).
 #[derive(Serialize)]
 pub struct ConfirmEmailVerificationRequestBodyPayload {
@@ -17,6 +20,11 @@ pub struct ConfirmEmailVerificationRequestBodyPayload {
 
 impl ConfirmEmailVerificationRequestBodyPayload {
     /// Creates a new request body payload for the confirm email verification API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-email-verification).
+    ///
+    /// ## Arguments
+    /// - `oob_code` - The action code sent to user's email for email verification.
     pub fn new(oob_code: String) -> Self {
         Self {
             oob_code,
@@ -25,6 +33,7 @@ impl ConfirmEmailVerificationRequestBodyPayload {
 }
 
 /// Response payload for the confirm email verification API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-email-verification).
 #[derive(Deserialize)]
 pub struct ConfirmEmailVerificationResponsePayload {
@@ -49,6 +58,7 @@ pub struct ConfirmEmailVerificationResponsePayload {
 }
 
 /// Confirms the email verification for the given user.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-email-verification).
 ///
 /// ## Arguments
@@ -64,6 +74,26 @@ pub struct ConfirmEmailVerificationResponsePayload {
 /// - INVALID_OOB_CODE: The action code is invalid. This can happen if the code is malformed, expired, or has already been used.
 /// - USER_DISABLED: The user account has been disabled by an administrator.
 /// - EMAIL_NOT_FOUND: There is no user record corresponding to this identifier. The user may have been deleted.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::confirm_email_verification::{
+///     confirm_email_verification,
+///     ConfirmEmailVerificationRequestBodyPayload,
+/// };
+///
+/// let request_payload = ConfirmEmailVerificationRequestBodyPayload::new(
+///     "oob-code".to_string(),
+/// );
+///
+/// let response_payload = confirm_email_verification(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn confirm_email_verification(
     client: &reqwest::Client,
     api_key: &String,

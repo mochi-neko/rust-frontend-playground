@@ -4,6 +4,10 @@ A client library for the [Firebase Auth REST API](https://firebase.google.com/do
 ## Supported APIs
 
 
+## Supported OAuth providers
+
+
+
 ## Usage
 
 

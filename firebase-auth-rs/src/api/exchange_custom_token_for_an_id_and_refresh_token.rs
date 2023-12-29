@@ -1,10 +1,13 @@
 //! Implements the exchange custom token for an ID and refresh token API of Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-custom-token).
+
 use serde::{Deserialize, Serialize};
 
 use crate::{client, result::Result};
 
 /// Request body payload for the exchange custom token for an ID and refresh token API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-custom-token).
 #[derive(Serialize)]
 pub struct ExchangeCustomTokenForAnIdAndRefreshTokenRequestBodyPayload {
@@ -18,6 +21,11 @@ pub struct ExchangeCustomTokenForAnIdAndRefreshTokenRequestBodyPayload {
 
 impl ExchangeCustomTokenForAnIdAndRefreshTokenRequestBodyPayload {
     /// Creates a new request body payload for the exchange custom token for an ID and refresh token API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-custom-token).
+    ///
+    /// ## Arguments
+    /// - `token` - A Firebase Auth custom token from which to create an ID and refresh token pair.
     pub fn new(token: String) -> Self {
         Self {
             token,
@@ -27,6 +35,7 @@ impl ExchangeCustomTokenForAnIdAndRefreshTokenRequestBodyPayload {
 }
 
 /// Response payload for the exchange custom token for an ID and refresh token API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-custom-token).
 #[derive(Deserialize)]
 pub struct ExchangeCustomTokenForAnIdAndRefreshTokenResponsePayload {
@@ -42,6 +51,7 @@ pub struct ExchangeCustomTokenForAnIdAndRefreshTokenResponsePayload {
 }
 
 /// Exchanges a custom token for an ID and refresh token.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-custom-token).
 ///
 /// ## Arguments
@@ -55,6 +65,26 @@ pub struct ExchangeCustomTokenForAnIdAndRefreshTokenResponsePayload {
 /// ## Common error codes
 /// - INVALID_CUSTOM_TOKEN: The custom token format is incorrect or the token is invalid for some reason (e.g. expired, invalid signature etc.)
 /// - CREDENTIAL_MISMATCH: The custom token corresponds to a different Firebase project.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::exchange_custom_token_for_an_id_and_refresh_token::{
+///     ExchangeCustomTokenForAnIdAndRefreshTokenRequestBodyPayload,
+///     exchange_custom_token_for_an_id_and_refresh_token,
+/// };
+///
+/// let request_payload = ExchangeCustomTokenForAnIdAndRefreshTokenRequestBodyPayload::new(
+///    "your-custom-token".to_string(),
+/// );
+///
+/// let response_payload = exchange_custom_token_for_an_id_and_refresh_token
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn exchange_custom_token_for_an_id_and_refresh_token(
     client: &reqwest::Client,
     api_key: &String,

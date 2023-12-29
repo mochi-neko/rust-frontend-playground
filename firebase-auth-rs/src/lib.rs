@@ -1,4 +1,5 @@
 //! Firebase Auth REST API client in Rust.
+
 pub mod api;
 pub mod config;
 pub mod data;

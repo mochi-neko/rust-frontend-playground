@@ -1,5 +1,7 @@
 //! Implements the get user data API of the Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info)
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -7,6 +9,7 @@ use crate::{
 };
 
 /// Request body payload for the get user data API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
 #[derive(Serialize)]
 pub struct GetUserDataRequestBodyPayload {
@@ -17,6 +20,11 @@ pub struct GetUserDataRequestBodyPayload {
 
 impl GetUserDataRequestBodyPayload {
     /// Creates a new request body payload for the get user data API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
+    ///
+    /// ## Arguments
+    /// - `id_token` - The Firebase ID token of the account.
     pub fn new(id_token: String) -> Self {
         Self {
             id_token,
@@ -25,6 +33,7 @@ impl GetUserDataRequestBodyPayload {
 }
 
 /// Response payload for the get user data API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
 #[derive(Deserialize)]
 pub struct GetUserDataResponsePayload {
@@ -34,6 +43,7 @@ pub struct GetUserDataResponsePayload {
 }
 
 /// User information.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
 #[derive(Deserialize, PartialEq)]
 pub struct User {
@@ -79,6 +89,7 @@ pub struct User {
 }
 
 /// Gets the user data.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
 ///
 /// ## Arguments
@@ -92,6 +103,26 @@ pub struct User {
 /// ## Common error codes
 /// - INVALID_ID_TOKEN:The user's credential is no longer valid. The user must sign in again.
 /// - USER_NOT_FOUND: There is no user record corresponding to this identifier. The user may have been deleted.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::get_user_data::{
+///     GetUserDataRequestBodyPayload,
+///     get_user_data,
+/// };
+///
+/// let request_payload = GetUserDataRequestBodyPayload::new(
+///     "id-token".to_string(),
+/// );
+///
+/// let response_payload = get_user_data(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn get_user_data(
     client: &reqwest::Client,
     api_key: &String,

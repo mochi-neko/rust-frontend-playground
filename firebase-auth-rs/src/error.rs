@@ -1,4 +1,5 @@
 //! An error type for the Firebase Auth API.
+
 use serde::Deserialize;
 use std::fmt::{Display, Formatter};
 

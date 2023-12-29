@@ -1,5 +1,7 @@
 //! Firebase Auth REST API impelemntations.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth).
+
 pub mod change_email;
 pub mod change_password;
 pub mod confirm_email_verification;

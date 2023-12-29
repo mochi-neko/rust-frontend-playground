@@ -1,4 +1,5 @@
 //! Configuration for the Firebase Auth.
+
 use crate::error::Error;
 use crate::result::Result;
 use crate::session::{AuthSession, Tokens};
@@ -291,7 +292,7 @@ impl AuthConfig {
     pub async fn sign_in_oauth_credencial(
         &self,
         request_uri: String,
-        post_body: crate::api::sign_in_with_oauth_credential::IdpPostBody,
+        post_body: crate::data::idp_post_body::IdpPostBody,
     ) -> Result<AuthSession> {
         // Create a HTTP client.
         let client = self.build_client()?;

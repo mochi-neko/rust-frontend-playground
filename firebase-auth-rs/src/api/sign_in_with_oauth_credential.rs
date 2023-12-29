@@ -1,10 +1,14 @@
 //! Implements the sign in with OAuth credential API of Firebase Auth.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-with-oauth-credential).
+
 use serde::{Deserialize, Serialize};
 
+use crate::data::idp_post_body::IdpPostBody;
 use crate::{client, result::Result};
 
 /// Request body payload for the sign in with OAuth credential API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-with-oauth-credential).
 #[derive(Serialize)]
 pub struct SignInWithOAuthCredentialRequestBodyPayload {
@@ -24,6 +28,13 @@ pub struct SignInWithOAuthCredentialRequestBodyPayload {
 
 impl SignInWithOAuthCredentialRequestBodyPayload {
     /// Creates a new request body payload for the sign in with OAuth credential API.
+    ///
+    /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-with-oauth-credential).
+    ///
+    /// ## Arguments
+    /// - `request_uri` - The URI to which the IDP redirects the user back.
+    /// - `post_body` - Contains the OAuth credential (an ID token or access token) and provider ID which issues the credential.
+    /// - `return_ipd_credential` - Whether to force the return of the OAuth credential on the following errors: FEDERATED_USER_ID_ALREADY_LINKED and EMAIL_EXISTS.
     pub fn new(
         request_uri: String,
         post_body: IdpPostBody,
@@ -38,66 +49,8 @@ impl SignInWithOAuthCredentialRequestBodyPayload {
     }
 }
 
-/// Post body for ID providers contains the OAuth credential and provider ID.
-#[derive(Clone)]
-pub enum IdpPostBody {
-    /// Google OAuth.
-    Google {
-        id_token: String,
-    },
-    /// Facebook OAuth.
-    Facebook {
-        access_token: String,
-    },
-    /// Twitter OAuth.
-    Twitter {
-        access_token: String,
-        oauth_token_secret: String,
-    },
-}
-
-impl Serialize for IdpPostBody {
-    fn serialize<S>(
-        &self,
-        serializer: S,
-    ) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            | IdpPostBody::Google {
-                id_token,
-            } => {
-                let post_body = format!(
-                    "id_token={id_token}&providerId=google.com",
-                    id_token = id_token
-                );
-                serializer.serialize_str(post_body.as_str())
-            },
-            | IdpPostBody::Facebook {
-                access_token,
-            } => {
-                let post_body = format!(
-                    "access_token={access_token}&providerId=facebook.com",
-                    access_token = access_token
-                );
-                serializer.serialize_str(post_body.as_str())
-            },
-            | IdpPostBody::Twitter {
-                access_token,
-                oauth_token_secret,
-            } => {
-                let post_body = format!(
-                    "access_token={access_token}&oauth_token_secret={oauth_token_secret}&providerId=twitter.com",
-                    access_token = access_token, oauth_token_secret = oauth_token_secret
-                );
-                serializer.serialize_str(post_body.as_str())
-            },
-        }
-    }
-}
-
 /// Response payload for the sign in with OAuth credential API.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-with-oauth-credential).
 #[derive(Deserialize)]
 pub struct SignInWithOAuthCredentialResponsePayload {
@@ -162,6 +115,7 @@ pub struct SignInWithOAuthCredentialResponsePayload {
 }
 
 /// Signs in a user with the given OAuth credential.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-with-oauth-credential).
 ///
 /// ## Arguments
@@ -175,6 +129,29 @@ pub struct SignInWithOAuthCredentialResponsePayload {
 /// ## Common error codes
 /// - OPERATION_NOT_ALLOWED: The corresponding provider is disabled for this project.
 /// - INVALID_IDP_RESPONSE: The supplied auth credential is malformed or has expired.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::api::sign_in_with_oauth_credential::{
+///     SignInWithOAuthCredentialRequestBodyPayload,
+///     sign_in_with_oauth_credential,
+/// };
+/// use firebase_auth_rs::data::idp_post_body::IdpPostBody;
+///
+/// let request_payload = SignInWithOAuthCredentialRequestBodyPayload::new(
+///     "request-uri".to_string(),
+///     IdpPostBody::Google{ id_token: "google-oauth-open-id-token".to_string() },
+///     false,
+/// );
+///
+/// let response_payload = sign_in_with_oauth_credential(
+///     reqwest::Client::new(),
+///     "your-firebase-project-api-key".to_string(),
+///     request_payload,
+/// ).await.unwrap();
+///
+/// // Do something with the response payload.
+/// ```
 pub async fn sign_in_with_oauth_credential(
     client: &reqwest::Client,
     api_key: &String,
