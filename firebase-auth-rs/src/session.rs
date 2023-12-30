@@ -27,26 +27,30 @@ pub struct UserData {
     /// The uid of the account.
     pub local_id: String,
     /// The email of the account.
-    pub email: String,
+    pub email: Option<String>,
     /// Whether or not the account's email has been verified.
-    pub email_verified: bool,
+    pub email_verified: Option<bool>,
     /// The display name for the account.
     pub display_name: Option<String>,
     /// The photo url of the account.
     pub photo_url: Option<String>,
     /// List of all linked provider information.
     pub provider_user_info:
-        Vec<crate::data::provider_user_info::ProviderUserInfo>,
+        Option<Vec<crate::data::provider_user_info::ProviderUserInfo>>,
+    /// Hash version of password.
+    pub password_hash: Option<String>,
     /// The timestamp, in milliseconds, that the account password was last changed.
-    pub password_updated_at: f64,
+    pub password_updated_at: Option<f64>,
     /// The timestamp, in seconds, which marks a boundary, before which Firebase ID token are considered revoked.
-    pub valid_since: String,
+    pub valid_since: Option<String>,
     /// Whether the account is disabled or not.
-    pub disabled: bool,
+    pub disabled: Option<bool>,
     /// The timestamp, in milliseconds, that the account last logged in at.
     pub last_login_at: String,
     /// The timestamp, in milliseconds, that the account was created at.
     pub created_at: String,
+    /// The timestamp, in milliseconds, that the account was last refreshed at.
+    pub last_refresh_at: Option<String>,
     /// Whether the account is authenticated by the developer.
     pub custom_auth: Option<bool>,
 }
@@ -700,13 +704,15 @@ impl AuthSession {
             provider_user_info: user
                 .provider_user_info
                 .clone(),
+            password_hash: user.password_hash.clone(),
             password_updated_at: user
                 .password_updated_at
                 .clone(),
             valid_since: user.valid_since.clone(),
-            disabled: user.disabled.unwrap_or(false),
+            disabled: user.disabled.clone(),
             last_login_at: user.last_login_at.clone(),
             created_at: user.created_at.clone(),
+            last_refresh_at: user.last_refresh_at.clone(),
             custom_auth: user.custom_auth,
         })
     }
