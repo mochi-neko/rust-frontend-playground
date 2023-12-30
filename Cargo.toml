@@ -23,6 +23,7 @@ reqwest = "0.11.22"
 thiserror = "1.0.51"
 regex = "1.10.2"
 web-sys = "0.3.66"
+async-std = "1.12.0"
 
 [build-dependencies]
 anyhow = "1.0.75"

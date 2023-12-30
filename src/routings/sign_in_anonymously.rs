@@ -1,3 +1,6 @@
+use async_std::sync::Mutex;
+use std::sync::Arc;
+
 use dioxus::{
     hooks::use_shared_state,
     prelude::{component, dioxus_elements, render, Element, Scope},
@@ -12,13 +15,15 @@ pub(crate) fn SignInAnonymously(cx: Scope) -> Element {
     let sign_in = move |cx: &Scope<'_>| {
         log::info!("Sign in anonymously");
 
-        let context = use_shared_state::<ApplicationContext>(cx)
+        let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
             .unwrap()
             .clone();
         let navigator = use_navigator(cx).clone();
 
         cx.spawn(async move {
-            let mut context = context.write_silent();
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
             match context
                 .auth_config
                 .clone()

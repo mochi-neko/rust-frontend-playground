@@ -1,3 +1,5 @@
+use async_std::sync::Mutex;
+use std::sync::Arc;
 use std::{collections::HashMap, fmt::Display};
 
 use dioxus::prelude::{
@@ -30,14 +32,16 @@ pub(crate) fn OAuthGoogle(
     let sign_in = move |cx: &Scope<'_, OAuthGoogleProps>| {
         log::info!("Sign in with Google");
 
-        let context = use_shared_state::<ApplicationContext>(cx)
+        let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
             .unwrap()
             .clone();
         let navigator = use_navigator(cx).clone();
         let code = query.code.clone();
 
         cx.spawn(async move {
-            let mut context = context.write_silent();
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
             match sign_in_with_google(context.auth_config.clone(), code).await {
                 | Ok(session) => {
                     log::info!("Sign in with Google success");

@@ -1,3 +1,6 @@
+use async_std::sync::Mutex;
+use std::sync::Arc;
+
 use dioxus::prelude::{
     component, dioxus_elements, fc_to_builder, render, to_owned,
     use_shared_state, use_state, Element, GlobalAttributes, IntoDynNode, Scope,
@@ -140,7 +143,7 @@ fn sign_in(
     error_message: &UseState<Option<String>>,
 ) {
     // Setup hooks
-    let context = use_shared_state::<ApplicationContext>(cx)
+    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
         .unwrap()
         .clone();
     let navigator = use_navigator(cx).clone();
@@ -150,7 +153,9 @@ fn sign_in(
         async move {
             log::info!("Sign in: {:?}", email);
             error_message.set(None);
-            let mut context = context.write();
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
             match context.auth_config.sign_in_with_email_password(
                 email,
                 password,

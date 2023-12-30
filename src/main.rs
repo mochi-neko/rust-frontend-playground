@@ -5,6 +5,9 @@ mod logging;
 mod routings;
 mod style;
 
+use async_std::sync::Mutex;
+use std::sync::Arc;
+
 use dioxus::{
     hooks::use_shared_state_provider,
     prelude::{
@@ -26,10 +29,9 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn app(cx: Scope) -> Element {
-    use_shared_state_provider::<ApplicationContext>(
-        cx,
-        ApplicationContext::default,
-    );
+    use_shared_state_provider::<Arc<Mutex<ApplicationContext>>>(cx, || {
+        Arc::new(Mutex::new(ApplicationContext::default()))
+    });
 
     render! {
         // NOTE: Failed to load style.css then use inline style

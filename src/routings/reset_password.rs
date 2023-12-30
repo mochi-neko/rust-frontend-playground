@@ -1,3 +1,6 @@
+use async_std::sync::Mutex;
+use std::sync::Arc;
+
 use dioxus::prelude::{
     component, dioxus_elements, fc_to_builder, render, to_owned,
     use_shared_state, use_state, Element, GlobalAttributes, IntoDynNode, Scope,
@@ -93,7 +96,7 @@ fn send_send_password_reset_email(
     error_message: &UseState<Option<String>>,
 ) {
     // Setup hooks
-    let context = use_shared_state::<ApplicationContext>(cx)
+    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
         .unwrap()
         .clone();
     let navigation = use_navigator(cx).clone();
@@ -103,7 +106,9 @@ fn send_send_password_reset_email(
         async move {
             log::info!("Send password reset email: {:?}", email);
             error_message.set(None);
+            let context = context.clone();
             let context = context.read();
+            let context = context.lock().await;
             match context.auth_config.send_reset_password_email(email, None).await {
                 | Ok(_) => {
                     log::info!("Send password reset email success");

@@ -1,3 +1,4 @@
+use async_std::sync::Mutex;
 use dioxus::prelude::{
     component, dioxus_elements, fc_to_builder, render, to_owned, use_future,
     use_shared_state, use_state, Element, IntoDynNode, Scope, Scoped,
@@ -6,6 +7,7 @@ use dioxus::prelude::{
 use dioxus_router::hooks::use_navigator;
 use firebase_auth_rs::session::{AuthSession, UserData};
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
+use std::sync::Arc;
 
 use crate::application_context::ApplicationContext;
 use crate::routings::route::Route;
@@ -14,6 +16,8 @@ use crate::routings::route::Route;
 #[component(no_case_check)]
 pub(crate) fn Dashboard(cx: Scope) -> Element {
     // Setup hooks
+    let context =
+        use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx).unwrap();
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
@@ -21,11 +25,11 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
     let photo_url = use_state(cx, String::new);
 
     let fetch_user_data = use_future(cx, (), move |_| {
-        let context = use_shared_state::<ApplicationContext>(cx)
-            .unwrap()
-            .clone();
+        let context = context.clone();
         async move {
-            let mut context = context.write();
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
             let session: Option<AuthSession> = context.auth_session.clone();
             match fetch_user_data_helper(session).await {
                 | Some((new_session, user_data)) => {
@@ -357,31 +361,35 @@ async fn fetch_user_data_helper(
 
 fn redirect_to_home(cx: &Scoped<'_>) {
     // Setup hooks
-    let context = use_shared_state::<ApplicationContext>(cx)
+    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
         .unwrap()
         .clone();
+
     let navigation = use_navigator(cx).clone();
 
-    if context
-        .read()
-        .auth_session
-        .is_none()
-    {
-        // NOTE: Redirect to home
-        log::info!("Redirect to home");
-        navigation.push(Route::Home {});
-    }
+    cx.spawn(async move {
+        let context = context.clone();
+        let context = context.read();
+        let context = context.lock().await;
+        if context.auth_session.is_none() {
+            // NOTE: Redirect to home
+            log::info!("Redirect to home");
+            navigation.push(Route::Home {});
+        }
+    });
 }
 
 fn send_email_verification(cx: &Scoped<'_>) {
     // Setup hooks
-    let context = use_shared_state::<ApplicationContext>(cx)
+    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
         .unwrap()
         .clone();
 
     cx.spawn({
         async move {
-            let mut context = context.write();
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
             if let Some(sessoin) = &context.auth_session {
                 log::info!("Send email verification");
                 match sessoin
@@ -410,13 +418,15 @@ fn change_email(
     email: String,
 ) {
     // Setup hooks
-    let context = use_shared_state::<ApplicationContext>(cx)
+    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
         .unwrap()
         .clone();
 
     cx.spawn({
         async move {
-            let mut context = context.write();
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
             if let Some(session) = &context.auth_session {
                 log::info!("Change email");
                 match session
@@ -442,13 +452,15 @@ fn change_password(
     password: String,
 ) {
     // Setup hooks
-    let context = use_shared_state::<ApplicationContext>(cx)
+    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
         .unwrap()
         .clone();
 
     cx.spawn({
         async move {
-            let mut context = context.write();
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
             if let Some(session) = &context.auth_session {
                 log::info!("Change password");
                 match session
@@ -475,13 +487,15 @@ fn update_profile(
     photo_url: String,
 ) {
     // Setup hooks
-    let context = use_shared_state::<ApplicationContext>(cx)
+    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
         .unwrap()
         .clone();
 
     cx.spawn({
         async move {
-            let mut context = context.write();
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
             if let Some(session) = &context.auth_session {
                 log::info!("Update profile");
                 match session
@@ -504,34 +518,39 @@ fn update_profile(
 
 fn sign_out(cx: &Scoped<'_>) {
     // Setup hooks
-    let context: UseSharedState<ApplicationContext> =
-        use_shared_state::<ApplicationContext>(cx)
+    let context: UseSharedState<Arc<Mutex<ApplicationContext>>> =
+        use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
             .unwrap()
             .clone();
     let navigation = use_navigator(cx).clone();
 
-    let mut context = context.write();
-    if context.auth_session.is_some() {
-        log::info!("Sign out");
+    cx.spawn({
+        async move {
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
 
-        // NOTE: Reset auth session
-        context.auth_session = None;
-
-        // NOTE: Navigate to home
-        navigation.push(Route::Home {});
-    };
+            log::info!("Sign out");
+            // NOTE: Reset auth session
+            context.auth_session = None;
+            // NOTE: Navigate to home
+            navigation.push(Route::Home {});
+        }
+    });
 }
 
 fn delete_account(cx: &Scoped<'_>) {
     // Setup hooks
-    let context = use_shared_state::<ApplicationContext>(cx)
+    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
         .unwrap()
         .clone();
     let navigation = use_navigator(cx).clone();
 
     cx.spawn({
         async move {
-            let mut context = context.write();
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
             if let Some(session) = &context.auth_session {
                 log::info!("Delete account");
                 match session
