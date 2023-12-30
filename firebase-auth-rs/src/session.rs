@@ -13,16 +13,10 @@ pub struct AuthSession {
     pub(crate) client: reqwest::Client,
     /// Firebase project API key.
     pub(crate) api_key: String,
-    /// Firebase Auth tokens.
-    pub(crate) tokens: Tokens,
-}
-
-/// Authentication tokens for the Firebase Auth.
-#[derive(Clone)]
-pub(crate) struct Tokens {
     /// Firebase Auth ID token.
     pub(crate) id_token: String,
     /// The number of seconds in which the ID token expires.
+    #[allow(dead_code)] // NOTE: This field may be used in the future.
     pub(crate) expires_in: u64,
     /// Firebase Auth refresh token.
     pub(crate) refresh_token: String,
@@ -583,7 +577,7 @@ impl AuthSession {
     async fn refresh_tokens(self) -> Result<Self> {
         // Create request payload.
         let request_payload = crate::api::exchange_refresh_token::ExchangeRefreshTokenRequestBodyPayload::new(
-            self.tokens.refresh_token.clone(),
+            self.refresh_token.clone(),
         );
 
         // Send request.
@@ -599,16 +593,14 @@ impl AuthSession {
         Ok(Self {
             client: self.client.clone(),
             api_key: self.api_key.clone(),
-            tokens: Tokens {
-                id_token: response.id_token,
-                expires_in: response
-                    .expires_in
-                    .parse()
-                    .map_err(|error| Error::NumberParseError {
-                        error,
-                    })?,
-                refresh_token: response.refresh_token,
-            },
+            id_token: response.id_token,
+            expires_in: response
+                .expires_in
+                .parse()
+                .map_err(|error| Error::NumberParseError {
+                    error,
+                })?,
+            refresh_token: response.refresh_token,
         })
     }
 
@@ -620,7 +612,7 @@ impl AuthSession {
         // Create request payload.
         let request_payload =
             crate::api::change_email::ChangeEmailRequestBodyPayload::new(
-                self.tokens.id_token.clone(),
+                self.id_token.clone(),
                 new_email,
                 false,
             );
@@ -644,7 +636,7 @@ impl AuthSession {
         // Create request payload.
         let request_payload =
             crate::api::change_password::ChangePasswordRequestBodyPayload::new(
-                self.tokens.id_token.clone(),
+                self.id_token.clone(),
                 new_password,
                 false,
             );
@@ -669,7 +661,7 @@ impl AuthSession {
         // Create request payload.
         let request_payload =
             crate::api::update_profile::UpdateProfileRequestBodyPayload::new(
-                self.tokens.id_token.clone(),
+                self.id_token.clone(),
                 display_name,
                 photo_url,
                 delete_attribute,
@@ -691,7 +683,7 @@ impl AuthSession {
         // Create request payload.
         let request_payload =
             crate::api::get_user_data::GetUserDataRequestBodyPayload::new(
-                self.tokens.id_token.clone(),
+                self.id_token.clone(),
             );
 
         // Send request.
@@ -736,7 +728,7 @@ impl AuthSession {
         // Create request payload.
         let request_payload =
             crate::api::link_with_email_password::LinkWithEmailAndPasswordRequestBodyPayload::new(
-                self.tokens.id_token.clone(),
+                self.id_token.clone(),
                 email,
                 password,
             );
@@ -754,16 +746,14 @@ impl AuthSession {
         Ok(Self {
             client: self.client.clone(),
             api_key: self.api_key.clone(),
-            tokens: Tokens {
-                id_token: response_payload.id_token,
-                expires_in: response_payload
-                    .expires_in
-                    .parse()
-                    .map_err(|error| Error::NumberParseError {
-                        error,
-                    })?,
-                refresh_token: response_payload.refresh_token,
-            },
+            id_token: response_payload.id_token,
+            expires_in: response_payload
+                .expires_in
+                .parse()
+                .map_err(|error| Error::NumberParseError {
+                    error,
+                })?,
+            refresh_token: response_payload.refresh_token,
         })
     }
 
@@ -775,7 +765,7 @@ impl AuthSession {
         // Create request payload.
         let request_payload =
             crate::api::link_with_oauth_credential::LinkWithOAuthCredentialRequestBodyPayload::new(
-                self.tokens.id_token.clone(),
+                self.id_token.clone(),
                 request_uri,
                 post_body,
                 false,
@@ -794,16 +784,14 @@ impl AuthSession {
         Ok(Self {
             client: self.client.clone(),
             api_key: self.api_key.clone(),
-            tokens: Tokens {
-                id_token: response_payload.id_token,
-                expires_in: response_payload
-                    .expires_in
-                    .parse()
-                    .map_err(|error| Error::NumberParseError {
-                        error,
-                    })?,
-                refresh_token: response_payload.refresh_token,
-            },
+            id_token: response_payload.id_token,
+            expires_in: response_payload
+                .expires_in
+                .parse()
+                .map_err(|error| Error::NumberParseError {
+                    error,
+                })?,
+            refresh_token: response_payload.refresh_token,
         })
     }
 
@@ -814,7 +802,7 @@ impl AuthSession {
         // Create request payload.
         let request_payload =
             crate::api::unlink_provider::UnlinkProviderRequestBodyPayload::new(
-                self.tokens.id_token.clone(),
+                self.id_token.clone(),
                 delete_provider,
             );
 
@@ -836,7 +824,7 @@ impl AuthSession {
         // Create request payload.
         let request_payload =
             crate::api::send_email_verification::SendEmailVerificationRequestBodyPayload::new(
-                self.tokens.id_token.clone(),
+                self.id_token.clone(),
             );
 
         // Send request.
@@ -855,7 +843,7 @@ impl AuthSession {
         // Create request payload.
         let request_payload =
             crate::api::delete_account::DeleteAccountRequestBodyPayload::new(
-                self.tokens.id_token.clone(),
+                self.id_token.clone(),
             );
 
         // Send request.

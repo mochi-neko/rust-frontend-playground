@@ -149,6 +149,8 @@ pub enum CommonErrorCode {
     ExpiredOobCode,
     /// INVALID_OOB_CODE: The action code is invalid. This can happen if the code is malformed, expired, or has already been used.
     InvalidOobCode,
+    // ADMIN_ONLY_OPERATION: This operation is reserved to administrators only.
+    AdminOnlyOperation,
     /// Unknown error codes.
     Unknown(String),
 }
@@ -194,6 +196,7 @@ impl Into<CommonErrorCode> for String {
             },
             | "EXPIRED_OOB_CODE" => CommonErrorCode::ExpiredOobCode,
             | "INVALID_OOB_CODE" => CommonErrorCode::InvalidOobCode,
+            | "ADMIN_ONLY_OPERATION" => CommonErrorCode::AdminOnlyOperation,
             | _ => CommonErrorCode::Unknown(self),
         }
     }

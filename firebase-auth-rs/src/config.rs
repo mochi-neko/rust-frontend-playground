@@ -2,7 +2,7 @@
 
 use crate::error::Error;
 use crate::result::Result;
-use crate::session::{AuthSession, Tokens};
+use crate::session::AuthSession;
 
 /// Configuration for the Firebase Auth.
 #[derive(Clone)]
@@ -14,22 +14,7 @@ pub struct AuthConfig {
 }
 
 /// Timeout options for HTTP client.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Timeout {
-    /// Connection timeout duration.
-    pub connection_timeout: std::time::Duration,
-    /// Request timeout duration.
-    pub request_timeout: std::time::Duration,
-}
-
-impl Default for Timeout {
-    fn default() -> Self {
-        Self {
-            connection_timeout: std::time::Duration::from_secs(10),
-            request_timeout: std::time::Duration::from_secs(60),
-        }
-    }
-}
+pub type Timeout = std::time::Duration;
 
 impl AuthConfig {
     /// Creates a new [`AuthConfig`] instance.
@@ -58,18 +43,15 @@ impl AuthConfig {
     ) -> Self {
         Self {
             api_key,
-            timeout: timeout.unwrap_or_default(),
+            timeout: timeout.unwrap_or(std::time::Duration::from_secs(60)),
         }
     }
 
     /// Builds a new HTTP client from config.
     fn build_client(&self) -> Result<reqwest::Client> {
+        // NOTE: connection_timeout requires tokio runtime.
         reqwest::ClientBuilder::new()
-            .connect_timeout(
-                self.timeout
-                    .connection_timeout,
-            )
-            .timeout(self.timeout.request_timeout)
+            // .timeout(self.timeout)
             .build()
             .map_err(|error| Error::HttpClientBuildError(error))
     }
@@ -120,8 +102,10 @@ impl AuthConfig {
         )
         .await?;
 
-        // Create tokens.
-        let tokens = Tokens {
+        // Create session.
+        Ok(AuthSession {
+            client,
+            api_key: self.api_key.clone(),
             id_token: response_payload.id_token,
             expires_in: response_payload
                 .expires_in
@@ -130,13 +114,6 @@ impl AuthConfig {
                     error,
                 })?,
             refresh_token: response_payload.refresh_token,
-        };
-
-        // Create session.
-        Ok(AuthSession {
-            client,
-            api_key: self.api_key.clone(),
-            tokens,
         })
     }
 
@@ -186,8 +163,10 @@ impl AuthConfig {
         )
         .await?;
 
-        // Create tokens.
-        let tokens = Tokens {
+        // Create session.
+        Ok(AuthSession {
+            client,
+            api_key: self.api_key.clone(),
             id_token: response_payload.id_token,
             expires_in: response_payload
                 .expires_in
@@ -196,13 +175,6 @@ impl AuthConfig {
                     error,
                 })?,
             refresh_token: response_payload.refresh_token,
-        };
-
-        // Create session.
-        Ok(AuthSession {
-            client,
-            api_key: self.api_key.clone(),
-            tokens,
         })
     }
 
@@ -241,8 +213,10 @@ impl AuthConfig {
             )
             .await?;
 
-        // Create tokens.
-        let tokens = Tokens {
+        // Create session.
+        Ok(AuthSession {
+            client,
+            api_key: self.api_key.clone(),
             id_token: response_payload.id_token,
             expires_in: response_payload
                 .expires_in
@@ -251,13 +225,6 @@ impl AuthConfig {
                     error,
                 })?,
             refresh_token: response_payload.refresh_token,
-        };
-
-        // Create session.
-        Ok(AuthSession {
-            client,
-            api_key: self.api_key.clone(),
-            tokens,
         })
     }
 
@@ -314,8 +281,10 @@ impl AuthConfig {
             )
             .await?;
 
-        // Create tokens.
-        let tokens = Tokens {
+        // Create session.
+        Ok(AuthSession {
+            client,
+            api_key: self.api_key.clone(),
             id_token: response_payload.id_token,
             expires_in: response_payload
                 .expires_in
@@ -324,13 +293,6 @@ impl AuthConfig {
                     error,
                 })?,
             refresh_token: response_payload.refresh_token,
-        };
-
-        // Create session.
-        Ok(AuthSession {
-            client,
-            api_key: self.api_key.clone(),
-            tokens,
         })
     }
 
@@ -378,8 +340,10 @@ impl AuthConfig {
             )
             .await?;
 
-        // Create tokens.
-        let tokens = Tokens {
+        // Create session.
+        Ok(AuthSession {
+            client,
+            api_key: self.api_key.clone(),
             id_token: response_payload.id_token,
             expires_in: response_payload
                 .expires_in
@@ -388,13 +352,6 @@ impl AuthConfig {
                     error,
                 })?,
             refresh_token: response_payload.refresh_token,
-        };
-
-        // Create session.
-        Ok(AuthSession {
-            client,
-            api_key: self.api_key.clone(),
-            tokens,
         })
     }
 

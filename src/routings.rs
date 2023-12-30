@@ -5,5 +5,6 @@ pub(crate) mod oauth_google;
 pub(crate) mod reset_password;
 pub(crate) mod route;
 pub(crate) mod sign_in;
+pub(crate) mod sign_in_anonymously;
 pub(crate) mod sign_in_oauth;
 pub(crate) mod sign_up;

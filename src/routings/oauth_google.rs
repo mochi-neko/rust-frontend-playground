@@ -1,13 +1,11 @@
-use std::{collections::HashMap, fmt::Display};
+use std::{collections::HashMap, fmt::Display, time::Duration};
 
 use dioxus::prelude::{
     component, dioxus_elements, render, use_shared_state, Element, Props, Scope,
 };
 use dioxus_router::prelude::{use_navigator, FromQuery};
 use firebase_auth_rs::{
-    config::{AuthConfig, Timeout},
-    data::idp_post_body::IdpPostBody,
-    session::AuthSession,
+    config::AuthConfig, data::idp_post_body::IdpPostBody, session::AuthSession,
 };
 use google_oauth_rs::api::exchange_access_token::{
     ExchangeAccessTokenRequestParameters, GrandType,
@@ -194,10 +192,8 @@ async fn sign_in_with_google(
     auth_config: AuthConfig,
     auth_code: String,
 ) -> anyhow::Result<AuthSession> {
-    let timeout = Timeout::default();
     let client = reqwest::ClientBuilder::new()
-        .connect_timeout(timeout.connection_timeout)
-        .timeout(timeout.request_timeout)
+        //.timeout(Duration::from_secs(60))
         .build()?;
 
     let request_parameter = ExchangeAccessTokenRequestParameters {

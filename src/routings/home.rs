@@ -4,7 +4,7 @@ use dioxus::prelude::{
 use dioxus_router::hooks::use_navigator;
 use material_dioxus::MatButton;
 
-use super::route::Route;
+use crate::routings::route::Route;
 
 #[allow(non_snake_case)]
 #[component(no_case_check)]
@@ -50,6 +50,21 @@ pub(crate) fn Home(cx: Scope) -> Element {
                 },
                 MatButton {
                     label: "Sign in with OAuth",
+                    outlined: true,
+                }
+            }
+        }
+
+        br {}
+
+        div {
+            span {
+                onclick: |_| {
+                    let navigator = use_navigator(cx).clone();
+                    navigator.push(Route::SignInAnonymously { });
+                },
+                MatButton {
+                    label: "Sign in anonymously",
                     outlined: true,
                 }
             }

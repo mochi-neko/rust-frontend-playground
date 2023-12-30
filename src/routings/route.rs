@@ -11,6 +11,7 @@ use super::{
     },
     reset_password::ResetPassword,
     sign_in::SignIn,
+    sign_in_anonymously::SignInAnonymously,
     sign_in_oauth::SignInWithOAuth,
     sign_up::SignUp,
 };
@@ -26,6 +27,8 @@ pub(crate) enum Route {
     SignIn {},
     #[route("/signin/oauth")]
     SignInWithOAuth {},
+    #[route("/signin/anonymous")]
+    SignInAnonymously {},
     #[route("/auth/google-callback?:query")]
     OAuthGoogle {
         query: RedirectToAuthServerResponseQuery,

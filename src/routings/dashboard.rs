@@ -14,7 +14,6 @@ use crate::routings::route::Route;
 #[component(no_case_check)]
 pub(crate) fn Dashboard(cx: Scope) -> Element {
     // Setup hooks
-    let context = use_shared_state::<ApplicationContext>(cx).unwrap();
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
@@ -22,7 +21,9 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
     let photo_url = use_state(cx, String::new);
 
     let fetch_user_data = use_future(cx, (), move |_| {
-        let context = context.clone();
+        let context = use_shared_state::<ApplicationContext>(cx)
+            .unwrap()
+            .clone();
         async move {
             let mut context = context.write();
             let session: Option<AuthSession> = context.auth_session.clone();
@@ -213,7 +214,7 @@ fn render_user_data<'a>(
                 }
             }
         },
-        | Some(user_data) => cx.render(rsx! {
+        | Some(user_data) => render! {
             div {
                 span {
                     onclick: |_| send_email_verification(cx),
@@ -326,7 +327,7 @@ fn render_user_data<'a>(
                 "Custom auth: "
                 span { user_data.custom_auth.unwrap_or(false).to_string() }
             }
-        }),
+        },
     }
 }
 

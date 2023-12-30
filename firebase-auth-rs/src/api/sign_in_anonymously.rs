@@ -35,9 +35,6 @@ pub struct SignInAnonymouslyResponsePayload {
     /// A Firebase Auth ID token for the newly created user.
     #[serde(rename = "idToken")]
     pub id_token: String,
-    /// Since the user is anonymous, this should be empty.
-    #[serde(rename = "email")]
-    pub email: String,
     /// A Firebase Auth refresh token for the newly created user.
     #[serde(rename = "refreshToken")]
     pub refresh_token: String,
