@@ -9,19 +9,13 @@ use crate::session::AuthSession;
 pub struct AuthConfig {
     /// Firebase project API key.
     api_key: String,
-    /// Timeout options for HTTP client.
-    timeout: Timeout,
 }
-
-/// Timeout options for HTTP client.
-pub type Timeout = std::time::Duration;
 
 impl AuthConfig {
     /// Creates a new [`AuthConfig`] instance.
     ///
     /// ## Arguments
     /// - `api_key` - Your Firebase project API key.
-    /// - `timeout` - Timeout options for HTTP client.
     ///
     /// ## Returns
     /// The [`AuthConfig`] instance.
@@ -32,26 +26,20 @@ impl AuthConfig {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     ///
     /// // Do something with config.
     /// ```
-    pub fn new(
-        api_key: String,
-        timeout: Option<Timeout>,
-    ) -> Self {
+    pub fn new(api_key: String) -> Self {
         Self {
             api_key,
-            timeout: timeout.unwrap_or(std::time::Duration::from_secs(60)),
         }
     }
 
     /// Builds a new HTTP client from config.
     fn build_client(&self) -> Result<reqwest::Client> {
-        // NOTE: connection_timeout requires tokio runtime.
+        // NOTE: Timeout options are not supported on WASM.
         reqwest::ClientBuilder::new()
-            // .timeout(self.timeout)
             .build()
             .map_err(|error| Error::HttpClientBuildError(error))
     }
@@ -71,7 +59,6 @@ impl AuthConfig {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     ///
     /// let session = config.sign_up_with_email_password(
@@ -132,7 +119,6 @@ impl AuthConfig {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     ///
     /// let session = config.sign_in_with_email_password(
@@ -189,7 +175,6 @@ impl AuthConfig {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     ///
     /// let session = config.sign_in_anonymously().await.unwrap();
@@ -244,7 +229,6 @@ impl AuthConfig {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     ///
     /// let session = config.sign_in_oauth_credencial(
@@ -310,7 +294,6 @@ impl AuthConfig {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     ///
     /// let session = config.exchange_refresh_tokens(
@@ -370,7 +353,6 @@ impl AuthConfig {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     ///
     /// let providers = config.fetch_providers_for_email(
@@ -419,7 +401,6 @@ impl AuthConfig {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     ///
     /// config.send_reset_password_email(

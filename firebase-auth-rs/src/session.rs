@@ -206,7 +206,6 @@ impl AuthSession {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     /// let session = config.sign_in_with_email_password(
     ///     "user@example".to_string(),
@@ -251,7 +250,6 @@ impl AuthSession {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     /// let session = config.sign_in_with_email_password(
     ///     "user@example".to_string(),
@@ -295,7 +293,6 @@ impl AuthSession {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     /// let session = config.sign_in_with_email_password(
     ///     "user@example".to_string(),
@@ -341,7 +338,6 @@ impl AuthSession {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     /// let session = config.sign_in_with_email_password(
     ///     "user@example".to_string(),
@@ -379,7 +375,6 @@ impl AuthSession {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     /// let session = config.sign_in_oauth_credencial(
     ///     "https://your-app.com/redirect/path/auth/handler".to_string(),
@@ -427,7 +422,6 @@ impl AuthSession {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     /// let session = config.sign_in_with_email_password(
     ///     "user@example".to_string(),
@@ -475,7 +469,6 @@ impl AuthSession {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     /// let session = config.sign_in_with_email_password(
     ///     "user@example".to_string(),
@@ -517,7 +510,6 @@ impl AuthSession {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     /// let session = config.sign_in_with_email_password(
     ///     "user@example".to_string(),
@@ -553,7 +545,6 @@ impl AuthSession {
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
-    ///     None,
     /// );
     /// let session = config.sign_in_with_email_password(
     ///     "user@example".to_string(),

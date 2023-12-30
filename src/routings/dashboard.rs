@@ -1,7 +1,7 @@
 use dioxus::prelude::{
-    component, dioxus_elements, fc_to_builder, render, rsx, to_owned,
-    use_future, use_shared_state, use_state, Element, IntoDynNode, Scope,
-    Scoped, UseSharedState,
+    component, dioxus_elements, fc_to_builder, render, to_owned, use_future,
+    use_shared_state, use_state, Element, IntoDynNode, Scope, Scoped,
+    UseSharedState,
 };
 use dioxus_router::hooks::use_navigator;
 use firebase_auth_rs::session::{AuthSession, UserData};

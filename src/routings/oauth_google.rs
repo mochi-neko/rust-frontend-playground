@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display, time::Duration};
+use std::{collections::HashMap, fmt::Display};
 
 use dioxus::prelude::{
     component, dioxus_elements, render, use_shared_state, Element, Props, Scope,

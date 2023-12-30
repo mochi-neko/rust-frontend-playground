@@ -11,7 +11,6 @@ impl Default for ApplicationContext {
         Self {
             auth_config: AuthConfig::new(
                 crate::generated::dotenv::FIREBASE_API_KEY.to_string(),
-                None,
             ),
             auth_session: None,
         }
