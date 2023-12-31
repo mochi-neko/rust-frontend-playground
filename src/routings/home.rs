@@ -1,21 +1,31 @@
+use std::sync::Arc;
+
+use async_std::sync::Mutex;
 use dioxus::prelude::{
-    component, dioxus_elements, fc_to_builder, render, Element, Scope,
+    component, dioxus_elements, fc_to_builder, render, use_shared_state,
+    Element, Scope, Scoped, UseSharedState,
 };
 use dioxus_router::hooks::use_navigator;
 use material_dioxus::MatButton;
 
-use crate::routings::route::Route;
+use crate::{application_context::ApplicationContext, routings::route::Route};
 
 #[allow(non_snake_case)]
 #[component(no_case_check)]
 pub(crate) fn Home(cx: Scope) -> Element {
+    // Setup hooks
+    let context =
+        use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx).unwrap();
+    let navigator = use_navigator(cx);
+
+    redirect_to_dashboard_if_logged_in(cx, context);
+
     render! {
         h1 { "Home" }
 
         div {
             span {
                 onclick: |_| {
-                    let navigator = use_navigator(cx).clone();
                     navigator.push(Route::SignUp { });
                 },
                 MatButton {
@@ -30,7 +40,6 @@ pub(crate) fn Home(cx: Scope) -> Element {
         div {
             span {
                 onclick: |_| {
-                    let navigator = use_navigator(cx).clone();
                     navigator.push(Route::SignIn { });
                 },
                 MatButton {
@@ -45,7 +54,6 @@ pub(crate) fn Home(cx: Scope) -> Element {
         div {
             span {
                 onclick: |_| {
-                    let navigator = use_navigator(cx).clone();
                     navigator.push(Route::SignInWithOAuth { });
                 },
                 MatButton {
@@ -60,7 +68,6 @@ pub(crate) fn Home(cx: Scope) -> Element {
         div {
             span {
                 onclick: |_| {
-                    let navigator = use_navigator(cx).clone();
                     navigator.push(Route::SignInAnonymously { });
                 },
                 MatButton {
@@ -70,4 +77,23 @@ pub(crate) fn Home(cx: Scope) -> Element {
             }
         }
     }
+}
+
+fn redirect_to_dashboard_if_logged_in(
+    cx: &Scoped<'_>,
+    context: &UseSharedState<Arc<Mutex<ApplicationContext>>>,
+) {
+    // Setup hooks
+    let context = context.clone();
+    let navigation = use_navigator(cx).clone();
+
+    cx.spawn(async move {
+        let context = context.clone();
+        let context = context.read();
+        let context = context.lock().await;
+        if context.auth_session.is_some() {
+            log::info!("Redirect to dashboard");
+            navigation.push(Route::Dashboard {});
+        }
+    });
 }

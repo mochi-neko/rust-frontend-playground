@@ -4,7 +4,7 @@ use std::sync::Arc;
 use dioxus::prelude::{
     component, dioxus_elements, fc_to_builder, render, to_owned,
     use_shared_state, use_state, Element, GlobalAttributes, IntoDynNode, Scope,
-    Scoped, UseState,
+    Scoped, UseSharedState, UseState,
 };
 use dioxus_router::{components::Link, hooks::use_navigator};
 use material_dioxus::{MatButton, MatTextField};
@@ -17,10 +17,13 @@ use crate::routings::route::Route;
 #[component(no_case_check)]
 pub(crate) fn SignUp(cx: Scope) -> Element {
     // Setup hooks
+    let context =
+        use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx).unwrap();
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
     let error_message = use_state::<Option<String>>(cx, || None);
+    let navigator = use_navigator(cx);
 
     render! {
         h1 { "Sign up" }
@@ -138,7 +141,7 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
                 onclick: move |_| {
                     if can_sign_up(email, password, confirm_password)
                     {
-                        sign_up(cx, email.get().clone(), password.get().clone(), error_message)
+                        sign_up(cx, context, email.get().clone(), password.get().clone(), error_message)
                     }
                 },
                 MatButton {
@@ -185,8 +188,7 @@ pub(crate) fn SignUp(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: |_| {
-                    let navigator = use_navigator(cx).clone();
+                onclick: move |_| {
                     navigator.push(Route::Home { });
                 },
                 MatButton {
@@ -214,14 +216,13 @@ fn can_sign_up(
 
 fn sign_up(
     cx: &Scoped<'_>,
+    context: &UseSharedState<Arc<Mutex<ApplicationContext>>>,
     email: String,
     password: String,
     error_message: &UseState<Option<String>>,
 ) {
     // Setup hooks
-    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
-        .unwrap()
-        .clone();
+    let context = context.clone();
     let navigator = use_navigator(cx).clone();
     let error_message = error_message.clone();
 

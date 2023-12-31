@@ -22,7 +22,7 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let error_message = use_state::<Option<String>>(cx, || None);
-    let navigator = use_navigator(cx).clone();
+    let navigator = use_navigator(cx);
 
     render! {
         h1 { "Sign in" }

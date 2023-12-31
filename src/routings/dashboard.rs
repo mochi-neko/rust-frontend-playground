@@ -55,7 +55,7 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
 
     let tab_state = use_state(cx, || TabState::Profile);
 
-    redirect_to_home(cx);
+    redirect_to_home_if_not_logged_in(cx, context);
 
     render! {
         h1 { "Dashboard" }
@@ -566,12 +566,12 @@ async fn fetch_user_data_helper(
     }
 }
 
-fn redirect_to_home(cx: &Scoped<'_>) {
+fn redirect_to_home_if_not_logged_in(
+    cx: &Scoped<'_>,
+    context: &UseSharedState<Arc<Mutex<ApplicationContext>>>,
+) {
     // Setup hooks
-    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
-        .unwrap()
-        .clone();
-
+    let context = context.clone();
     let navigation = use_navigator(cx).clone();
 
     cx.spawn(async move {
@@ -579,7 +579,6 @@ fn redirect_to_home(cx: &Scoped<'_>) {
         let context = context.read();
         let context = context.lock().await;
         if context.auth_session.is_none() {
-            // NOTE: Redirect to home
             log::info!("Redirect to home");
             navigation.push(Route::Home {});
         }

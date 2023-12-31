@@ -1,12 +1,15 @@
 use async_std::sync::Mutex;
 use std::sync::Arc;
 
-use dioxus::prelude::{
-    component, dioxus_elements, fc_to_builder, render, to_owned,
-    use_shared_state, use_state, Element, GlobalAttributes, IntoDynNode, Scope,
-    Scoped, UseState,
+use dioxus::{
+    hooks::UseSharedState,
+    prelude::{
+        component, dioxus_elements, fc_to_builder, render, to_owned,
+        use_shared_state, use_state, Element, GlobalAttributes, IntoDynNode,
+        Scope, Scoped, UseState,
+    },
 };
-use dioxus_router::{components::Link, hooks::use_navigator};
+use dioxus_router::hooks::use_navigator;
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
 
 use crate::application_context::ApplicationContext;
@@ -17,8 +20,11 @@ use super::route::Route;
 #[component(no_case_check)]
 pub(crate) fn ResetPassword(cx: Scope) -> Element {
     // Setup hooks
+    let context =
+        use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx).unwrap();
     let email = use_state(cx, String::new);
     let error_message = use_state::<Option<String>>(cx, || None);
+    let navigator = use_navigator(cx);
 
     render! {
         h1 { "Reset password" }
@@ -41,7 +47,7 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
                 onclick: |_| {
                     if can_send(email)
                     {
-                        send_send_password_reset_email(cx, email.get().clone(), error_message)
+                        send_send_password_reset_email(cx, context, email.get().clone(), error_message)
                     }
                 },
                 MatButton {
@@ -70,17 +76,14 @@ pub(crate) fn ResetPassword(cx: Scope) -> Element {
         }
 
         div {
-            label {
-                "Back to "
-            }
-
-            Link {
-                to: Route::Home {},
-                "home",
-            }
-
-            label {
-                "."
+            span {
+                onclick: move |_| {
+                    navigator.push(Route::Home { });
+                },
+                MatButton {
+                    label: "Back to home",
+                    outlined: true,
+                }
             }
         }
     }
@@ -92,15 +95,14 @@ fn can_send(email: &UseState<String>) -> bool {
 
 fn send_send_password_reset_email(
     cx: &Scoped<'_>,
+    context: &UseSharedState<Arc<Mutex<ApplicationContext>>>,
     email: String,
     error_message: &UseState<Option<String>>,
 ) {
     // Setup hooks
-    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
-        .unwrap()
-        .clone();
-    let navigation = use_navigator(cx).clone();
+    let context = context.clone();
     let error_message = error_message.clone();
+    let navigation = use_navigator(cx).clone();
 
     cx.spawn({
         async move {

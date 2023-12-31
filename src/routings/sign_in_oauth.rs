@@ -9,6 +9,9 @@ use crate::routings::route::Route;
 #[allow(non_snake_case)]
 #[component(no_case_check)]
 pub(crate) fn SignInWithOAuth(cx: Scope) -> Element {
+    // Setup hooks
+    let navigator = use_navigator(cx);
+
     render! {
         h1 { "Sign in with OAuth" }
 
@@ -29,8 +32,7 @@ pub(crate) fn SignInWithOAuth(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: |_| {
-                    let navigator = use_navigator(cx).clone();
+                onclick: move |_| {
                     navigator.push(Route::Home { });
                 },
                 MatButton {

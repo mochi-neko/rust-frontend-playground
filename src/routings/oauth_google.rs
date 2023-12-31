@@ -24,18 +24,16 @@ pub(crate) fn OAuthGoogle(
     cx: Scope,
     query: RedirectToAuthServerResponseQuery,
 ) -> Element {
-    log::info!(
-        "Redirect OAuth with Google: query: {:?}",
-        query,
-    );
+    // Setup hooks
+    let context =
+        use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx).unwrap();
+    let navigator = use_navigator(cx);
 
     let sign_in = move |cx: &Scope<'_, OAuthGoogleProps>| {
         log::info!("Sign in with Google");
 
-        let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
-            .unwrap()
-            .clone();
-        let navigator = use_navigator(cx).clone();
+        let context = context.clone();
+        let navigator = navigator.clone();
         let code = query.code.clone();
 
         cx.spawn(async move {
@@ -196,9 +194,7 @@ async fn sign_in_with_google(
     auth_config: AuthConfig,
     auth_code: String,
 ) -> anyhow::Result<AuthSession> {
-    let client = reqwest::ClientBuilder::new()
-        //.timeout(Duration::from_secs(60))
-        .build()?;
+    let client = reqwest::ClientBuilder::new().build()?;
 
     let request_parameter = ExchangeAccessTokenRequestParameters {
         client_id: dotenv::GOOGLE_CLIENT_ID.to_string(),
@@ -217,7 +213,7 @@ async fn sign_in_with_google(
 
     log::info!("Exchange access token success");
 
-    let auth = auth_config
+    let session = auth_config
         .sign_in_oauth_credencial(
             "http://localhost:8080/auth/google-callback".to_string(),
             IdpPostBody::Google {
@@ -228,5 +224,5 @@ async fn sign_in_with_google(
 
     log::info!("Sign in with OAuth credential success");
 
-    Ok(auth)
+    Ok(session)
 }
