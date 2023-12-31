@@ -3,6 +3,7 @@
 use serde::Deserialize;
 
 /// Provider user information.
+///
 /// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info).
 #[derive(Deserialize, PartialEq, Clone)]
 pub struct ProviderUserInfo {

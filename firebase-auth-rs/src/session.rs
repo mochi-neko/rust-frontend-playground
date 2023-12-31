@@ -3,6 +3,7 @@
 use std::collections::HashSet;
 
 use crate::data::provider_id::ProviderId;
+use crate::data::user_data::UserData;
 use crate::error::Error;
 use crate::result::Result;
 
@@ -22,38 +23,7 @@ pub struct AuthSession {
     pub(crate) refresh_token: String,
 }
 
-/// User data for the Firebase Auth.
-pub struct UserData {
-    /// The uid of the account.
-    pub local_id: String,
-    /// The email of the account.
-    pub email: Option<String>,
-    /// Whether or not the account's email has been verified.
-    pub email_verified: Option<bool>,
-    /// The display name for the account.
-    pub display_name: Option<String>,
-    /// The photo url of the account.
-    pub photo_url: Option<String>,
-    /// List of all linked provider information.
-    pub provider_user_info:
-        Option<Vec<crate::data::provider_user_info::ProviderUserInfo>>,
-    /// Hash version of password.
-    pub password_hash: Option<String>,
-    /// The timestamp, in milliseconds, that the account password was last changed.
-    pub password_updated_at: Option<f64>,
-    /// The timestamp, in seconds, which marks a boundary, before which Firebase ID token are considered revoked.
-    pub valid_since: Option<String>,
-    /// Whether the account is disabled or not.
-    pub disabled: Option<bool>,
-    /// The timestamp, in milliseconds, that the account last logged in at.
-    pub last_login_at: String,
-    /// The timestamp, in milliseconds, that the account was created at.
-    pub created_at: String,
-    /// The timestamp, in milliseconds, that the account was last refreshed at.
-    pub last_refresh_at: Option<String>,
-    /// Whether the account is authenticated by the developer.
-    pub custom_auth: Option<bool>,
-}
+// Defines macros for calling APIs with refreshing tokens.
 
 /// Calls an API with refreshing tokens then return value with new `AuthSession``.
 macro_rules! call_api_with_refreshing_tokens_with_return_value {

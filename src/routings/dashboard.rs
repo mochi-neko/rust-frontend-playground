@@ -5,7 +5,9 @@ use dioxus::prelude::{
     UseSharedState,
 };
 use dioxus_router::hooks::use_navigator;
-use firebase_auth_rs::session::{AuthSession, UserData};
+use firebase_auth_rs::data::provider_user_info::ProviderUserInfo;
+use firebase_auth_rs::data::user_data::UserData;
+use firebase_auth_rs::session::AuthSession;
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
 use std::sync::Arc;
 
@@ -225,7 +227,7 @@ fn render_user_data<'a>(
                     MatButton {
                         label: "Send email verification",
                         outlined: true,
-                        disabled: user_data.email_verified,
+                        disabled: user_data.email_verified.unwrap_or(true),
                     }
                 }
             }
@@ -239,12 +241,12 @@ fn render_user_data<'a>(
 
             div {
                 "E-mail: "
-                span { user_data.email.clone() }
+                span { user_data.email.clone().unwrap_or("".to_string()) }
             }
 
             div {
                 "E-mail verified: "
-                span { user_data.email_verified.to_string() }
+                span { user_data.email_verified.unwrap_or(false).to_string() }
             }
 
             div {
@@ -254,67 +256,32 @@ fn render_user_data<'a>(
 
             div {
                 "Provider user info: "
-                for provider_user_info in user_data.provider_user_info.iter() {
-                    div {
-                        "- Provider ID: "
-                        span { provider_user_info.provider_id.clone() }
-                    }
-
-                    div {
-                        "- Display name: "
-                        span { provider_user_info.display_name.clone() }
-                    }
-
-                    div {
-                        "- Photo URL: "
-                        span { provider_user_info.photo_url.clone() }
-                    }
-
-                    div {
-                        "- Federated ID: "
-                        span { provider_user_info.federated_id.clone() }
-                    }
-
-                    div {
-                        "- Email: "
-                        span { provider_user_info.email.clone() }
-                    }
-
-                    div {
-                        "- Raw ID: "
-                        span { provider_user_info.raw_id.clone() }
-                    }
-
-                    div {
-                        "- Screen name: "
-                        span { provider_user_info.screen_name.clone() }
-                    }
-                }
+                render_provider_user_info(cx, &user_data.provider_user_info)
             }
 
             div {
                 "Photo URL: "
-                span { user_data.photo_url.clone() }
+                span { user_data.photo_url.clone().unwrap_or("".to_string()) }
             }
 
             div {
                 "Password hash: "
-                span { "XXXX" }
+                span { user_data.password_hash.clone().unwrap_or("".to_string()) }
             }
 
             div {
                 "Password updated at: "
-                span { user_data.password_updated_at.to_string() }
+                span { user_data.password_updated_at.unwrap_or(0.0).to_string() }
             }
 
             div {
                 "Valid since: "
-                span { user_data.valid_since.clone() }
+                span { user_data.valid_since.clone().unwrap_or("".to_string()) }
             }
 
             div {
                 "Disabled: "
-                span { user_data.disabled.to_string() }
+                span { user_data.disabled.unwrap_or(false).to_string() }
             }
 
             div {
@@ -330,6 +297,63 @@ fn render_user_data<'a>(
             div {
                 "Custom auth: "
                 span { user_data.custom_auth.unwrap_or(false).to_string() }
+            }
+        },
+    }
+}
+
+fn render_provider_user_info<'a>(
+    cx: Scope<'a>,
+    providers: &Option<Vec<ProviderUserInfo>>,
+) -> Element<'a> {
+    match providers {
+        | None => {
+            render! {
+                div {
+                    "- Provider user info is none."
+                }
+            }
+        },
+        | Some(providers) => {
+            render! {
+                for provider in providers.iter() {
+                    render! {
+                        div {
+                            "- Provider ID: "
+                            span { provider.provider_id.clone() }
+                        }
+
+                        div {
+                            "- Display name: "
+                            span { provider.display_name.clone().unwrap_or("".to_string()) }
+                        }
+
+                        div {
+                            "- Photo URL: "
+                            span { provider.photo_url.clone().unwrap_or("".to_string()) }
+                        }
+
+                        div {
+                            "- Federated ID: "
+                            span { provider.federated_id.clone() }
+                        }
+
+                        div {
+                            "- Email: "
+                            span { provider.email.clone() }
+                        }
+
+                        div {
+                            "- Raw ID: "
+                            span { provider.raw_id.clone().unwrap_or("".to_string()) }
+                        }
+
+                        div {
+                            "- Screen name: "
+                            span { provider.screen_name.clone().unwrap_or("".to_string()) }
+                        }
+                    }
+                }
             }
         },
     }
