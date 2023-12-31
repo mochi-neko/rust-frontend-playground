@@ -1,11 +1,11 @@
 use async_std::sync::Mutex;
-use dioxus::html::{br, GlobalAttributes};
 use dioxus::prelude::{
     component, dioxus_elements, fc_to_builder, render, to_owned, use_future,
-    use_shared_state, use_state, Element, IntoDynNode, Scope, Scoped,
-    UseFuture, UseSharedState, UseState,
+    use_shared_state, use_state, Element, GlobalAttributes, IntoDynNode, Scope,
+    Scoped, UseFuture, UseSharedState, UseState,
 };
 use dioxus_router::hooks::use_navigator;
+use firebase_auth_rs::data::provider_id::ProviderId;
 use firebase_auth_rs::data::provider_user_info::ProviderUserInfo;
 use firebase_auth_rs::data::user_data::UserData;
 use firebase_auth_rs::session::AuthSession;
@@ -32,6 +32,9 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
+    let link_email = use_state(cx, String::new);
+    let link_password = use_state(cx, String::new);
+    let link_confirm_password = use_state(cx, String::new);
 
     let fetch_user_data = use_future(cx, (), move |_| {
         let context = context.clone();
@@ -105,7 +108,7 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
                 render_profile_tab(cx, display_name, photo_url, fetch_user_data)
             },
             | TabState::Credentials => {
-                render_credentials_tab(cx, email, password, confirm_password)
+                render_credentials_tab(cx, email, password, confirm_password, link_email, link_password, link_confirm_password)
             },
             | TabState::DeleteAccount => {
                 render_delete_account_tab(cx)
@@ -206,6 +209,9 @@ fn render_credentials_tab<'a>(
     email: &'a UseState<String>,
     password: &'a UseState<String>,
     confirm_password: &'a UseState<String>,
+    link_email: &'a UseState<String>,
+    link_password: &'a UseState<String>,
+    link_confirm_password: &'a UseState<String>,
 ) -> Element<'a> {
     render! {
         div {
@@ -275,6 +281,77 @@ fn render_credentials_tab<'a>(
                         outlined: true,
                         disabled: password.get().is_empty()
                             || confirm_password.get().is_empty(),
+                    }
+                }
+            }
+
+            h2 { "Manage ID providers" }
+
+            div {
+                MatTextField {
+                    label: "E-mail",
+                    value: link_email.get(),
+                    _oninput: {
+                        to_owned![link_email];
+                        move |event :String| {
+                            link_email.set(event)
+                        }
+                    }
+                }
+            }
+
+            div {
+                MatTextField {
+                    label: "Password",
+                    value: link_password.get().clone().replace(|_| true, "*"),
+                    _oninput: {
+                        to_owned![link_password];
+                        move |event: String| {
+                            link_password.set(event)
+                        }
+                    }
+                }
+            }
+
+            div {
+                MatTextField {
+                    label: "Confirm password",
+                    value: link_confirm_password.get().clone().replace(|_| true, "*"),
+                    _oninput: {
+                        to_owned![link_confirm_password];
+                        move |event: String| {
+                            link_confirm_password.set(event)
+                        }
+                    }
+                }
+            }
+
+            div {
+                span {
+                    onclick: |_| link_with_email_password(cx, email.get().clone(), password.get().clone()),
+                    MatButton {
+                        label: "Link password",
+                        outlined: true,
+                    }
+                }
+            }
+
+            div {
+                span {
+                    onclick: |_| unlink_provider(cx, ProviderId::Password),
+                    MatButton {
+                        label: "Unlink password",
+                        outlined: true,
+                    }
+                }
+            }
+
+            div {
+                span {
+                    onclick: |_| unlink_provider(cx, ProviderId::Google),
+                    MatButton {
+                        label: "Unlink Google OAuth",
+                        outlined: true,
                     }
                 }
             }
@@ -697,6 +774,83 @@ fn delete_account(cx: &Scoped<'_>) {
                     },
                     | Err(error) => {
                         log::error!("Delete account failed: {:?}", error);
+                    },
+                }
+            }
+        }
+    });
+}
+
+fn link_with_email_password(
+    cx: &Scoped<'_>,
+    email: String,
+    password: String,
+) {
+    // Setup hooks
+    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
+        .unwrap()
+        .clone();
+
+    cx.spawn({
+        async move {
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
+            if let Some(session) = &context.auth_session {
+                log::info!("Link with email password");
+                match session
+                    .clone()
+                    .link_with_email_password(email, password)
+                    .await
+                {
+                    | Ok(new_session) => {
+                        log::info!("Link with email password success");
+                        context.auth_session = Some(new_session);
+                    },
+                    | Err(error) => {
+                        log::error!(
+                            "Link with email password failed: {:?}",
+                            error
+                        );
+                    },
+                }
+            }
+        }
+    });
+}
+
+fn unlink_provider(
+    cx: &Scoped<'_>,
+    provider_id: ProviderId,
+) {
+    // Setup hooks
+    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
+        .unwrap()
+        .clone();
+
+    cx.spawn({
+        async move {
+            let context = context.clone();
+            let context = context.read();
+            let mut context = context.lock().await;
+            if let Some(session) = &context.auth_session {
+                log::info!("Unlink provider: {}", provider_id);
+                match session
+                    .clone()
+                    .unlink_provider(
+                        [provider_id]
+                            .iter()
+                            .cloned()
+                            .collect(),
+                    )
+                    .await
+                {
+                    | Ok(new_session) => {
+                        log::info!("Unlink provider success");
+                        context.auth_session = Some(new_session);
+                    },
+                    | Err(error) => {
+                        log::error!("Unlink provider failed: {:?}", error);
                     },
                 }
             }

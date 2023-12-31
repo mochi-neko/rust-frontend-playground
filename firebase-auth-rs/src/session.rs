@@ -466,7 +466,7 @@ impl AuthSession {
     /// ).await.unwrap();
     ///
     /// let new_session = session.unlink_provider(
-    ///    vec![ ProviderId::Google, ].into_iter().collect(),
+    ///    [ProviderId::Google].iter().cloned().collect(),
     /// ).await.unwrap();
     ///
     /// // Do something with new_session.

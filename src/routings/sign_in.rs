@@ -1,4 +1,5 @@
 use async_std::sync::Mutex;
+use dioxus::hooks::UseSharedState;
 use std::sync::Arc;
 
 use dioxus::prelude::{
@@ -16,9 +17,12 @@ use crate::routings::route::Route;
 #[component(no_case_check)]
 pub(crate) fn SignIn(cx: Scope) -> Element {
     // Setup hooks
+    let context =
+        use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx).unwrap();
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let error_message = use_state::<Option<String>>(cx, || None);
+    let navigator = use_navigator(cx).clone();
 
     render! {
         h1 { "Sign in" }
@@ -54,7 +58,7 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
                 onclick: |_| {
                     if can_sign_in(email, password)
                     {
-                        sign_in(cx, email.get().clone(), password.get().clone(), error_message)
+                        sign_in(cx, context, email.get().clone(), password.get().clone(), error_message)
                     }
                 },
                 MatButton {
@@ -116,8 +120,7 @@ pub(crate) fn SignIn(cx: Scope) -> Element {
 
         div {
             span {
-                onclick: |_| {
-                    let navigator = use_navigator(cx).clone();
+                onclick: move |_| {
                     navigator.push(Route::Home { });
                 },
                 MatButton {
@@ -138,14 +141,12 @@ fn can_sign_in(
 
 fn sign_in(
     cx: &Scoped<'_>,
+    context: &UseSharedState<Arc<Mutex<ApplicationContext>>>,
     email: String,
     password: String,
     error_message: &UseState<Option<String>>,
 ) {
-    // Setup hooks
-    let context = use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx)
-        .unwrap()
-        .clone();
+    let context = context.clone();
     let navigator = use_navigator(cx).clone();
     let error_message = error_message.clone();
 

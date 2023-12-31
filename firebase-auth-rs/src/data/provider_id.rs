@@ -1,7 +1,9 @@
 //! Defines provider IDs.
 
+use std::fmt::Display;
+
 /// ID provider identifiers.
-#[derive(Clone, Copy, Debug, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Hash, Eq)]
 pub enum ProviderId {
     // Password,
     Password,
@@ -15,6 +17,22 @@ pub enum ProviderId {
     Github,
     // Apple OAuth.
     Apple,
+}
+
+impl Display for ProviderId {
+    fn fmt(
+        &self,
+        f: &mut std::fmt::Formatter<'_>,
+    ) -> std::fmt::Result {
+        match self {
+            | ProviderId::Password => write!(f, "Password"),
+            | ProviderId::Google => write!(f, "Google"),
+            | ProviderId::Facebook => write!(f, "Facebook"),
+            | ProviderId::Twitter => write!(f, "Twitter"),
+            | ProviderId::Github => write!(f, "Github"),
+            | ProviderId::Apple => write!(f, "Apple"),
+        }
+    }
 }
 
 impl ProviderId {

@@ -57,7 +57,7 @@ pub struct UnlinkProviderResponsePayload {
     pub local_id: String,
     /// The email of the account.
     #[serde(rename = "email")]
-    pub email: String,
+    pub email: Option<String>,
     /// The display name for the account.
     #[serde(rename = "displayName")]
     pub display_name: Option<String>,
@@ -66,10 +66,10 @@ pub struct UnlinkProviderResponsePayload {
     pub photo_url: Option<String>,
     /// Hash version of the password.
     #[serde(rename = "passwordHash")]
-    pub password_hash: String,
+    pub password_hash: Option<String>,
     /// List of all linked provider objects which contain "providerId" and "federatedId".
     #[serde(rename = "providerUserInfo")]
-    pub provider_user_info: Vec<ProviderUserInfo>,
+    pub provider_user_info: Option<Vec<ProviderUserInfo>>,
     /// Whether or not the account's email has been verified.
     #[serde(rename = "emailVerified")]
     pub email_verified: bool,
@@ -99,7 +99,7 @@ pub struct UnlinkProviderResponsePayload {
 ///
 /// let request_payload = UnlinkProviderRequestBodyPayload::new(
 ///     "id-token".to_string(),
-///     vec![ ProviderId::Google ].into_iter().collect(),
+///     [ProviderId::Google].iter().cloned().collect(),
 /// );
 ///
 /// let response_payload = unlink_provider(
