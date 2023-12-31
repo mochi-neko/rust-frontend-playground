@@ -8,6 +8,22 @@ use crate::error::Error;
 use crate::result::Result;
 
 /// Authentication session for a user of the Firebase Auth.
+///
+/// ## Example
+/// ```
+/// use firebase_auth_rs::auth::AuthConfig;
+///
+/// let config = AuthConfig::new(
+///     "your-firebase-project-api-key".to_string(),
+/// );
+///
+/// let session = config.sign_in_with_email_password(
+///     "user@example".to_string(),
+///     "password".to_string(),
+/// ).await.unwrap();
+///
+/// // Do something with session.
+/// ```
 #[derive(Clone)]
 pub struct AuthSession {
     /// HTTP client.
@@ -161,7 +177,7 @@ macro_rules! call_api_with_refreshing_tokens_without_auth {
     }};
 }
 
-/// Implements public API callings for an `AuthSession` with automatic refreshing tokens.
+// Implements public API callings for an `AuthSession` with automatic refreshing tokens.
 impl AuthSession {
     /// Changes the email for the user.
     ///
@@ -537,7 +553,7 @@ impl AuthSession {
     }
 }
 
-/// Implements internal API callings for an `AuthSession`.
+// Implements internal API callings for an `AuthSession`.
 impl AuthSession {
     async fn refresh_tokens(self) -> Result<Self> {
         // Create request payload.

@@ -1,8 +1,9 @@
 use async_std::sync::Mutex;
+use dioxus::html::{br, GlobalAttributes};
 use dioxus::prelude::{
     component, dioxus_elements, fc_to_builder, render, to_owned, use_future,
     use_shared_state, use_state, Element, IntoDynNode, Scope, Scoped,
-    UseSharedState,
+    UseFuture, UseSharedState, UseState,
 };
 use dioxus_router::hooks::use_navigator;
 use firebase_auth_rs::data::provider_user_info::ProviderUserInfo;
@@ -14,17 +15,23 @@ use std::sync::Arc;
 use crate::application_context::ApplicationContext;
 use crate::routings::route::Route;
 
+enum TabState {
+    Profile,
+    Credentials,
+    DeleteAccount,
+}
+
 #[allow(non_snake_case)]
 #[component(no_case_check)]
 pub(crate) fn Dashboard(cx: Scope) -> Element {
     // Setup hooks
     let context =
         use_shared_state::<Arc<Mutex<ApplicationContext>>>(cx).unwrap();
+    let display_name = use_state(cx, String::new);
+    let photo_url = use_state(cx, String::new);
     let email = use_state(cx, String::new);
     let password = use_state(cx, String::new);
     let confirm_password = use_state(cx, String::new);
-    let display_name = use_state(cx, String::new);
-    let photo_url = use_state(cx, String::new);
 
     let fetch_user_data = use_future(cx, (), move |_| {
         let context = context.clone();
@@ -43,148 +50,12 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
         }
     });
 
+    let tab_state = use_state(cx, || TabState::Profile);
+
     redirect_to_home(cx);
 
     render! {
         h1 { "Dashboard" }
-
-        div {
-            span {
-                onclick: move |_| {
-                    log::info!("Update user data");
-                    fetch_user_data.restart();
-                },
-                MatButton {
-                    label: "Update user data",
-                    outlined: true,
-                }
-            }
-        }
-
-        match fetch_user_data.value() {
-            | None => {
-                render! {
-                    div {
-                        "Loading user data..."
-                    }
-                }
-            },
-            | Some(user_data) => {
-                render_user_data(cx, user_data)
-            },
-        }
-
-        br {}
-
-        h2 { "Update credentials" }
-
-        div {
-            MatTextField {
-                label: "E-mail",
-                value: email.get(),
-                _oninput: {
-                    to_owned![email];
-                    move |event :String| {
-                        email.set(event)
-                    }
-                }
-            }
-        }
-
-        div
-        {
-            span {
-                onclick: |_| change_email(cx, email.get().clone()),
-                MatButton {
-                    label: "Change e-mail",
-                    outlined: true,
-                    disabled: email.get().is_empty(),
-                }
-            }
-        }
-
-        br {}
-
-        div {
-            MatTextField {
-                label: "Password",
-                value: password.get().clone().replace(|_| true, "*"),
-                _oninput: {
-                    to_owned![password];
-                    move |event: String| {
-                        password.set(event)
-                    }
-                }
-            }
-        }
-
-        div {
-            MatTextField {
-                label: "Confirm password",
-                value: confirm_password.get().clone().replace(|_| true, "*"),
-                _oninput: {
-                    to_owned![confirm_password];
-                    move |event: String| {
-                        confirm_password.set(event)
-                    }
-                }
-            }
-        }
-
-        div {
-            span {
-                onclick: |_| change_password(cx, password.get().clone()),
-                MatButton {
-                    label: "Change password",
-                    outlined: true,
-                    disabled: password.get().is_empty()
-                        || confirm_password.get().is_empty(),
-                }
-            }
-        }
-
-        h2 { "Update user profile" }
-
-        div {
-            MatTextField {
-                label: "Display name",
-                value: display_name.get(),
-                _oninput: {
-                    to_owned![display_name];
-                    move |event :String| {
-                        display_name.set(event)
-                    }
-                }
-            }
-        }
-
-        div {
-            MatTextField {
-                label: "Photo URL",
-                value: photo_url.get(),
-                _oninput: {
-                    to_owned![photo_url];
-                    move |event :String| {
-                        photo_url.set(event)
-                    }
-                }
-            }
-        }
-
-        div {
-            span {
-                onclick: |_| {
-                    update_profile(cx, display_name.get().clone(), photo_url.get().clone());
-                    fetch_user_data.restart();
-                },
-                MatButton {
-                    label: "Update profile",
-                    outlined: true,
-                }
-            }
-        }
-
-        br {}
 
         div {
             span {
@@ -196,12 +67,245 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
             }
         }
 
+        br {}
+
         div {
             span {
-                onclick: |_| delete_account(cx),
+                onclick: |_| tab_state.set(TabState::Profile),
+                MatButton {
+                    label: "Profile",
+                    outlined: true,
+                    disabled: matches!(tab_state.get(), TabState::Profile),
+                }
+            }
+
+            span {
+                onclick: |_| tab_state.set(TabState::Credentials),
+                MatButton {
+                    label: "Credentials",
+                    outlined: true,
+                    disabled: matches!(tab_state.get(), TabState::Credentials),
+                }
+            }
+
+            span {
+                onclick: |_| tab_state.set(TabState::DeleteAccount),
                 MatButton {
                     label: "Delete account",
                     outlined: true,
+                    disabled: matches!(tab_state.get(), TabState::DeleteAccount),
+                }
+            }
+        }
+
+        br {}
+
+        match tab_state.get() {
+            | TabState::Profile => {
+                render_profile_tab(cx, display_name, photo_url, fetch_user_data)
+            },
+            | TabState::Credentials => {
+                render_credentials_tab(cx, email, password, confirm_password)
+            },
+            | TabState::DeleteAccount => {
+                render_delete_account_tab(cx)
+            },
+        }
+    }
+}
+
+fn render_profile_tab<'a>(
+    cx: Scope<'a>,
+    display_name: &'a UseState<String>,
+    photo_url: &'a UseState<String>,
+    fetch_user_data: &'a UseFuture<Option<UserData>>,
+) -> Element<'a> {
+    render! {
+        render! {
+            div {
+                outline: "1px solid green",
+                padding: "10px",
+
+                h2 { "Profile" }
+
+                match fetch_user_data.value() {
+                    | None => {
+                        render! {
+                            div {
+                                "Loading user data..."
+                            }
+                        }
+                    },
+                    | Some(user_data) => {
+                        render_user_data(cx, user_data)
+                    },
+                }
+
+                br {}
+
+                div {
+                    span {
+                        onclick: move |_| {
+                            log::info!("Update user data");
+                            fetch_user_data.restart();
+                        },
+                        MatButton {
+                            label: "Update user data",
+                            outlined: true,
+                        }
+                    }
+                }
+
+                br {}
+
+                div {
+                    MatTextField {
+                        label: "Display name",
+                        value: display_name.get(),
+                        _oninput: {
+                            to_owned![display_name];
+                            move |event :String| {
+                                display_name.set(event)
+                            }
+                        }
+                    }
+                }
+
+                div {
+                    MatTextField {
+                        label: "Photo URL",
+                        value: photo_url.get(),
+                        _oninput: {
+                            to_owned![photo_url];
+                            move |event :String| {
+                                photo_url.set(event)
+                            }
+                        }
+                    }
+                }
+
+                div {
+                    span {
+                        onclick: |_| {
+                            update_profile(cx, display_name.get().clone(), photo_url.get().clone());
+                            fetch_user_data.restart();
+                        },
+                        MatButton {
+                            label: "Update profile",
+                            outlined: true,
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn render_credentials_tab<'a>(
+    cx: Scope<'a>,
+    email: &'a UseState<String>,
+    password: &'a UseState<String>,
+    confirm_password: &'a UseState<String>,
+) -> Element<'a> {
+    render! {
+        div {
+            outline: "1px solid green",
+            padding: "10px",
+
+            h2 { "Update credentials" }
+
+            div {
+                MatTextField {
+                    label: "E-mail",
+                    value: email.get(),
+                    _oninput: {
+                        to_owned![email];
+                        move |event :String| {
+                            email.set(event)
+                        }
+                    }
+                }
+            }
+
+            div
+            {
+                span {
+                    onclick: |_| change_email(cx, email.get().clone()),
+                    MatButton {
+                        label: "Change e-mail",
+                        outlined: true,
+                        disabled: email.get().is_empty(),
+                    }
+                }
+            }
+
+            br {}
+
+            div {
+                MatTextField {
+                    label: "Password",
+                    value: password.get().clone().replace(|_| true, "*"),
+                    _oninput: {
+                        to_owned![password];
+                        move |event: String| {
+                            password.set(event)
+                        }
+                    }
+                }
+            }
+
+            div {
+                MatTextField {
+                    label: "Confirm password",
+                    value: confirm_password.get().clone().replace(|_| true, "*"),
+                    _oninput: {
+                        to_owned![confirm_password];
+                        move |event: String| {
+                            confirm_password.set(event)
+                        }
+                    }
+                }
+            }
+
+            div {
+                span {
+                    onclick: |_| change_password(cx, password.get().clone()),
+                    MatButton {
+                        label: "Change password",
+                        outlined: true,
+                        disabled: password.get().is_empty()
+                            || confirm_password.get().is_empty(),
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn render_delete_account_tab(cx: Scope) -> Element {
+    render! {
+        div {
+            outline: "1px solid green",
+            padding: "10px",
+
+            h2 { "Delete account" }
+
+            div {
+                color: "red",
+                label {
+                    "Are you sure you want to delete your account?"
+                }
+            }
+
+            br {}
+
+            div {
+                span {
+                    onclick: |_| delete_account(cx),
+                    MatButton {
+                        label: "Delete Account",
+                        outlined: true,
+                    }
                 }
             }
         }
@@ -221,17 +325,6 @@ fn render_user_data<'a>(
             }
         },
         | Some(user_data) => render! {
-            div {
-                span {
-                    onclick: |_| send_email_verification(cx),
-                    MatButton {
-                        label: "Send email verification",
-                        outlined: true,
-                        disabled: user_data.email_verified.unwrap_or(true),
-                    }
-                }
-            }
-
             h2 { "User info" }
 
             div {
@@ -297,6 +390,19 @@ fn render_user_data<'a>(
             div {
                 "Custom auth: "
                 span { user_data.custom_auth.unwrap_or(false).to_string() }
+            }
+
+            br {}
+
+            div {
+                span {
+                    onclick: |_| send_email_verification(cx),
+                    MatButton {
+                        label: "Send email verification",
+                        outlined: true,
+                        disabled: user_data.email_verified.unwrap_or(true),
+                    }
+                }
             }
         },
     }
