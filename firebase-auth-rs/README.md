@@ -91,6 +91,8 @@ async fn main() -> anyhow::Result<()> {
     ).await?;
 
     // Do something with the response payload.
+
+    Ok(())
 }
 ```
 
@@ -132,6 +134,8 @@ async fn main() -> anyhow::Result<()> {
     let (new_session, user_data) = session.get_user_data().await?;
 
     // Do something with new_session and user_data.
+
+    Ok(())
 }
 ```
 
@@ -157,6 +161,8 @@ async fn main() -> anyhow::Result<()> {
         "user@example".to_string(),
         None, // Option: Locale
     ).await;
+
+    Ok(())
 }
 ```
 
