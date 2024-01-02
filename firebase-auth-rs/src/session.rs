@@ -30,7 +30,7 @@ pub struct AuthSession {
     /// Firebase project API key.
     pub(crate) api_key: String,
     /// Firebase Auth ID token.
-    pub(crate) id_token: String,
+    pub id_token: String,
     /// The number of seconds in which the ID token expires.
     #[allow(dead_code)] // NOTE: This field may be used in the future.
     pub(crate) expires_in: u64,
