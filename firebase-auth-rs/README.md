@@ -27,8 +27,8 @@ Suppoted APIs of the [Firebase Auth REST API](https://firebase.google.com/docs/r
 - [ ] (Not tested) [Confirm email verification](https://firebase.google.com/docs/reference/rest/auth#section-confirm-email-verification)
 - [x] [Delete account](https://firebase.google.com/docs/reference/rest/auth#section-delete-account)
 
-[!NOTE]
-Unsupported APIs have already been implemented but not tested.
+> [!NOTE]
+> Unsupported APIs have already been implemented but not tested.
 
 ## Supported OAuth ID providers
 
@@ -45,8 +45,8 @@ Supported OAuth ID provides
 - [ ] (Not tested) Twitter (`twitter.com`)
 - [ ] Yahoo (`yahoo.com`)
 
-[!NOTE]
-Unsupported providers have either not been tested or the format of `IdpPostBody` is not documented.
+> [!NOTE]
+> Unsupported providers have either not been tested or the format of `IdpPostBody` is not documented.
 
 ## Usages
 
@@ -98,11 +98,11 @@ async fn main() -> anyhow::Result<()> {
 
 You can use semantic interface based on a session (`firebase_auth_rs::session::AuthSession`) as following steps.
 
-[!IMPORTANT]
-1. ID token (`firebase_auth_rs::session::AuthSession.id_token`) has expiration date.
-2. API calling through a session automatically refresh an ID token by the [refresh token API](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token) when the ID token has been expired.
-3. All APIs through session cosume session and return new session that has same ID token or refreshed one except for the [delete account API](https://firebase.google.com/docs/reference/rest/auth#section-delete-account).
-4. Therefore you have to **update** session every time you use APIs through a session by returned new session.
+> [!IMPORTANT]
+> 1. ID token (`firebase_auth_rs::session::AuthSession.id_token`) has expiration date.
+> 2. API calling through a session automatically refresh an ID token by the [refresh token API](https://firebase.google.com/docs/reference/rest/auth#section-refresh-token) when the ID token has been expired.
+> 3. All APIs through session cosume session and return new session that has same ID token or refreshed one except for the [delete account API](https://firebase.google.com/docs/reference/rest/auth#section-delete-account).
+> 4. Therefore you have to **update** session every time you use APIs through a session by returned new session.
 
 #### 2-1. A usage for logged in user
 
