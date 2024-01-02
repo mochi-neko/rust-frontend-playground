@@ -169,15 +169,15 @@ fn sign_in(
                 | Err(error) => {
                     log::error!("Sign in failed: {:?}", error);
                     match error {
-                        | firebase_auth_rs::error::Error::ApiError {
+                        | fars::error::Error::ApiError {
                             status_code: _,
                             error_code,
                             response: _,
                         } => match error_code {
-                            | firebase_auth_rs::error::CommonErrorCode::InvalidLoginCredentials => {
+                            | fars::error::CommonErrorCode::InvalidLoginCredentials => {
                                 error_message.set(Some("Error: Invalid email or password.".to_string()));
                             },
-                            | firebase_auth_rs::error::CommonErrorCode::UserDisabled => {
+                            | fars::error::CommonErrorCode::UserDisabled => {
                                 error_message.set(Some("Error: User disabled.".to_string()));
                             },
                             | _ => {

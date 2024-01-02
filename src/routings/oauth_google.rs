@@ -6,9 +6,7 @@ use dioxus::prelude::{
     component, dioxus_elements, render, use_shared_state, Element, Props, Scope,
 };
 use dioxus_router::prelude::{use_navigator, FromQuery};
-use firebase_auth_rs::{
-    config::AuthConfig, data::IdpPostBody, session::AuthSession,
-};
+use fars::{config::AuthConfig, data::IdpPostBody, session::AuthSession};
 use google_oauth_rs::api::exchange_access_token::{
     ExchangeAccessTokenRequestParameters, GrandType,
 };

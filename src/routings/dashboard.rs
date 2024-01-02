@@ -5,7 +5,7 @@ use dioxus::prelude::{
     Scoped, UseFuture, UseSharedState, UseState,
 };
 use dioxus_router::hooks::use_navigator;
-use firebase_auth_rs::{
+use fars::{
     data::{ProviderId, ProviderUserInfo, UserData},
     session::AuthSession,
 };

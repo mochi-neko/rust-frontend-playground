@@ -244,18 +244,18 @@ fn sign_up(
             | Err(error) => {
                 log::error!("Sign up failed: {:?}", error);
                 match error {
-                    | firebase_auth_rs::error::Error::ApiError {
+                    | fars::error::Error::ApiError {
                         status_code: _,
                         error_code,
                         response: _,
                     } => match error_code {
-                        | firebase_auth_rs::error::CommonErrorCode::EmailExists => {
+                        | fars::error::CommonErrorCode::EmailExists => {
                             error_message.set(Some("Error: E-mail address already exists.".to_string()));
                         },
-                        | firebase_auth_rs::error::CommonErrorCode::OperationNotAllowed => {
+                        | fars::error::CommonErrorCode::OperationNotAllowed => {
                             error_message.set(Some("Error: Operation not allowed.".to_string()));
                         },
-                        | firebase_auth_rs::error::CommonErrorCode::TooManyAttemptsTryLater => {
+                        | fars::error::CommonErrorCode::TooManyAttemptsTryLater => {
                             error_message.set(Some("Error: Too many attempts. Please try again later.".to_string()));
                         },
                         | _ => {

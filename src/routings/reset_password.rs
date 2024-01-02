@@ -111,7 +111,11 @@ fn send_send_password_reset_email(
             let context = context.clone();
             let context = context.read();
             let context = context.lock().await;
-            match context.auth_config.send_reset_password_email(email, None).await {
+            match context
+                .auth_config
+                .send_reset_password_email(email, None)
+                .await
+            {
                 | Ok(_) => {
                     log::info!("Send password reset email success");
                     error_message.set(None);
@@ -120,20 +124,27 @@ fn send_send_password_reset_email(
                 | Err(error) => {
                     log::error!("Sign up failed: {:?}", error);
                     match error {
-                        | firebase_auth_rs::error::Error::ApiError {
+                        | fars::error::Error::ApiError {
                             status_code: _,
                             error_code,
                             response: _,
                         } => match error_code {
-                            | firebase_auth_rs::error::CommonErrorCode::EmailNotFound => {
-                                error_message.set(Some("Error: E-mail address not found.".to_string()));
+                            | fars::error::CommonErrorCode::EmailNotFound => {
+                                error_message.set(Some(
+                                    "Error: E-mail address not found."
+                                        .to_string(),
+                                ));
                             },
                             | _ => {
-                                error_message.set(Some("Error: Internal error.".to_string()));
+                                error_message.set(Some(
+                                    "Error: Internal error.".to_string(),
+                                ));
                             },
                         },
                         | _ => {
-                            error_message.set(Some("Error: Internal error.".to_string()));
+                            error_message.set(Some(
+                                "Error: Internal error.".to_string(),
+                            ));
                         },
                     }
                 },

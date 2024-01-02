@@ -684,6 +684,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "fars"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "fast-srgb8"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -703,16 +713,6 @@ name = "fastrand"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25cbce373ec4653f1a01a31e8a5e5ec0c622dc27ff9c4e6606eefef5cbbed4a5"
-
-[[package]]
-name = "firebase-auth-rs"
-version = "0.1.0"
-dependencies = [
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
-]
 
 [[package]]
 name = "fnv"
@@ -1992,7 +1992,7 @@ dependencies = [
  "dioxus-logger",
  "dioxus-router",
  "dioxus-web",
- "firebase-auth-rs",
+ "fars",
  "google-oauth-rs",
  "log",
  "material-dioxus",
