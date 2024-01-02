@@ -686,6 +686,7 @@ dependencies = [
 [[package]]
 name = "fars"
 version = "0.1.0"
+source = "git+https://github.com/mochi-neko/fars#aa98c2fd5d7ed15df07b44f641b1e7fa7c220bad"
 dependencies = [
  "reqwest",
  "serde",
