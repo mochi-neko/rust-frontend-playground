@@ -1,12 +1,14 @@
 //! Implements the confirm email verification API of the Firebase Auth API.
 //!
+//! You can confirm an email verification code by issuing an HTTP POST request to the Auth setAccountInfo endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-email-verification).
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    client, data::provider_user_info::ProviderUserInfo, result::Result,
-};
+use crate::client;
+use crate::data::ProviderUserInfo;
+use crate::result::Result;
 
 /// Request body payload for the confirm email verification API.
 ///

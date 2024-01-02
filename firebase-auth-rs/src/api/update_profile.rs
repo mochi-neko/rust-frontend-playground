@@ -1,11 +1,13 @@
-/// Implements the update profile API of the Firebase Auth API.
-///
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-update-profile).
+//! Implements the update profile API of the Firebase Auth API.
+//!
+//! You can update a user's profile (display name / photo URL) by issuing an HTTP POST request to the Auth setAccountInfo endpoint.
+//!
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-update-profile).
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    client, data::provider_user_info::ProviderUserInfo, result::Result,
-};
+use crate::client;
+use crate::data::ProviderUserInfo;
+use crate::result::Result;
 
 /// Request body payload for the update profile API.
 ///

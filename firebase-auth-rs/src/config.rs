@@ -1,5 +1,6 @@
 //! Configuration for the Firebase Auth.
 
+use crate::data::IdpPostBody;
 use crate::error::Error;
 use crate::result::Result;
 use crate::session::AuthSession;
@@ -22,7 +23,7 @@ impl AuthConfig {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -55,7 +56,7 @@ impl AuthConfig {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -115,7 +116,7 @@ impl AuthConfig {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -171,7 +172,7 @@ impl AuthConfig {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -224,8 +225,8 @@ impl AuthConfig {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
-    /// use firebase_auth_rs::api::sign_in_with_oauth_credential::IdpPostBody;
+    /// use firebase_auth_rs::config::AuthConfig;
+    /// use firebase_auth_rs::data::IdpPostBody;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -243,7 +244,7 @@ impl AuthConfig {
     pub async fn sign_in_oauth_credencial(
         &self,
         request_uri: String,
-        post_body: crate::data::idp_post_body::IdpPostBody,
+        post_body: IdpPostBody,
     ) -> Result<AuthSession> {
         // Create a HTTP client.
         let client = self.build_client()?;
@@ -290,7 +291,7 @@ impl AuthConfig {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -349,7 +350,7 @@ impl AuthConfig {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -397,7 +398,7 @@ impl AuthConfig {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),

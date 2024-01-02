@@ -5,10 +5,10 @@ use dioxus::prelude::{
     Scoped, UseFuture, UseSharedState, UseState,
 };
 use dioxus_router::hooks::use_navigator;
-use firebase_auth_rs::data::provider_id::ProviderId;
-use firebase_auth_rs::data::provider_user_info::ProviderUserInfo;
-use firebase_auth_rs::data::user_data::UserData;
-use firebase_auth_rs::session::AuthSession;
+use firebase_auth_rs::{
+    data::{ProviderId, ProviderUserInfo, UserData},
+    session::AuthSession,
+};
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
 use std::sync::Arc;
 

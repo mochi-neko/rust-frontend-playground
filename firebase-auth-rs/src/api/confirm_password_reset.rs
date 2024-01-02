@@ -1,10 +1,13 @@
 //! Implements the confirm password reset API of the Firebase Auth.
 //!
+//! You can apply a password reset change by issuing an HTTP POST request to the Auth resetPassword endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-confirm-password-reset).
 
 use serde::{Deserialize, Serialize};
 
-use crate::{client, result::Result};
+use crate::client;
+use crate::result::Result;
 
 /// Request body payload for the confirm password reset API.
 ///

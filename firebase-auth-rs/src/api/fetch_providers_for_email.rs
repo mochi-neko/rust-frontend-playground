@@ -1,10 +1,13 @@
 //! Implements the fetch providers for email API of the Firebase Auth.
 //!
+//! You can look all providers associated with a specified email by issuing an HTTP POST request to the Auth createAuthUri endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-fetch-providers-for-email).
 
 use serde::{Deserialize, Serialize};
 
-use crate::{client, result::Result};
+use crate::client;
+use crate::result::Result;
 
 /// Request body payload for the fetch providers for email API.
 ///

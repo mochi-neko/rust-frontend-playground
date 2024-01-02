@@ -2,8 +2,7 @@
 
 use std::collections::HashSet;
 
-use crate::data::provider_id::ProviderId;
-use crate::data::user_data::UserData;
+use crate::data::{ProviderId, UserData};
 use crate::error::Error;
 use crate::result::Result;
 
@@ -11,7 +10,7 @@ use crate::result::Result;
 ///
 /// ## Example
 /// ```
-/// use firebase_auth_rs::auth::AuthConfig;
+/// use firebase_auth_rs::config::AuthConfig;
 ///
 /// let config = AuthConfig::new(
 ///     "your-firebase-project-api-key".to_string(),
@@ -192,7 +191,7 @@ impl AuthSession {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -236,7 +235,7 @@ impl AuthSession {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -279,7 +278,7 @@ impl AuthSession {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -324,7 +323,7 @@ impl AuthSession {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -360,7 +359,7 @@ impl AuthSession {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     /// use firebase_auth_rs::api::sign_in_with_oauth_credential::IdpPostBody;
     ///
     /// let config = AuthConfig::new(
@@ -408,7 +407,8 @@ impl AuthSession {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
+    /// use firebase_auth_rs::data::IdpPostBody;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -430,7 +430,7 @@ impl AuthSession {
     pub async fn link_with_oauth_credential(
         self,
         request_uri: String,
-        post_body: crate::data::idp_post_body::IdpPostBody,
+        post_body: crate::data::IdpPostBody,
     ) -> Result<AuthSession> {
         call_api_with_refreshing_tokens_with_return_auth!(
             self,
@@ -454,8 +454,8 @@ impl AuthSession {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
-    /// use firebase_auth_rs::data::provider_id::ProviderId;
+    /// use firebase_auth_rs::config::AuthConfig;
+    /// use firebase_auth_rs::data::ProviderId;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -496,7 +496,7 @@ impl AuthSession {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -531,7 +531,7 @@ impl AuthSession {
     ///
     /// ## Example
     /// ```
-    /// use firebase_auth_rs::auth::AuthConfig;
+    /// use firebase_auth_rs::config::AuthConfig;
     ///
     /// let config = AuthConfig::new(
     ///     "your-firebase-project-api-key".to_string(),
@@ -743,7 +743,7 @@ impl AuthSession {
     async fn link_with_oauth_credential_internal(
         &self,
         request_uri: String,
-        post_body: crate::data::idp_post_body::IdpPostBody,
+        post_body: crate::data::IdpPostBody,
     ) -> Result<Self> {
         // Create request payload.
         let request_payload =

@@ -1,12 +1,14 @@
 //! Implements the link with email password API of the Firebase Auth.
 //!
+//! You can link an email/password to a current user by issuing an HTTP POST request to the Auth setAccountInfo endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-email-password).
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    client, data::provider_user_info::ProviderUserInfo, result::Result,
-};
+use crate::client;
+use crate::data::ProviderUserInfo;
+use crate::result::Result;
 
 /// Request body payload for the link with email password API.
 ///

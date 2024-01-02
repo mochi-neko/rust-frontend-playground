@@ -1,11 +1,14 @@
 //! Implements the sign in with OAuth credential API of Firebase Auth.
 //!
+//! You can sign in a user with an OAuth credential by issuing an HTTP POST request to the Auth verifyAssertion endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-with-oauth-credential).
 
 use serde::{Deserialize, Serialize};
 
-use crate::data::idp_post_body::IdpPostBody;
-use crate::{client, result::Result};
+use crate::client;
+use crate::data::IdpPostBody;
+use crate::result::Result;
 
 /// Request body payload for the sign in with OAuth credential API.
 ///

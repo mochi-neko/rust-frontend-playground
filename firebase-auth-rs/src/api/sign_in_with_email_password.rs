@@ -1,10 +1,13 @@
 //! Implements the sign in with email password API of Firebase Auth.
 //!
+//! You can sign in a user with an email and password by issuing an HTTP POST request to the Auth verifyPassword endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
 
 use serde::{Deserialize, Serialize};
 
-use crate::{client, result::Result};
+use crate::client;
+use crate::result::Result;
 
 /// Request body payload for the sign in with email password API.
 ///

@@ -1,10 +1,13 @@
 //! Implements the send email verification API of the Firebase Auth.
 //!
+//! You can send an email verification for the current user by issuing an HTTP POST request to the Auth getOobConfirmationCode endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-email-verification)
 
 use serde::{Deserialize, Serialize};
 
-use crate::{client, result::Result};
+use crate::client;
+use crate::result::Result;
 
 /// Request body payload for the send email verification API.
 ///

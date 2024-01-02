@@ -1,10 +1,13 @@
 //! Implements the sign up with email password API of Firebase Auth.
 //!
+//! You can create a new email and password user by issuing an HTTP POST request to the Auth signupNewUser endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-create-email-password).
 
 use serde::{Deserialize, Serialize};
 
-use crate::{client, result::Result};
+use crate::client;
+use crate::result::Result;
 
 /// Request body payload for the sign up with email password API.
 ///

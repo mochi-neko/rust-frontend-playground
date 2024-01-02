@@ -1,10 +1,13 @@
 //! Implements the delete account API of the Firebase Auth.
 //!
+//! You can delete a current user by issuing an HTTP POST request to the Auth deleteAccount endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-delete-account)
 
 use serde::{Deserialize, Serialize};
 
-use crate::{client, result::Result};
+use crate::client;
+use crate::result::Result;
 
 /// Request body payload for the delete account API.
 ///

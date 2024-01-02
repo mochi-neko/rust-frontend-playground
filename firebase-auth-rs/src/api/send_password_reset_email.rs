@@ -1,10 +1,13 @@
 //! Implements the send password reset email API of the Firebase Auth.
 //!
+//! You can send a password reset email by issuing an HTTP POST request to the Auth getOobConfirmationCode endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-send-password-reset-email)
 
 use serde::{Deserialize, Serialize};
 
-use crate::{client, result::Result};
+use crate::client;
+use crate::result::Result;
 
 /// Request body payload for the send password reset email API.
 ///

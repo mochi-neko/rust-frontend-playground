@@ -1,12 +1,14 @@
 //! Implements the change email API of the Firebase Auth.
 //!
+//! You can change a user's email by issuing an HTTP POST request to the Auth setAccountInfo endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-change-email).
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    client, data::provider_user_info::ProviderUserInfo, result::Result,
-};
+use crate::client;
+use crate::data::ProviderUserInfo;
+use crate::result::Result;
 
 /// Request body payload for the change email API.
 ///

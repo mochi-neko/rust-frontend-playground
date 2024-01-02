@@ -1,16 +1,16 @@
 //! Implements the unlink provider API of the Firebase Auth.
 //!
+//! You can unlink a provider from a current user by issuing an HTTP POST request to the Auth setAccountInfo endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-unlink-provider).
 
 use std::collections::HashSet;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    client,
-    data::{provider_id::ProviderId, provider_user_info::ProviderUserInfo},
-    result::Result,
-};
+use crate::client;
+use crate::data::{ProviderId, ProviderUserInfo};
+use crate::result::Result;
 
 /// Request body payload for the unlink provider API.
 ///
@@ -95,7 +95,7 @@ pub struct UnlinkProviderResponsePayload {
 /// use firebase_auth_rs::api::unlink_provider::{
 ///     UnlinkProviderRequestBodyPayload, unlink_provider,
 /// };
-/// use firebase_auth_rs::data::provider_id::ProviderId;
+/// use firebase_auth_rs::data::ProviderId;
 ///
 /// let request_payload = UnlinkProviderRequestBodyPayload::new(
 ///     "id-token".to_string(),

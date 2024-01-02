@@ -1,10 +1,14 @@
 //! Implements the get user data API of the Firebase Auth.
 //!
+//! You can get a user's data by issuing an HTTP POST request to the Auth getAccountInfo endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-get-account-info)
 
 use serde::{Deserialize, Serialize};
 
-use crate::{client, data::user_data::UserData, result::Result};
+use crate::client;
+use crate::data::UserData;
+use crate::result::Result;
 
 /// Request body payload for the get user data API.
 ///

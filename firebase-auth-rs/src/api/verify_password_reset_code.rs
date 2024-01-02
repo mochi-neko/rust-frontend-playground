@@ -1,9 +1,12 @@
-/// Implements the verify password reset code API of the Firebase Auth.
-///
-/// See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-password-reset-code)
+//! Implements the verify password reset code API of the Firebase Auth.
+//!
+//! You can verify a password reset code by issuing an HTTP POST request to the Auth resetPassword endpoint.
+//!
+//! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-password-reset-code)
 use serde::{Deserialize, Serialize};
 
-use crate::{client, result::Result};
+use crate::client;
+use crate::result::Result;
 
 /// Request body payload for the verify password reset code API.
 ///

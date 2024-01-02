@@ -7,7 +7,7 @@ use dioxus::prelude::{
 };
 use dioxus_router::prelude::{use_navigator, FromQuery};
 use firebase_auth_rs::{
-    config::AuthConfig, data::idp_post_body::IdpPostBody, session::AuthSession,
+    config::AuthConfig, data::IdpPostBody, session::AuthSession,
 };
 use google_oauth_rs::api::exchange_access_token::{
     ExchangeAccessTokenRequestParameters, GrandType,

@@ -1,10 +1,13 @@
 //! Implements the exchange custom token for an ID and refresh token API of Firebase Auth.
 //!
+//! You can exchange a custom Auth token for an ID and refresh token by issuing an HTTP POST request to the Auth verifyCustomToken endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-verify-custom-token).
 
 use serde::{Deserialize, Serialize};
 
-use crate::{client, result::Result};
+use crate::client;
+use crate::result::Result;
 
 /// Request body payload for the exchange custom token for an ID and refresh token API.
 ///

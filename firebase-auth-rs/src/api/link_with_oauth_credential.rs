@@ -1,11 +1,14 @@
 //! Implements the link with OAuth credential API of the Firebase Auth.
 //!
+//! You can link an OAuth credential to a user by issuing an HTTP POST request to the Auth verifyAssertion endpoint.
+//!
 //! See also [API reference](https://firebase.google.com/docs/reference/rest/auth#section-link-with-oauth-credential).
 
 use serde::{Deserialize, Serialize};
 
-use crate::data::idp_post_body::IdpPostBody;
-use crate::{client, result::Result};
+use crate::client;
+use crate::data::IdpPostBody;
+use crate::result::Result;
 
 /// Request body payload for the link with OAuth credential API.
 ///
