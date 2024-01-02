@@ -166,6 +166,10 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
+## Error handling
+
+TODO:
+
 ## Changelog
 
 See [CHANGELOG](./CHANGELOG.md).

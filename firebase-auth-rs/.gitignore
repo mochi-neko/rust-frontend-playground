@@ -21,3 +21,6 @@ dist/
 
 # for Rust Rover
 .idea
+
+# for VSCode
+.vscode
