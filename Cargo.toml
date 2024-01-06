@@ -17,7 +17,7 @@ dioxus-router = "0.4.3"
 dioxus-web = "0.4.3"
 log = "0.4.20"
 material-dioxus = { version = "0.0.3-dev", features = ["full"] }
-fars = { git = "https://github.com/mochi-neko/fars" }
+fars = "0.1.0"
 google-oauth-rs = { path = "google-oauth-rs" }
 reqwest = "0.11.22"
 thiserror = "1.0.51"

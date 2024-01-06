@@ -686,7 +686,8 @@ dependencies = [
 [[package]]
 name = "fars"
 version = "0.1.0"
-source = "git+https://github.com/mochi-neko/fars#b29093233193620108575675bd5a93d296f5c196"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cc6ffdf9208e62c145236e419eda32052e658286ed8b88f603dba2608092dc9c"
 dependencies = [
  "reqwest",
  "serde",
