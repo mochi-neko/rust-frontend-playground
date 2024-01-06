@@ -7,7 +7,7 @@ use dioxus::prelude::{
 use dioxus_router::hooks::use_navigator;
 use fars::{
     data::{ProviderId, ProviderUserInfo, UserData},
-    session::AuthSession,
+    Session,
 };
 use material_dioxus::{button::MatButton, text_inputs::MatTextField};
 use std::sync::Arc;
@@ -42,7 +42,7 @@ pub(crate) fn Dashboard(cx: Scope) -> Element {
             let context = context.clone();
             let context = context.read();
             let mut context = context.lock().await;
-            let session: Option<AuthSession> = context.auth_session.clone();
+            let session: Option<Session> = context.auth_session.clone();
             match fetch_user_data_helper(session).await {
                 | Some((new_session, user_data)) => {
                     context.auth_session = Some(new_session);
@@ -543,12 +543,12 @@ fn render_provider_user_info<'a>(
 }
 
 async fn fetch_user_data_helper(
-    auth_option: Option<AuthSession>
-) -> Option<(AuthSession, UserData)> {
+    auth_option: Option<Session>
+) -> Option<(Session, UserData)> {
     match auth_option {
-        | Some(auth) => {
+        | Some(session) => {
             log::info!("Get user data");
-            match auth.get_user_data().await {
+            match session.get_user_data().await {
                 | Ok((new_auth, user_data)) => {
                     log::info!("Get user data success");
                     Some((new_auth, user_data))
@@ -706,7 +706,7 @@ fn update_profile(
                 log::info!("Update profile");
                 match session
                     .clone()
-                    .update_profile(display_name, photo_url, vec![])
+                    .update_profile(Some(display_name), Some(photo_url))
                     .await
                 {
                     | Ok(new_session) => {

@@ -252,7 +252,7 @@ fn sign_up(
                         | fars::error::CommonErrorCode::EmailExists => {
                             error_message.set(Some("Error: E-mail address already exists.".to_string()));
                         },
-                        | fars::error::CommonErrorCode::OperationNotAllowed => {
+                        | fars::error::CommonErrorCode::OperationNotAllowed(_message) => {
                             error_message.set(Some("Error: Operation not allowed.".to_string()));
                         },
                         | fars::error::CommonErrorCode::TooManyAttemptsTryLater => {

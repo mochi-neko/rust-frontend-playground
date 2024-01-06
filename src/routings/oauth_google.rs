@@ -6,7 +6,7 @@ use dioxus::prelude::{
     component, dioxus_elements, render, use_shared_state, Element, Props, Scope,
 };
 use dioxus_router::prelude::{use_navigator, FromQuery};
-use fars::{config::AuthConfig, data::IdpPostBody, session::AuthSession};
+use fars::{data::IdpPostBody, Config, Session};
 use google_oauth_rs::api::exchange_access_token::{
     ExchangeAccessTokenRequestParameters, GrandType,
 };
@@ -189,9 +189,9 @@ impl FromQuery for RedirectToAuthServerResponseErrorQuery {
 }
 
 async fn sign_in_with_google(
-    auth_config: AuthConfig,
+    auth_config: Config,
     auth_code: String,
-) -> anyhow::Result<AuthSession> {
+) -> anyhow::Result<Session> {
     let client = reqwest::ClientBuilder::new().build()?;
 
     let request_parameter = ExchangeAccessTokenRequestParameters {
@@ -212,7 +212,7 @@ async fn sign_in_with_google(
     log::info!("Exchange access token success");
 
     let session = auth_config
-        .sign_in_oauth_credencial(
+        .sign_in_with_oauth_credential(
             "http://localhost:8080/auth/google-callback".to_string(),
             IdpPostBody::Google {
                 id_token: token_response.id_token,
